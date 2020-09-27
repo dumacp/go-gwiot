@@ -1,0 +1,41 @@
+syntax = "proto3";
+package messages;
+// import "github.com/AsynkronIT/protoactor-go/actor/protos.proto";
+
+
+message Start {}
+
+message Stop {}
+
+message Restart {}
+
+message StatusRequest {
+    string Sender = 1;
+}
+message StatusResponse {
+    enum StateType {
+        STARTED = 0;
+        STOPPED = 1;
+        UNKNOWN = 2;
+    }
+    StateType State = 1;
+}
+
+message TokenRequest {}
+message TokenResponse {
+    bytes Token = 1;
+}
+
+message KeycloakAddressRequest {}
+message KeycloakAddressResponse {}
+
+message RemoteMSG {
+    bytes Data = 1;
+}
+
+message RemoteSnapshot {
+    int64 TimeStamp = 1;
+    RemoteMSG LastMSG = 2;
+}
+
+
