@@ -35,7 +35,7 @@ message RemoteMSG {
 
 message RemoteSnapshot {
     int64 TimeStamp = 1;
-    RemoteMSG LastMSG = 2;
+    repeated RemoteMSG LastMSG = 2;
 }
 
 

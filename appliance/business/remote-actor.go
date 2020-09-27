@@ -30,7 +30,8 @@ const (
 //RemoteActor remote actor
 type RemoteActor struct {
 	persistence.Mixin
-	lastMSG     *messages.RemoteMSG
+	lastMSG *messages.RemoteMSG
+	// lastBackMSG *messages.RemoteMSG
 	ctx         actor.Context
 	pidKeycloak *actor.PID
 	client      mqtt.Client
@@ -40,16 +41,16 @@ type RemoteActor struct {
 }
 
 func (ps *RemoteActor) putMSG(msg *messages.RemoteMSG) {
-	if ps.queueMSG != nil && len(ps.queueMSG) > 200 {
-		lastMSGs := ps.queueMSG[100:]
+	if ps.queueMSG != nil && len(ps.queueMSG) > 100 {
+		lastMSGs := ps.queueMSG[50:]
 		ps.queueMSG = lastMSGs
 	}
 	ps.queueMSG = append(ps.queueMSG, msg)
 }
 
-func (ps *RemoteActor) deleteMSG() {
-	if ps.queueMSG != nil && len(ps.queueMSG) > 0 {
-		lastMSGs := ps.queueMSG[1:]
+func (ps *RemoteActor) deleteMSG(n uint) {
+	if ps.queueMSG != nil && len(ps.queueMSG) >= int(n) {
+		lastMSGs := ps.queueMSG[n:]
 		ps.queueMSG = lastMSGs
 	}
 }
@@ -124,36 +125,46 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			break
 		}
 		topic := fmt.Sprintf(remoteQueueEvents, Hostname())
-		for _, msg := range ps.queueMSG {
+
+		for i, msg := range ps.queueMSG {
 			if err := sendMSG(ps.client, topic, msg.GetData()); err != nil {
 				logs.LogError.Printf("publish error -> %s, message -> %q", err, msg.GetData())
 				ctx.Send(ctx.Self(), &reconnectRemote{})
 				break
 			}
-			ps.deleteMSG()
+			ps.deleteMSG(1)
+			if i > 32 {
+				ps.PersistSnapshot(&messages.RemoteSnapshot{
+					TimeStamp: time.Now().Unix(),
+					LastMSG:   ps.queueMSG,
+				})
+				break
+			}
 		}
 	case *messages.RemoteMSG:
 		logs.LogBuild.Printf("remote message -> %s", msg.GetData())
 		if ps.pidKeycloak == nil {
 			ctx.Send(ctx.Self(), &actor.Started{})
 			ps.queueMSG = append(ps.queueMSG, msg)
+			ps.PersistReceive(msg)
 			break
 		}
 		if ps.token == nil {
 			ctx.Request(ps.pidKeycloak, &messages.TokenRequest{})
 			time.Sleep(6 * time.Second)
 			ps.queueMSG = append(ps.queueMSG, msg)
+			ps.PersistReceive(msg)
 			break
 		}
-		if ps.token != nil {
-			if ps.token.Expiry.Before(time.Now()) {
-				logs.LogBuild.Printf("before jwt token -> %+v", ps.token)
-				ctx.Request(ps.pidKeycloak, &messages.TokenRequest{})
-				time.Sleep(6 * time.Second)
-				ps.queueMSG = append(ps.queueMSG, msg)
-				break
-			}
+		if ps.token.Expiry.Before(time.Now()) {
+			logs.LogBuild.Printf("before jwt token -> %+v", ps.token)
+			ctx.Request(ps.pidKeycloak, &messages.TokenRequest{})
+			time.Sleep(6 * time.Second)
+			ps.queueMSG = append(ps.queueMSG, msg)
+			ps.PersistReceive(msg)
+			break
 		}
+
 		topic := fmt.Sprintf(remoteQueueEvents, Hostname())
 		ps.lastMSG = msg
 
@@ -161,31 +172,57 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if err := sendMSG(client, topic, msg.GetData()); err != nil {
 				logs.LogError.Printf("publish error -> %s, message -> %q", err, msg.GetData())
 				ctx.Send(ctx.Self(), &reconnectRemote{})
+				ps.queueMSG = append(ps.queueMSG, msg)
 				ps.PersistReceive(msg)
 			}
 		}(ctx, ps.client, topic, msg)
 
-		// go func() {
-		// 	tk := ps.client.Publish(topic, 1, false, msg.GetData())
-
-		// 	for range []int{0, 1, 2} {
-		// 		if tk.WaitTimeout(600 * time.Second) {
-		// 			return
-		// 		}
-		// 		if tk.Error() != nil {
-		// 			logs.LogError.Printf("publish error -> %s, message -> %q", tk.Error(), msg.GetData())
-		// 			ctx.Send(ctx.Self(), &reconnectRemote{})
-		// 			break
-		// 		}
-		// 	}
-		// 	ps.PersistReceive(msg)
-		// }()
 	case *reconnectRemote:
 		panic(msg)
-	case *persistence.ReplayComplete:
-		if ps.lastMSG != nil {
-			ps.PersistSnapshot(ps.lastMSG)
+	case *messages.RemoteSnapshot:
+		logs.LogInfo.Printf("recover snapshot -> %v, %s", time.Unix(msg.TimeStamp, 0), msg.GetLastMSG())
+		if msg.GetLastMSG() == nil {
+			break
 		}
+		topic := fmt.Sprintf(remoteQueueEvents, Hostname())
+		if ps.queueMSG == nil {
+			ps.queueMSG = msg.GetLastMSG()
+		} else {
+			ps.queueMSG = append(ps.queueMSG, msg.GetLastMSG()...)
+		}
+		for i, msg := range ps.queueMSG {
+			if err := sendMSG(ps.client, topic, msg.GetData()); err != nil {
+				logs.LogError.Printf("publish error -> %s, message -> %q", err, msg.GetData())
+				ctx.Send(ctx.Self(), &reconnectRemote{})
+				break
+			}
+			ps.deleteMSG(1)
+			if i > 32 {
+				ps.PersistSnapshot(&messages.RemoteSnapshot{
+					TimeStamp: time.Now().Unix(),
+					LastMSG:   ps.queueMSG,
+				})
+				break
+			}
+		}
+	case *persistence.ReplayComplete:
+		if ps.queueMSG != nil && len(ps.queueMSG) > 32 {
+			ps.PersistSnapshot(&messages.RemoteSnapshot{
+				TimeStamp: time.Now().Unix(),
+				LastMSG:   ps.queueMSG[:32],
+			})
+			break
+		}
+	case *persistence.RequestSnapshot:
+		if ps.queueMSG != nil && len(ps.queueMSG) > 32 {
+			ps.PersistSnapshot(&messages.RemoteSnapshot{
+				TimeStamp: time.Now().Unix(),
+				LastMSG:   ps.queueMSG[:32],
+			})
+			break
+		}
+
+		ps.PersistSnapshot(ps.lastMSG)
 	case *actor.Stopping:
 		ps.client.Disconnect(600)
 		logs.LogError.Println("Stopping, actor is about to shut down")
@@ -213,14 +250,24 @@ func sendMSG(client mqtt.Client, topic string, msg []byte) error {
 	return fmt.Errorf("message dont send")
 }
 
-// func (ps *RemoteActor) Started(ctx actor.Context) {
-// 	ps.ctx = ctx
-// 	switch ctx.Message().(type) {
-// 	}
-// }
+func (ps *RemoteActor) tickreSend() {
+	tick := time.NewTicker(30 * time.Second)
+	defer tick.Stop()
+	for range tick.C {
+		if len(ps.queueMSG) > 0 {
+			ps.ctx.Send(ps.ctx.Self(), &resendMSG{})
+		} else {
 
-// func (ps *RemoteActor) Stopped(ctx actor.Context) {
-// }
+			logs.LogBuild.Printf("new snapshot -> %v", ps.lastMSG)
+			ps.PersistSnapshot(&messages.RemoteSnapshot{
+				TimeStamp: time.Now().Unix(),
+				LastMSG:   make([]*messages.RemoteMSG, 0),
+			})
+			// ps.lastBackMSG = ps.lastMSG
+
+		}
+	}
+}
 
 func client(tk *oauth2.Token) mqtt.Client {
 	_, tlsconfig := utils.LoadLocalCert(localCertDir)
@@ -250,66 +297,3 @@ func connect(c mqtt.Client) error {
 	}
 	return nil
 }
-
-//InitConnection func to init remote connection
-// func (r *RemoteConn) InitConnection() (mqtt.Client, error) {
-
-// 	r.tokenSubscribe = nil
-
-// 	if r.ts == nil {
-
-// 		keyc, err := keycloak.NewConfig(r.ctx, r.configKeyc)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		tk, err := keyc.TokenRequest(r.ctx, r.username, r.username)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		r.ts = keyc.TokenSource(r.ctx, tk)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
-
-// 	//clientID := fmt.Sprintf("projects/%s/locations/%s/registries/%s/devices/%s", projectID, region, registryID, gatewayID)
-// 	opts := mqtt.NewClientOptions()
-// 	opts.AddBroker(remoteMqttBrokerURL)
-// 	opts.SetClientID(r.clientID)
-// 	tk, err := r.ts.Token()
-// 	if err != nil {
-// 		r.ts = nil
-// 		return nil, err
-// 	}
-// 	opts.SetPassword(tk.AccessToken)
-// 	log.Println(tk.AccessToken)
-// 	opts.SetUsername("unused")
-// 	opts.SetCleanSession(false)
-// 	opts.SetProtocolVersion(protocolVersion)
-// 	opts.SetOnConnectHandler(OnConnect(r.Conn))
-// 	opts.SetTLSConfig(r.tlsConfig)
-// 	if len(r.subscriptions) > 0 {
-// 		log.Printf("OnConnection subscribed!!")
-// 		opts.SetDefaultPublishHandler(OnMessage(r.Conn))
-// 	}
-// 	opts.SetConnectionLostHandler(OnDisconnect(r.Conn))
-
-// 	//TODO: ???
-// 	// opts.SetAutoReconnect(true)
-
-// 	client := mqtt.NewClient(opts)
-// 	if token := client.Connect(); token.Wait() && token.Error() != nil {
-// 		log.Println("Failed to connect client")
-// 		return nil, token.Error()
-// 	}
-// 	if len(r.subscriptions) > 0 {
-// 		for range []int{1, 2, 3, 4, 5} {
-// 			time.Sleep(1 * time.Second)
-// 			if r.tokenSubscribe == nil {
-// 				continue
-// 			}
-// 			break
-// 		}
-// 	}
-// 	return client, nil
-// }
