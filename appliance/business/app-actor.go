@@ -6,9 +6,14 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
+	"github.com/google/uuid"
 
 	// svcpubsub "github.com/dumacp/go-gwiot/appliance/business/services/pubsub"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+)
+
+const (
+	messagesVersion = 3
 )
 
 //DeviceMSG device message
@@ -106,25 +111,38 @@ func (app *App) Receive(ctx actor.Context) {
 		if v, ok := (*msg)["sDv"].(string); ok {
 			app.snDev = v
 		}
+		muuid, err := uuid.NewUUID()
+		if err != nil {
+			logs.LogWarn.Printf("status muuid error -> %s", err)
+		}
+		(*msg)["muuid"] = muuid
+		(*msg)["v"] = messagesVersion
+
 		remoteMsg := &DeviceMSG{State: msg}
 		data, err := json.Marshal(remoteMsg)
 		if err != nil {
 			logs.LogWarn.Printf("status messages error -> %q", err)
 		}
-		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data})
+		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data, Retry: 0, TimeStamp: time.Now().Unix()})
 	case *Events:
 		if len(app.snDev) <= 0 {
 			app.snDev = Hostname()
 		}
 		state := make(map[string]interface{})
 		(state)["sDv"] = app.snDev
+		muuid, err := uuid.NewUUID()
+		if err != nil {
+			logs.LogWarn.Printf("events muuid error -> %s", err)
+		}
+		(state)["muuid"] = muuid
+		(state)["v"] = messagesVersion
 
 		remoteMsg := &DeviceMSG{State: (*StatusMsg)(&state), Events: msg}
 		data, err := json.Marshal(remoteMsg)
 		if err != nil {
 			logs.LogWarn.Printf("events messages error -> %q", err)
 		}
-		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data})
+		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data, Retry: 0, TimeStamp: time.Now().Unix()})
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
 	}

@@ -23,7 +23,7 @@ var parseEvent = func(src []byte) proto.Message {
 		log.Println(err)
 		return nil
 	}
-	logs.LogBuild.Printf("recovery EVENT: %v", i)
+	logs.LogBuild.Printf("recovery EVENT: %d", i.TimeStamp)
 	return i
 }
 
@@ -34,7 +34,7 @@ var parseSnapshot = func(src []byte) proto.Message {
 		log.Println(err)
 		return nil
 	}
-	logs.LogBuild.Printf("recovery SNAP: %v", i)
+	// logs.LogBuild.Printf("recovery SNAP: %s", i)
 	return i
 }
 
