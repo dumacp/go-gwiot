@@ -135,6 +135,7 @@ type resendMSG struct{}
 
 func (ps *RemoteActor) connect() error {
 	if ps.client != nil && ps.client.IsConnectionOpen() {
+		ps.client.Disconnect(300)
 		return nil
 	}
 	ctx := ps.ctx
@@ -195,12 +196,16 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
+		logs.LogBuild.Printf("  *****************     RECONNECT   *********************")
+		logs.LogBuild.Printf("  *****************     RECONNECT   *********************")
+
 		logs.LogBuild.Printf("last connect at -> %s", t1)
 		if time.Now().After(t1.Add(20 * time.Second)) {
 			ps.lastReconnect = time.Now()
 			if err := ps.connect(); err != nil {
 				logs.LogError.Println(err)
 			} else {
+				logs.LogBuild.Printf("  *****************     RECONNECT SUCESS  *********************")
 				logs.LogBuild.Printf("Request recovery, lastChahe messages -> %s, lastBackup -> %v", time.Unix(ps.lastCacheMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
 
 				if ps.lastCacheMSG == nil || ps.lastCacheMSG.GetTimeStamp() > ps.lastBackMSG.GetTimeStamp() {
@@ -232,9 +237,8 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogBuild.Printf("recovering: %v, remote message -> %s", ps.Recovering(), time.Unix(msg.GetTimeStamp(), 0))
 		if !ps.Recovering() {
 			logs.LogBuild.Printf("persist message -> %v", time.Unix(msg.TimeStamp, 0))
-			ps.PersistReceive(msg)
-		} else {
 			ps.lastCacheMSG = msg
+			ps.PersistReceive(msg)
 		}
 
 		// if ps.token.Expiry.Before(time.Now()) {
@@ -248,6 +252,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
 			t1 := ps.lastReconnect
+			logs.LogBuild.Printf("  *****************     dont connect!!!!   *********************")
 			logs.LogBuild.Printf("last connect at -> %s", t1)
 			if time.Now().After(t1.Add(20 * time.Second)) {
 				ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
@@ -282,34 +287,22 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			break
 		}
 		logs.LogBuild.Println("Replay Complete 1")
-		if ps.lastBackMSG.GetTimeStamp() < ps.lastMSG.GetTimeStamp() {
-			ctx.Send(ctx.Self(), &persistence.RequestSnapshot{})
+		logs.LogBuild.Printf("Replay Request Snapshot, backup -> %v, last messages -> %s", time.Unix(ps.lastBackMSG.TimeStamp, 0), time.Unix(ps.lastMSG.TimeStamp, 0))
+		if ps.lastBackMSG.GetTimeStamp() <= ps.lastMSG.GetTimeStamp() {
+			ps.execSnapshot()
 		}
 		logs.LogBuild.Println("Replay Complete 2")
 
 	case *persistence.RequestSnapshot:
+		logs.LogBuild.Println("Request snapshot init")
 		if ps.lastMSG == nil {
 			break
 		}
-		if ps.lastCacheMSG != nil && ps.lastCacheMSG.GetTimeStamp() > ps.lastMSG.GetTimeStamp() {
+		// logs.LogBuild.Printf("Request snapshot init, lastcache -> %v", ps.lastCacheMSG)
+		if ps.lastCacheMSG != nil && ps.lastCacheMSG.GetTimeStamp() <= ps.lastMSG.GetTimeStamp() {
 			break
 		}
-		logs.LogBuild.Printf("Request Snapshot -> %v, last messages -> %s", time.Unix(ps.lastBackMSG.TimeStamp, 0), ps.lastBackMSG.GetLastMSG())
-		snap := &messages.RemoteSnapshot{}
-
-		if ps.client != nil && !ps.client.IsConnectionOpen() {
-			break
-		}
-
-		if ps.lastMSG != nil {
-			if ps.lastBackMSG.TimeStamp < ps.lastMSG.TimeStamp {
-				logs.LogBuild.Printf("Request Snapshot, last messages -> %s, lastBackup -> %v", time.Unix(ps.lastMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
-				snap.TimeStamp = ps.lastMSG.GetTimeStamp()
-				ps.PersistSnapshot(snap)
-				logs.LogBuild.Printf("Request Snapshot, lastBackup -> %v", time.Unix(snap.GetTimeStamp(), 0))
-				*ps.lastBackMSG = *snap
-			}
-		}
+		ps.execSnapshot()
 
 	case *actor.Stopping:
 		ps.client.Disconnect(600)
@@ -326,6 +319,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 func sendMSG(client mqtt.Client, topic string, msg []byte) (bool, error) {
 
 	if client != nil && !client.IsConnectionOpen() {
+		client.Disconnect(300)
 		return true, fmt.Errorf("connection is not open")
 	}
 	tk := client.Publish(topic, 1, false, msg)
@@ -343,6 +337,30 @@ func sendMSG(client mqtt.Client, topic string, msg []byte) (bool, error) {
 	return false, fmt.Errorf("message dont send")
 }
 
+func (ps *RemoteActor) execSnapshot() {
+	logs.LogBuild.Printf("Request Snapshot -> %v, last messages -> %s", time.Unix(ps.lastBackMSG.TimeStamp, 0), ps.lastBackMSG.GetLastMSG())
+	snap := &messages.RemoteSnapshot{}
+
+	if ps.client != nil {
+		if !ps.client.IsConnectionOpen() {
+			ps.client.Disconnect(300)
+			return
+		}
+	} else {
+		return
+	}
+
+	if ps.lastMSG != nil {
+		if ps.lastBackMSG.TimeStamp < ps.lastMSG.TimeStamp {
+			logs.LogBuild.Printf("Request Snapshot, last messages -> %s, lastBackup -> %v", time.Unix(ps.lastMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
+			snap.TimeStamp = ps.lastMSG.GetTimeStamp()
+			ps.PersistSnapshot(snap)
+			logs.LogBuild.Printf("Request Snapshot, lastBackup -> %v", time.Unix(snap.GetTimeStamp(), 0))
+			*ps.lastBackMSG = *snap
+		}
+	}
+}
+
 func (ps *RemoteActor) tickrReconnect() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -356,6 +374,7 @@ func (ps *RemoteActor) tickrReconnect() {
 			continue
 		}
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
+			ps.client.Disconnect(300)
 			t1 := ps.lastReconnect
 			if time.Now().After(t1.Add(20 * time.Second)) {
 				ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
@@ -369,6 +388,7 @@ func client(tk *oauth2.Token) mqtt.Client {
 	opt := mqtt.NewClientOptions()
 	opt.AddBroker(remoteMqttBrokerURL)
 	opt.SetConnectRetry(true)
+	opt.SetAutoReconnect(false)
 	opt.SetConnectRetryInterval(10 * time.Second)
 	opt.SetPassword(tk.AccessToken)
 	opt.SetUsername("unused")
