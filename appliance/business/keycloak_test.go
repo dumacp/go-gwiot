@@ -12,7 +12,7 @@ import (
 func Test_tokenSorce(t *testing.T) {
 	type args struct {
 		ctx      context.Context
-		config   *keycloak.ServerConfig
+		keyc     keycloak.Keycloak
 		username string
 		password string
 	}
@@ -27,7 +27,7 @@ func Test_tokenSorce(t *testing.T) {
 			name: "test1",
 			args: args{
 				context.Background(),
-				newKeyConfig(),
+				nil,
 				Hostname(),
 				Hostname(),
 			},
@@ -38,7 +38,12 @@ func Test_tokenSorce(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := tokenSorce(tt.args.ctx, tt.args.config, tt.args.username, tt.args.password)
+			config := newKeyConfig()
+			httpContext, _ := newHTTPContext(context.Background())
+			keyc, _ := keycServer(httpContext, config)
+			tt.args.keyc = keyc
+
+			got, err := tokenSorce(tt.args.ctx, tt.args.keyc, tt.args.username, tt.args.password)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("tokenSorce() error = %v, wantErr %v", err, tt.wantErr)
 				return

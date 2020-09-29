@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log"
 
 	"github.com/dumacp/keycloak"
 	"github.com/dumacp/utils"
@@ -14,8 +13,9 @@ import (
 const (
 	localCertDir = "/usr/local/share/ca-certificates/"
 	keycloakurl  = "https://fleet.nebulae.com.co/auth"
-	clientid     = "devices3"
-	clientSecret = "da9bbc28-01d8-43af-8c8a-fb0654937231"
+	clientid     = "devices2"
+	// clientSecret = "da9bbc28-01d8-43af-8c8a-fb0654937231"
+	clientSecret = "b73479a3-225b-4b96-ad65-22edd82623a3"
 	redirecturl  = "https://fleet-mqtt.nebulae.com.co/"
 	realm        = "DEVICES"
 
@@ -39,21 +39,27 @@ func newHTTPContext(ctx context.Context) (context.Context, *tls.Config) {
 	return ctx, tlsconfig
 }
 
-func tokenSorce(ctx context.Context, config *keycloak.ServerConfig, username, password string) (oauth2.TokenSource, error) {
+func keycServer(ctx context.Context, config *keycloak.ServerConfig) (keycloak.Keycloak, error) {
 	keyc, err := keycloak.NewConfig(ctx, config)
 	if err != nil {
 		return nil, err
 	}
-	log.Println("1")
+	return keyc, nil
+}
+
+func tokenSorce(ctx context.Context, keyc keycloak.Keycloak, username, password string) (oauth2.TokenSource, error) {
+	// keyc, err := keycloak.NewConfig(ctx, config)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// log.Println("1")
 	tk, err := keyc.TokenRequest(ctx, username, password)
 	if err != nil {
 		return nil, err
 	}
-	log.Println("2")
 	ts := keyc.TokenSource(ctx, tk)
 	if ts == nil {
 		return nil, fmt.Errorf("tokenSource nil")
 	}
-	log.Println("3")
 	return ts, nil
 }

@@ -66,6 +66,9 @@ func (act *EventsActor) Receive(ctx actor.Context) {
 		// (*msg)["t"] = times
 		// delete((*msg), "timeStamp")
 		event := msg.ReplaceKeys()
+		if v, ok := ((*event)["t"]).(float64); ok {
+			(*event)["t"] = (int64)(v * 1000)
+		}
 		act.putEvent(*event)
 	case *tickMsg:
 		events := act.getEvents()

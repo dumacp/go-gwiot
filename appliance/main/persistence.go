@@ -18,23 +18,27 @@ var parseEvent = func(src []byte) proto.Message {
 	i := new(messages.RemoteMSG)
 	srcCopy := make([]byte, len(src))
 	copy(srcCopy, src)
-	err := proto.Unmarshal(srcCopy, i)
+	err := i.XXX_Unmarshal(srcCopy[:len(src)])
+	// err := proto.Unmarshal(srcCopy[:len(src)], i)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-	logs.LogBuild.Printf("recovery EVENT: %d", i.TimeStamp)
+	logs.LogBuild.Printf("recovery EVENT: %d", i.GetTimeStamp())
 	return i
 }
 
 var parseSnapshot = func(src []byte) proto.Message {
 	i := new(messages.RemoteSnapshot)
-	err := proto.Unmarshal(src, i)
+	srcCopy := make([]byte, len(src))
+	copy(srcCopy, src)
+	err := i.Unmarshal(srcCopy[:len(src)])
+	// err := proto.Unmarshal(srcCopy[:len(src)], i)
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
-	// logs.LogBuild.Printf("recovery SNAP: %s", i)
+	logs.LogBuild.Printf("recovery SNAP: %d", i.GetTimeStamp())
 	return i
 }
 

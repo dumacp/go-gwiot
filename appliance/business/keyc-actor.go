@@ -2,10 +2,12 @@ package business
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/keycloak"
 	"golang.org/x/oauth2"
 )
 
@@ -30,12 +32,70 @@ func (act *KeycloakActor) Receive(ctx actor.Context) {
 		logs.LogInfo.Printf("started \"%s\", %v", ctx.Self().GetId(), ctx.Self())
 	case *messages.TokenRequest:
 		logs.LogBuild.Printf("request message -> %s", msg)
-		tk, err := tokenRequest(act.tokenSource, act.username, act.password)
-		if err != nil {
+		var tk *oauth2.Token
+		var err error
+		if act.tokenSource != nil {
+			tk, err = act.tokenSource.Token()
+			if err == nil {
+				ctx.Send(ctx.Sender(), tk)
+				break
+			}
 			logs.LogWarn.Printf("token request error -> %s", err)
+		}
+
+		config := newKeyConfig()
+		httpContext, _ := newHTTPContext(context.Background())
+		keyc, err := keycServer(httpContext, config)
+		if err != nil {
+			logs.LogError.Printf("error getting token -> %s", err)
 			break
 		}
+
+		ts, err := tokenRequest(httpContext, keyc, act.username, act.password)
+		if err != nil {
+			logs.LogError.Printf("token request error -> %s", err)
+			break
+		}
+		act.tokenSource = ts
 		ctx.Send(ctx.Sender(), tk)
+
+	case *messages.GroupIDRequest:
+		config := newKeyConfig()
+		httpContext, _ := newHTTPContext(context.Background())
+		keyc, err := keycServer(httpContext, config)
+		if err != nil {
+			logs.LogError.Printf("error getting token -> %s", err)
+			break
+		}
+		if act.tokenSource != nil {
+			_, err = act.tokenSource.Token()
+			if err != nil {
+				act.tokenSource, err = tokenRequest(httpContext, keyc, act.username, act.password)
+				if err != nil {
+					logs.LogError.Printf("error getting token -> %s", err)
+					break
+				}
+			}
+		} else {
+			act.tokenSource, err = tokenRequest(httpContext, keyc, act.username, act.password)
+			if err != nil {
+				logs.LogError.Printf("error getting userInfo -> %s", err)
+				break
+			}
+		}
+
+		userInfo, err := keyc.UserInfo(httpContext, act.tokenSource)
+		if err != nil {
+			logs.LogError.Printf("error getting userInfo -> %s", err)
+			break
+		}
+		logs.LogBuild.Printf("userInfo: %#v", userInfo)
+		groupid, ok := userInfo["group_name"]
+		if !ok {
+			logs.LogError.Printf("no groupID property xxx")
+			break
+		}
+		ctx.Send(ctx.Sender(), &messages.GroupIDResponse{Data: []byte(fmt.Sprintf("%v", groupid))})
 
 	case *actor.Stopping:
 		logs.LogWarn.Printf("\"%s\" - Stopped actor, reason -> %v", ctx.Self(), msg)
@@ -46,41 +106,12 @@ func (act *KeycloakActor) Receive(ctx actor.Context) {
 
 }
 
-func tokenRequest(cachets oauth2.TokenSource, username, password string) (*oauth2.Token, error) {
-	if cachets == nil {
-		config := newKeyConfig()
-		httpContext, _ := newHTTPContext(context.Background())
-		ts, err := tokenSorce(httpContext, config, username, password)
-		if err != nil {
-			logs.LogError.Panicf("error getting token -> %s", err)
-		}
-		tk, err := ts.Token()
-		if err != nil {
-			logs.LogWarn.Printf("token error -> %s", err)
-			return nil, err
-		}
-		cachets = ts
-		return tk, nil
+func tokenRequest(ctx context.Context, keyc keycloak.Keycloak, username, password string) (oauth2.TokenSource, error) {
+
+	ts, err := tokenSorce(ctx, keyc, username, password)
+	if err != nil {
+		return nil, fmt.Errorf("error getting token -> %s", err)
 	}
 
-	tk, err := cachets.Token()
-	if err != nil {
-		logs.LogWarn.Printf("token error -> %s", err)
-		return nil, err
-	}
-
-	config := newKeyConfig()
-	httpContext, _ := newHTTPContext(context.Background())
-	ts, err := tokenSorce(httpContext, config, username, password)
-	if err != nil {
-		logs.LogError.Panicf("error getting token -> %s", err)
-		return nil, err
-	}
-	tk, err = ts.Token()
-	if err != nil {
-		logs.LogWarn.Printf("token error -> %s", err)
-	}
-	cachets = ts
-
-	return tk, nil
+	return ts, nil
 }

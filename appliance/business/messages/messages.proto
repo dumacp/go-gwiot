@@ -26,12 +26,17 @@ message TokenResponse {
     bytes Token = 1;
 }
 
+message GroupIDRequest {}
+message GroupIDResponse {
+    bytes Data = 1;
+}
+
 message KeycloakAddressRequest {}
 message KeycloakAddressResponse {}
 
 message RemoteMSG {
     bytes Data = 1;
-    int32 Retry = 2;
+    int64 Retry = 2;
     int64 TimeStamp = 3;
 }
 

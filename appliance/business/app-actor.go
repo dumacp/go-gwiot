@@ -55,6 +55,8 @@ func NewApp(propsRemote *actor.Props) *App {
 // 	return nil
 // }
 
+type ErrorRemote struct{}
+
 //Receive function Receive
 func (app *App) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
@@ -107,6 +109,18 @@ func (app *App) Receive(ctx actor.Context) {
 	case *messages.KeycloakAddressRequest:
 		ctx.Send(ctx.Sender(), app.pidKeycloak)
 
+	case *messages.GroupIDRequest:
+		req := ctx.RequestFuture(app.pidKeycloak, &messages.GroupIDRequest{}, 3*time.Second)
+		if err := req.Wait(); err != nil {
+			break
+		}
+		v, err := req.Result()
+		if err != nil {
+			break
+		}
+		// log.Printf("groupID -> %+v", v)
+		ctx.Send(ctx.Sender(), v)
+
 	case *StatusMsg:
 		if v, ok := (*msg)["sDv"].(string); ok {
 			app.snDev = v
@@ -145,5 +159,8 @@ func (app *App) Receive(ctx actor.Context) {
 		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data, Retry: 0, TimeStamp: time.Now().Unix()})
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
+	case *ErrorRemote:
+		ctx.PoisonFuture(ctx.Sender()).Wait()
+		ctx.SpawnNamed(app.propsRemote, "remote-actor")
 	}
 }
