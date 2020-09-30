@@ -4,7 +4,7 @@ import (
 	"log"
 	"log/syslog"
 
-	"github.com/dumacp/sonar/client/logs"
+	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 )
 
 func newLog(logger *logs.Logger, prefix string, flags int, priority int) error {
@@ -18,6 +18,9 @@ func newLog(logger *logs.Logger, prefix string, flags int, priority int) error {
 }
 
 func initLogs(debug, logStd bool) {
+	if !debug {
+		logs.LogBuild.Disable()
+	}
 	if logStd {
 		return
 	}
@@ -25,7 +28,4 @@ func initLogs(debug, logStd bool) {
 	newLog(logs.LogWarn, "[ info ] ", log.LstdFlags, 6)
 	newLog(logs.LogError, "[ build ] ", log.LstdFlags, 7)
 	newLog(logs.LogBuild, "[ error ] ", log.LstdFlags, 3)
-	if !debug {
-		logs.LogBuild.Disable()
-	}
 }

@@ -9,8 +9,32 @@ import (
 //EventMsg event message
 type EventMsg map[string]interface{}
 
-//ReplaceKeys replace fields json
+//ReplaceKeys rename field keys
 func (s *EventMsg) ReplaceKeys() *EventMsg {
+
+	// res := make(map[string]interface{})
+
+	// for k1, v := range *s {
+	// 	if v == nil {
+	// 		continue
+	// 	}
+	// 	if k2, ok := keys2Abrev[k1]; ok {
+	// 		(res)[k2] = v
+	// 	} else {
+	// 		(res)[k1] = v
+	// 	}
+	// }
+
+	// status = res
+
+	res := replaceKeys(*s)
+
+	return (*EventMsg)(&res)
+
+}
+
+//ReplaceKeys replace fields json
+func (s *EventMsg) RReplaceKeys() *EventMsg {
 
 	res := make(map[string]interface{})
 

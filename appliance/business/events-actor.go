@@ -59,16 +59,11 @@ func (act *EventsActor) Receive(ctx actor.Context) {
 	case *actor.Restarting:
 		logs.LogWarn.Printf("\"%s\" - Restarting actor, reason -> %v", ctx.Self(), msg)
 	case *EventMsg:
-		// times, ok := (*msg)["timeStamp"]
-		// if !ok {
-		// 	logs.LogWarn.Printf("parse event error, timestamp empty")
-		// }
-		// (*msg)["t"] = times
-		// delete((*msg), "timeStamp")
 		event := msg.ReplaceKeys()
 		if v, ok := ((*event)["t"]).(float64); ok {
 			(*event)["t"] = (int64)(v * 1000)
 		}
+		logs.LogBuild.Printf("event message -> %+v", event)
 		act.putEvent(*event)
 	case *tickMsg:
 		events := act.getEvents()
@@ -90,8 +85,6 @@ func (act *EventsActor) tickSend() {
 				if act.ctx != nil {
 					act.ctx.Send(act.ctx.Self(), &tickMsg{})
 				}
-				// case <-act.quit:
-				// 	return
 			}
 		}
 	}()

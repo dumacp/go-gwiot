@@ -51,7 +51,7 @@ func main() {
 	// var provider *provider
 	// var err error
 	// if !disablePersistence {
-	provider, err := newProvider(pathdb, 10)
+	provider, err := newProvider(pathdb, 6)
 	if err != nil {
 		log.Fatalln(err)
 	}

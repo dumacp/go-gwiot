@@ -22,12 +22,6 @@ const (
 	maximumBackoffTime    = 32 // maximum backoff time in seconds
 )
 
-// //Gateway interface
-// type Gateway interface {
-// 	Receive(ctx actor.Context)
-// 	// Publish(topic string, msg []byte)
-// }
-
 //RemoteActor remote actor
 type RemoteActor struct {
 	persistence.Mixin
@@ -39,87 +33,7 @@ type RemoteActor struct {
 	client        mqtt.Client
 	token         *oauth2.Token
 	lastReconnect time.Time
-	// queueMSG    *queue
-	// subscriptions map[string]*actor.PID
 }
-
-// type queue struct {
-// 	msgs []*messages.RemoteMSG
-// 	mux  sync.Mutex
-// }
-
-// func newQueue() *queue {
-// 	return &queue{
-// 		msgs: make([]*messages.RemoteMSG, 0),
-// 		mux:  sync.Mutex{},
-// 	}
-// }
-
-// func (q *queue) put(msg *messages.RemoteMSG) {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	q.msgs = append(q.msgs, msg)
-// }
-
-// func (q *queue) pop() *messages.RemoteMSG {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	v := q.msgs[len(q.msgs)-1]
-// 	q.msgs = q.msgs[:len(q.msgs)-1]
-// 	return v
-// }
-
-// func (q *queue) deletedata() {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	if q.msgs != nil {
-// 		q.msgs = make([]*messages.RemoteMSG, 0)
-// 	}
-// }
-
-// func (q *queue) truncate(n uint) {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	if q.msgs != nil && len(q.msgs) >= int(n) {
-// 		q.msgs = q.msgs[n:]
-// 	}
-// }
-
-// func (q *queue) shift() *messages.RemoteMSG {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	if q.msgs == nil {
-// 		return nil
-// 	}
-// 	if len(q.msgs) <= 0 {
-// 		return nil
-// 	}
-// 	data := q.msgs[0]
-// 	if len(q.msgs) == 1 {
-// 		q.msgs = make([]*messages.RemoteMSG, 0)
-// 	} else {
-// 		q.msgs = q.msgs[1:]
-// 	}
-// 	return data
-// }
-
-// func (q *queue) getdata() []*messages.RemoteMSG {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	return q.msgs
-// }
-
-// func (q *queue) lendata() int {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	return len(q.msgs)
-// }
-
-// func (q *queue) last() *messages.RemoteMSG {
-// 	q.mux.Lock()
-// 	defer q.mux.Unlock()
-// 	return q.msgs[len(q.msgs)-1]
-// }
 
 //NewRemote new remote actor
 func NewRemote() *RemoteActor {
@@ -134,9 +48,8 @@ type reconnectRemote struct{}
 type resendMSG struct{}
 
 func (ps *RemoteActor) connect() error {
-	if ps.client != nil && ps.client.IsConnectionOpen() {
+	if ps.client != nil {
 		ps.client.Disconnect(300)
-		return nil
 	}
 	ctx := ps.ctx
 	request := ctx.RequestFuture(ctx.Parent(), &messages.KeycloakAddressRequest{}, 6*time.Second)
@@ -155,9 +68,6 @@ func (ps *RemoteActor) connect() error {
 	}
 	logs.LogBuild.Printf("remote keycloak -> %v", ps.pidKeycloak)
 
-	if ps.client != nil {
-		ps.client.Disconnect(300)
-	}
 	if ps.token == nil || ps.token.Expiry.Before(time.Now()) {
 		req := ctx.RequestFuture(ps.pidKeycloak, &messages.TokenRequest{}, 6*time.Second)
 		if err := req.Wait(); err != nil {
@@ -172,6 +82,9 @@ func (ps *RemoteActor) connect() error {
 		}
 		logs.LogBuild.Printf("new jwt -> %v", ps.token)
 
+	}
+	if ps.token == nil {
+		return fmt.Errorf("token is empty %v", nil)
 	}
 	ps.client = client(ps.token)
 	if err := connect(ps.client); err != nil {
@@ -196,6 +109,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
+		if ps.client != nil && ps.client.IsConnectionOpen() {
+			break
+		}
 		logs.LogBuild.Printf("  *****************     RECONNECT   *********************")
 		logs.LogBuild.Printf("  *****************     RECONNECT   *********************")
 
@@ -204,32 +120,18 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			ps.lastReconnect = time.Now()
 			if err := ps.connect(); err != nil {
 				logs.LogError.Println(err)
+				ps.client.Disconnect(300)
 			} else {
-				logs.LogBuild.Printf("  *****************     RECONNECT SUCESS  *********************")
+				logs.LogInfo.Printf("RECONNECT SUCESSFULL")
 				logs.LogBuild.Printf("Request recovery, lastChahe messages -> %s, lastBackup -> %v", time.Unix(ps.lastCacheMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
 
 				if ps.lastCacheMSG == nil || ps.lastCacheMSG.GetTimeStamp() > ps.lastBackMSG.GetTimeStamp() {
 					panic(msg)
 				}
 			}
-			// ctx.Request(ctx.Parent(), &ErrorRemote{})
 		}
 	case *oauth2.Token:
 		ps.token = msg
-		// logs.LogBuild.Printf("new jwt token -> %+v", msg)
-		// if ps.client != nil {
-		// 	ps.client.Disconnect(300)
-		// }
-		// ps.client = client(ps.token)
-		// if err := connect(ps.client); err != nil {
-		// 	time.Sleep(3 * time.Second)
-		// 	logs.LogError.Printf("connect error -> %s", err)
-		// 	break
-		// }
-
-		// if ps.queueMSG.lendata() > 0 {
-		// 	ctx.Send(ctx.Self(), &resendMSG{})
-		// }
 
 	case *resendMSG:
 
@@ -240,15 +142,6 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			ps.lastCacheMSG = msg
 			ps.PersistReceive(msg)
 		}
-
-		// if ps.token.Expiry.Before(time.Now()) {
-		// 	logs.LogBuild.Printf("before jwt token -> %+v", ps.token)
-		// 	if !ps.Recovering() {
-		// 		ctx.Send(ctx.Self(), &reconnectRemote{})
-		// 	}
-		// 	// ps.queueMSG.put(msg)
-		// 	break
-		// }
 
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
 			t1 := ps.lastReconnect
@@ -261,24 +154,19 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}
 
 		topic := fmt.Sprintf(remoteQueueEvents, Hostname())
-		// ps.lastMSG = msg
 
 		if _, err := sendMSG(ps.client, topic, msg.GetData()); err != nil {
 			logs.LogError.Printf("publish error -> %s, message -> %s", err, msg.GetData())
 
 			if !ps.Recovering() {
-				t1 := ps.lastReconnect
-				if time.Now().After(t1.Add(20 * time.Second)) {
-					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
-				}
+				ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
 			}
 		} else {
-			// ps.queueMSG.put(msg)
 			ps.lastMSG = msg
 		}
 
 	case *messages.RemoteSnapshot:
-		logs.LogInfo.Printf("******************\nrecover snapshot -> %v, last messages -> %s\n******************", time.Unix(msg.GetTimeStamp(), 0), msg.GetLastMSG())
+		logs.LogInfo.Printf("recover snapshot at -> %s", time.Unix(msg.GetTimeStamp(), 0))
 		*ps.lastBackMSG = *msg
 
 	case *persistence.ReplayComplete:
@@ -286,19 +174,16 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		if ps.lastMSG == nil {
 			break
 		}
-		logs.LogBuild.Println("Replay Complete 1")
 		logs.LogBuild.Printf("Replay Request Snapshot, backup -> %v, last messages -> %s", time.Unix(ps.lastBackMSG.TimeStamp, 0), time.Unix(ps.lastMSG.TimeStamp, 0))
 		if ps.lastBackMSG.GetTimeStamp() <= ps.lastMSG.GetTimeStamp() {
 			ps.execSnapshot()
 		}
-		logs.LogBuild.Println("Replay Complete 2")
 
 	case *persistence.RequestSnapshot:
 		logs.LogBuild.Println("Request snapshot init")
 		if ps.lastMSG == nil {
 			break
 		}
-		// logs.LogBuild.Printf("Request snapshot init, lastcache -> %v", ps.lastCacheMSG)
 		if ps.lastCacheMSG != nil && ps.lastCacheMSG.GetTimeStamp() <= ps.lastMSG.GetTimeStamp() {
 			break
 		}
@@ -374,7 +259,6 @@ func (ps *RemoteActor) tickrReconnect() {
 			continue
 		}
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
-			ps.client.Disconnect(300)
 			t1 := ps.lastReconnect
 			if time.Now().After(t1.Add(20 * time.Second)) {
 				ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
@@ -395,7 +279,6 @@ func client(tk *oauth2.Token) mqtt.Client {
 	opt.SetProtocolVersion(protocolVersion)
 	opt.SetTLSConfig(tlsconfig)
 
-	// opt.SetAutoReconnect(true)
 	opt.SetClientID(fmt.Sprintf("%s-%d", Hostname(), time.Now().Unix()))
 	opt.SetKeepAlive(30 * time.Second)
 	opt.SetConnectTimeout(10 * time.Second)

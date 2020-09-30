@@ -33,6 +33,7 @@ type pubsubActor struct {
 	// behavior      actor.Behavior
 	state         messages.StatusResponse_StateType
 	client        mqtt.Client
+	mux           sync.Mutex
 	subscriptions map[string]*subscribeMSG
 }
 
@@ -44,6 +45,7 @@ func getInstance() *pubsubActor {
 
 	once.Do(func() {
 		instance = &pubsubActor{}
+		instance.mux = sync.Mutex{}
 		instance.subscriptions = make(map[string]*subscribeMSG)
 		ctx := actor.EmptyRootContext
 		props := actor.PropsFromFunc(instance.Receive)
@@ -83,7 +85,9 @@ func Publish(topic string, msg []byte) {
 func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) error {
 	instance := getInstance()
 	subs := &subscribeMSG{pid: pid, parse: parse}
+	instance.mux.Lock()
 	instance.subscriptions[topic] = subs
+	instance.mux.Unlock()
 	if !instance.client.IsConnected() {
 		// instance.ctx.PoisonFuture(instance.ctx.Self()).Wait()
 		return fmt.Errorf("pubsub is not connected")

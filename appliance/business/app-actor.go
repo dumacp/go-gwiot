@@ -132,7 +132,7 @@ func (app *App) Receive(ctx actor.Context) {
 		(*msg)["muuid"] = muuid
 		(*msg)["v"] = messagesVersion
 
-		remoteMsg := &DeviceMSG{State: msg}
+		remoteMsg := &DeviceMSG{State: msg, Events: &Events{}}
 		data, err := json.Marshal(remoteMsg)
 		if err != nil {
 			logs.LogWarn.Printf("status messages error -> %q", err)

@@ -51,7 +51,7 @@ func (act *StatusActor) Receive(ctx actor.Context) {
 
 		onlychanges := status.OnlyChanges(act.lastStatusMsg)
 		act.lastStatusMsg = status
-		// log.Printf("status after -> %+v", onlychanges)
+		logs.LogBuild.Printf("status messages -> %+v", onlychanges)
 		ctx.Send(ctx.Parent(), onlychanges)
 	}
 }
