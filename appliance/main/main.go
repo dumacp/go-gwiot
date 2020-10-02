@@ -19,6 +19,7 @@ const (
 )
 
 var debug bool
+var test bool
 var logStd bool
 var version bool
 var pathdb string
@@ -26,6 +27,7 @@ var hostname string
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug enable")
+	flag.BoolVar(&test, "test", false, "test enable")
 	flag.BoolVar(&logStd, "logStd", false, "log in stderr")
 	flag.BoolVar(&version, "version", false, "show version")
 	flag.StringVar(&pathdb, "pathdb", "/SD/boltdbs/gwiotdb", "path to db")
@@ -59,7 +61,7 @@ func main() {
 
 	rootContext := actor.EmptyRootContext
 
-	remote := business.NewRemote()
+	remote := business.NewRemote(test)
 
 	propsRemote := actor.PropsFromProducer(func() actor.Actor { return remote }).
 		WithReceiverMiddleware(persistence.Using(provider))

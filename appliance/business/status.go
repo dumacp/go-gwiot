@@ -2,6 +2,7 @@ package business
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 )
@@ -32,26 +33,8 @@ var keys2Abrev = map[string]string{"upTime": "uT", "sn-dev": "sDv", "sn-modem": 
 
 //ReplaceKeys rename field keys
 func (s *StatusMsg) ReplaceKeys() *StatusMsg {
-
-	// res := make(map[string]interface{})
-
-	// for k1, v := range *s {
-	// 	if v == nil {
-	// 		continue
-	// 	}
-	// 	if k2, ok := keys2Abrev[k1]; ok {
-	// 		(res)[k2] = v
-	// 	} else {
-	// 		(res)[k1] = v
-	// 	}
-	// }
-
-	// status = res
-
 	res := replaceKeys(*s)
-
 	return (*StatusMsg)(&res)
-
 }
 
 func replaceKeys(data map[string]interface{}) map[string]interface{} {
@@ -157,8 +140,46 @@ func funcCompare(data, lastData map[string]interface{}) map[string]interface{} {
 					// log.Printf("last -> %v, %v", k, result)
 					res[k] = result
 				}
+			case []string:
+				if vdi, ok := v.([]string); ok {
+					equal := true
+					for ii, vi := range ri {
+						log.Printf("last el -> %v, new el -> %v, equal -> %v", vi, vdi[ii], vi == vdi[ii])
+						if vi != vdi[ii] {
+							equal = false
+							break
+						}
+					}
+					if !equal {
+						res[k] = v
+					}
+				}
+			case []int:
+				if vdi, ok := v.([]int); ok {
+					equal := true
+					for ii, vi := range ri {
+						log.Printf("last el -> %v, new el -> %v, equal -> %v", vi, vdi[ii], vi == vdi[ii])
+						if vi != vdi[ii] {
+							equal = false
+							break
+						}
+					}
+					if !equal {
+						res[k] = v
+					}
+				}
 			case []interface{}:
+				//if len(ri) > 0 {
+				//	if vdi, ok := ri[0].(map[string]interface{}); ok {
+				//		for ki, vi := range ri {
+				//			if result := funcCompare(v.(map[string]interface{}), vi); len(result) > 0 {
+				//				vi[ki] = result
+				//			}
+				//		}
+				//	}
+				//}
 				res[k] = v
+
 			default:
 				if v != vlast {
 					res[k] = v

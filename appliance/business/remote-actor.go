@@ -25,6 +25,7 @@ const (
 //RemoteActor remote actor
 type RemoteActor struct {
 	persistence.Mixin
+	test          bool
 	lastMSG       *messages.RemoteMSG
 	lastCacheMSG  *messages.RemoteMSG
 	lastBackMSG   *messages.RemoteSnapshot
@@ -36,8 +37,9 @@ type RemoteActor struct {
 }
 
 //NewRemote new remote actor
-func NewRemote() *RemoteActor {
+func NewRemote(test bool) *RemoteActor {
 	r := &RemoteActor{}
+	r.test = test
 	r.lastBackMSG = &messages.RemoteSnapshot{TimeStamp: 0, LastMSG: nil}
 	go r.tickrReconnect()
 	return r
@@ -155,7 +157,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 		topic := fmt.Sprintf(remoteQueueEvents, Hostname())
 
-		if _, err := sendMSG(ps.client, topic, msg.GetData()); err != nil {
+		if _, err := sendMSG(ps.client, topic, msg.GetData(), ps.test); err != nil {
 			logs.LogError.Printf("publish error -> %s, message -> %s", err, msg.GetData())
 
 			if !ps.Recovering() {
@@ -201,13 +203,19 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 }
 
 //sendMSG return (response?, error)
-func sendMSG(client mqtt.Client, topic string, msg []byte) (bool, error) {
+func sendMSG(client mqtt.Client, topic string, msg []byte, test bool) (bool, error) {
 
 	if client != nil && !client.IsConnectionOpen() {
 		client.Disconnect(300)
 		return true, fmt.Errorf("connection is not open")
 	}
-	tk := client.Publish(topic, 1, false, msg)
+	var topicSend string
+	if test {
+		topicSend = fmt.Sprintf(remoteQueueEventsTest, Hostname())
+	} else {
+		topicSend = topic
+	}
+	tk := client.Publish(topicSend, 1, false, msg)
 
 	for range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} {
 		if tk.WaitTimeout(300 * time.Millisecond) {
