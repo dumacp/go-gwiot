@@ -215,7 +215,7 @@ func sendMSG(client mqtt.Client, topic string, msg []byte, test bool) (bool, err
 	} else {
 		topicSend = topic
 	}
-	tk := client.Publish(topicSend, 1, false, msg)
+	tk := client.Publish(topicSend, 0, false, msg)
 
 	for range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} {
 		if tk.WaitTimeout(300 * time.Millisecond) {
