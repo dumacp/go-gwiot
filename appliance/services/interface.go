@@ -1,7 +1,7 @@
 package services
 
 import (
-	"github.com/dumacp/go-gwiot/appliance/business/messages"
+	"github.com/dumacp/go-modem/appliance/business/messages"
 )
 
 //Service interface

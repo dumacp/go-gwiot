@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/dumacp/go-gwiot/appliance/business/messages"
-	svc "github.com/dumacp/go-gwiot/appliance/business/services"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/comm/pubsub"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
-	"github.com/dumacp/go-gwiot/appliance/services"
+	"github.com/dumacp/go-modem/appliance/business/messages"
+	svc "github.com/dumacp/go-modem/appliance/business/services"
+	"github.com/dumacp/go-modem/appliance/crosscutting/comm/pubsub"
+	"github.com/dumacp/go-modem/appliance/crosscutting/logs"
+	"github.com/dumacp/go-modem/appliance/services"
 )
 
 //Gateway interface

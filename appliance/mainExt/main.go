@@ -10,14 +10,13 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/AsynkronIT/protoactor-go/remote"
-	"github.com/dumacp/go-modem/appliance/business/control"
+	"github.com/dumacp/go-modem/appliance/business/controlext"
 	"github.com/dumacp/go-modem/appliance/business/messages"
 	"github.com/dumacp/go-modem/appliance/business/nmea"
-	"github.com/dumacp/go-modem/appliance/crosscutting/logs"
+	"github.com/dumacp/go-modem/appliance/business/nmeatcp"
 )
 
 var debug bool
-var logstd bool
 var mqtt bool
 var port int
 var ipTest string
@@ -28,17 +27,12 @@ var baudRate int
 var portNmea string
 var distanceMin int
 
-var version bool
-
 const (
 	ipTestInitial = "8.8.8.8"
-	versionString = "1.0.5"
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", false, "debug")
-	flag.BoolVar(&logstd, "logStd", false, "logs in stderr")
-	flag.BoolVar(&version, "version", false, "swho version")
 	flag.BoolVar(&mqtt, "mqtt", false, "[DEPRECATED] send messages to local broker.")
 	flag.IntVar(&port, "port", 8082, "port actor in remote mode")
 	flag.IntVar(&timeout, "timeout", 30, "timeout to capture frames.")
@@ -50,11 +44,7 @@ func init() {
 func main() {
 
 	flag.Parse()
-	if version {
-		fmt.Printf("version: %s\n", versionString)
-		os.Exit(2)
-	}
-	initLogs(debug, logstd)
+	initLogs(debug)
 
 	remote.Start(fmt.Sprintf("127.0.0.1:%v", port),
 		remote.WithAdvertisedAddress(fmt.Sprintf("localhost:%v", port)))
@@ -98,21 +88,21 @@ func main() {
 	props := actor.PropsFromFunc(func(c actor.Context) {
 		switch msg := c.Message().(type) {
 		case *actor.Started:
-			propsNmea := actor.PropsFromFunc(nmea.NewNmeaActor(
+			propsNmea := actor.PropsFromFunc(nmeatcp.NewNmeaActor(
 				debug,
 				portNmea,
 				baudRate,
 				timeout,
 				distanceMin,
 			).Receive)
-			propsCheck := actor.PropsFromFunc(control.NewCheckModemActor(debug).Receive)
+			propsCheck := actor.PropsFromFunc(controlext.NewCheckModemActor(debug).Receive)
 			pidNmea, err := c.SpawnNamed(propsNmea, "nmeaGPS")
 			if err != nil {
-				logs.LogError.Panic(err)
+				errlog.Panic(err)
 			}
 			pidCheck, err = c.SpawnNamed(propsCheck, "checkmodem")
 			if err != nil {
-				logs.LogError.Panic(err)
+				errlog.Panic(err)
 			}
 			c.Watch(pidNmea)
 			c.Watch(pidCheck)
@@ -126,13 +116,13 @@ func main() {
 			// })
 
 		case *actor.Terminated:
-			logs.LogError.Printf("actor terminated: %s", msg.Who.GetId())
+			errlog.Printf("actor terminated: %s", msg.Who.GetId())
 		}
 	})
 
 	_, err := rootContext.SpawnNamed(props, "modem")
 	if err != nil {
-		logs.LogError.Fatalln(err)
+		errlog.Fatalln(err)
 	}
 
 	// funcModemAddr := func(msg *messRecepcionist.SubscribeAdvertising) {
@@ -175,7 +165,7 @@ func main() {
 	for {
 		select {
 		case v := <-finish:
-			logs.LogError.Println(v)
+			errlog.Println(v)
 			return
 		}
 	}

@@ -1,7 +1,6 @@
 syntax = "proto3";
 package messages;
-// import "github.com/AsynkronIT/protoactor-go/actor/protos.proto";
-
+import "github.com/AsynkronIT/protoactor-go/actor/protos.proto";
 
 message Start {}
 
@@ -21,28 +20,24 @@ message StatusResponse {
     StateType State = 1;
 }
 
-message TokenRequest {}
-message TokenResponse {
-    bytes Token = 1;
+message ModemAddrRequest {}
+message ModemOnRequest {}
+message ModemAddr {
+	string Addr = 1;
+	string Id = 2;
 }
-
-message GroupIDRequest {}
-message GroupIDResponse {
-    bytes Data = 1;
+message ModemOnResponse {
+	bool State = 1;
 }
-
-message KeycloakAddressRequest {}
-message KeycloakAddressResponse {}
-
-message RemoteMSG {
-    bytes Data = 1;
-    int64 Retry = 2;
-    int64 TimeStamp = 3;
+message ModemReset {}
+message ModemPowerOff {}
+message ModemConect {
+	string Apn = 1;
 }
-
-message RemoteSnapshot {
-    int64 TimeStamp = 1;
-    RemoteMSG LastMSG = 2;
+message ModemConectResponse {
+	bool status = 1;
 }
-
-
+message ModemCheck {
+	string Addr = 1;
+	string Apn = 2;
+}

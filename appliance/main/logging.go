@@ -4,7 +4,7 @@ import (
 	"log"
 	"log/syslog"
 
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-modem/appliance/crosscutting/logs"
 )
 
 func newLog(logger *logs.Logger, prefix string, flags int, priority int) error {
