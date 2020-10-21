@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/dumacp/go-modem/appliance/business/messages"
-	"github.com/dumacp/go-modem/appliance/crosscutting/logs"
+	"github.com/dumacp/go-gwiot/appliance/business/messages"
+	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 const (
-	clientID       = "ignition"
-	TopicAppliance = "appliance/modem"
-	TopicEvents    = "EVENTS/modem"
-	//TopicEvents           = TopicAppliance + "/events"
+	clientID              = "gwiot"
+	TopicAppliance        = "appliance/gwiot"
+	TopicEvents           = TopicAppliance + "/events"
 	TopicStart            = TopicAppliance + "/START"
 	TopicRestart          = TopicAppliance + "/RESTART"
 	TopicStop             = TopicAppliance + "/STOP"
@@ -118,7 +117,7 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 //Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
-	switch msg := ctx.Message().(type) {
+	switch ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 		ps.client = client()
@@ -128,15 +127,6 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 		}
 		for k, v := range ps.subscriptions {
 			ps.subscribe(k, v)
-		}
-	case *publishMSG:
-		tk := ps.client.Publish(msg.topic, 0, false, msg.msg)
-		if !tk.WaitTimeout(3 * time.Second) {
-			if tk.Error() != nil {
-				logs.LogError.Printf("end error: %s, with messages -> %v", msg)
-			} else {
-				logs.LogError.Printf("timeout error with message -> %v", msg)
-			}
 		}
 	case *actor.Stopping:
 		ps.client.Disconnect(600)
@@ -161,7 +151,7 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 func client() mqtt.Client {
 	opt := mqtt.NewClientOptions().AddBroker("tcp://127.0.0.1:1883")
 	opt.SetAutoReconnect(true)
-	opt.SetClientID(fmt.Sprintf("%s-%d", clientID, time.Now().Unix()))
+	opt.SetClientID(fmt.Sprintf("%s", clientID))
 	opt.SetKeepAlive(30 * time.Second)
 	opt.SetConnectRetryInterval(10 * time.Second)
 	client := mqtt.NewClient(opt)

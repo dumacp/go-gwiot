@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/dumacp/go-modem/appliance/crosscutting/logs"
+	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 )
 
 var hostname string

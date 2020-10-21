@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/eventstream"
-	"github.com/dumacp/go-modem/appliance/business/messages"
-	"github.com/dumacp/go-modem/appliance/services"
+	"github.com/dumacp/go-gwiot/appliance/business/messages"
+	"github.com/dumacp/go-gwiot/appliance/services"
 )
 
 type service struct {

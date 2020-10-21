@@ -4,8 +4,8 @@
 package messages
 
 import (
+	bytes "bytes"
 	fmt "fmt"
-	_ "github.com/AsynkronIT/protoactor-go/actor"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
@@ -241,20 +241,20 @@ func (m *StatusResponse) GetState() StatusResponse_StateType {
 	return STARTED
 }
 
-type ModemAddrRequest struct {
+type TokenRequest struct {
 }
 
-func (m *ModemAddrRequest) Reset()      { *m = ModemAddrRequest{} }
-func (*ModemAddrRequest) ProtoMessage() {}
-func (*ModemAddrRequest) Descriptor() ([]byte, []int) {
+func (m *TokenRequest) Reset()      { *m = TokenRequest{} }
+func (*TokenRequest) ProtoMessage() {}
+func (*TokenRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{5}
 }
-func (m *ModemAddrRequest) XXX_Unmarshal(b []byte) error {
+func (m *TokenRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemAddrRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *TokenRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemAddrRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_TokenRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -264,32 +264,33 @@ func (m *ModemAddrRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *ModemAddrRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemAddrRequest.Merge(m, src)
+func (m *TokenRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TokenRequest.Merge(m, src)
 }
-func (m *ModemAddrRequest) XXX_Size() int {
+func (m *TokenRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemAddrRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemAddrRequest.DiscardUnknown(m)
+func (m *TokenRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_TokenRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemAddrRequest proto.InternalMessageInfo
+var xxx_messageInfo_TokenRequest proto.InternalMessageInfo
 
-type ModemOnRequest struct {
+type TokenResponse struct {
+	Token []byte `protobuf:"bytes,1,opt,name=Token,proto3" json:"Token,omitempty"`
 }
 
-func (m *ModemOnRequest) Reset()      { *m = ModemOnRequest{} }
-func (*ModemOnRequest) ProtoMessage() {}
-func (*ModemOnRequest) Descriptor() ([]byte, []int) {
+func (m *TokenResponse) Reset()      { *m = TokenResponse{} }
+func (*TokenResponse) ProtoMessage() {}
+func (*TokenResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{6}
 }
-func (m *ModemOnRequest) XXX_Unmarshal(b []byte) error {
+func (m *TokenResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemOnRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *TokenResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemOnRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_TokenResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -299,34 +300,39 @@ func (m *ModemOnRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *ModemOnRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemOnRequest.Merge(m, src)
+func (m *TokenResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TokenResponse.Merge(m, src)
 }
-func (m *ModemOnRequest) XXX_Size() int {
+func (m *TokenResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemOnRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemOnRequest.DiscardUnknown(m)
+func (m *TokenResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_TokenResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemOnRequest proto.InternalMessageInfo
+var xxx_messageInfo_TokenResponse proto.InternalMessageInfo
 
-type ModemAddr struct {
-	Addr string `protobuf:"bytes,1,opt,name=Addr,proto3" json:"Addr,omitempty"`
-	Id   string `protobuf:"bytes,2,opt,name=Id,proto3" json:"Id,omitempty"`
+func (m *TokenResponse) GetToken() []byte {
+	if m != nil {
+		return m.Token
+	}
+	return nil
 }
 
-func (m *ModemAddr) Reset()      { *m = ModemAddr{} }
-func (*ModemAddr) ProtoMessage() {}
-func (*ModemAddr) Descriptor() ([]byte, []int) {
+type GroupIDRequest struct {
+}
+
+func (m *GroupIDRequest) Reset()      { *m = GroupIDRequest{} }
+func (*GroupIDRequest) ProtoMessage() {}
+func (*GroupIDRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{7}
 }
-func (m *ModemAddr) XXX_Unmarshal(b []byte) error {
+func (m *GroupIDRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemAddr) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GroupIDRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemAddr.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GroupIDRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -336,47 +342,33 @@ func (m *ModemAddr) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *ModemAddr) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemAddr.Merge(m, src)
+func (m *GroupIDRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupIDRequest.Merge(m, src)
 }
-func (m *ModemAddr) XXX_Size() int {
+func (m *GroupIDRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemAddr) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemAddr.DiscardUnknown(m)
+func (m *GroupIDRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupIDRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemAddr proto.InternalMessageInfo
+var xxx_messageInfo_GroupIDRequest proto.InternalMessageInfo
 
-func (m *ModemAddr) GetAddr() string {
-	if m != nil {
-		return m.Addr
-	}
-	return ""
+type GroupIDResponse struct {
+	Data []byte `protobuf:"bytes,1,opt,name=Data,proto3" json:"Data,omitempty"`
 }
 
-func (m *ModemAddr) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
-type ModemOnResponse struct {
-	State bool `protobuf:"varint,1,opt,name=State,proto3" json:"State,omitempty"`
-}
-
-func (m *ModemOnResponse) Reset()      { *m = ModemOnResponse{} }
-func (*ModemOnResponse) ProtoMessage() {}
-func (*ModemOnResponse) Descriptor() ([]byte, []int) {
+func (m *GroupIDResponse) Reset()      { *m = GroupIDResponse{} }
+func (*GroupIDResponse) ProtoMessage() {}
+func (*GroupIDResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{8}
 }
-func (m *ModemOnResponse) XXX_Unmarshal(b []byte) error {
+func (m *GroupIDResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemOnResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GroupIDResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemOnResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GroupIDResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -386,39 +378,39 @@ func (m *ModemOnResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *ModemOnResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemOnResponse.Merge(m, src)
+func (m *GroupIDResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupIDResponse.Merge(m, src)
 }
-func (m *ModemOnResponse) XXX_Size() int {
+func (m *GroupIDResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemOnResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemOnResponse.DiscardUnknown(m)
+func (m *GroupIDResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupIDResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemOnResponse proto.InternalMessageInfo
+var xxx_messageInfo_GroupIDResponse proto.InternalMessageInfo
 
-func (m *ModemOnResponse) GetState() bool {
+func (m *GroupIDResponse) GetData() []byte {
 	if m != nil {
-		return m.State
+		return m.Data
 	}
-	return false
+	return nil
 }
 
-type ModemReset struct {
+type KeycloakAddressRequest struct {
 }
 
-func (m *ModemReset) Reset()      { *m = ModemReset{} }
-func (*ModemReset) ProtoMessage() {}
-func (*ModemReset) Descriptor() ([]byte, []int) {
+func (m *KeycloakAddressRequest) Reset()      { *m = KeycloakAddressRequest{} }
+func (*KeycloakAddressRequest) ProtoMessage() {}
+func (*KeycloakAddressRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{9}
 }
-func (m *ModemReset) XXX_Unmarshal(b []byte) error {
+func (m *KeycloakAddressRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemReset) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *KeycloakAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemReset.Marshal(b, m, deterministic)
+		return xxx_messageInfo_KeycloakAddressRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -428,32 +420,32 @@ func (m *ModemReset) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *ModemReset) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemReset.Merge(m, src)
+func (m *KeycloakAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeycloakAddressRequest.Merge(m, src)
 }
-func (m *ModemReset) XXX_Size() int {
+func (m *KeycloakAddressRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemReset) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemReset.DiscardUnknown(m)
+func (m *KeycloakAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeycloakAddressRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemReset proto.InternalMessageInfo
+var xxx_messageInfo_KeycloakAddressRequest proto.InternalMessageInfo
 
-type ModemPowerOff struct {
+type KeycloakAddressResponse struct {
 }
 
-func (m *ModemPowerOff) Reset()      { *m = ModemPowerOff{} }
-func (*ModemPowerOff) ProtoMessage() {}
-func (*ModemPowerOff) Descriptor() ([]byte, []int) {
+func (m *KeycloakAddressResponse) Reset()      { *m = KeycloakAddressResponse{} }
+func (*KeycloakAddressResponse) ProtoMessage() {}
+func (*KeycloakAddressResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{10}
 }
-func (m *ModemPowerOff) XXX_Unmarshal(b []byte) error {
+func (m *KeycloakAddressResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemPowerOff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *KeycloakAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemPowerOff.Marshal(b, m, deterministic)
+		return xxx_messageInfo_KeycloakAddressResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -463,33 +455,35 @@ func (m *ModemPowerOff) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (m *ModemPowerOff) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemPowerOff.Merge(m, src)
+func (m *KeycloakAddressResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_KeycloakAddressResponse.Merge(m, src)
 }
-func (m *ModemPowerOff) XXX_Size() int {
+func (m *KeycloakAddressResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemPowerOff) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemPowerOff.DiscardUnknown(m)
+func (m *KeycloakAddressResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_KeycloakAddressResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemPowerOff proto.InternalMessageInfo
+var xxx_messageInfo_KeycloakAddressResponse proto.InternalMessageInfo
 
-type ModemConect struct {
-	Apn string `protobuf:"bytes,1,opt,name=Apn,proto3" json:"Apn,omitempty"`
+type RemoteMSG struct {
+	Data      []byte `protobuf:"bytes,1,opt,name=Data,proto3" json:"Data,omitempty"`
+	Retry     int64  `protobuf:"varint,2,opt,name=Retry,proto3" json:"Retry,omitempty"`
+	TimeStamp int64  `protobuf:"varint,3,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
 }
 
-func (m *ModemConect) Reset()      { *m = ModemConect{} }
-func (*ModemConect) ProtoMessage() {}
-func (*ModemConect) Descriptor() ([]byte, []int) {
+func (m *RemoteMSG) Reset()      { *m = RemoteMSG{} }
+func (*RemoteMSG) ProtoMessage() {}
+func (*RemoteMSG) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{11}
 }
-func (m *ModemConect) XXX_Unmarshal(b []byte) error {
+func (m *RemoteMSG) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemConect) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *RemoteMSG) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemConect.Marshal(b, m, deterministic)
+		return xxx_messageInfo_RemoteMSG.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -499,40 +493,55 @@ func (m *ModemConect) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *ModemConect) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemConect.Merge(m, src)
+func (m *RemoteMSG) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoteMSG.Merge(m, src)
 }
-func (m *ModemConect) XXX_Size() int {
+func (m *RemoteMSG) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemConect) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemConect.DiscardUnknown(m)
+func (m *RemoteMSG) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoteMSG.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemConect proto.InternalMessageInfo
+var xxx_messageInfo_RemoteMSG proto.InternalMessageInfo
 
-func (m *ModemConect) GetApn() string {
+func (m *RemoteMSG) GetData() []byte {
 	if m != nil {
-		return m.Apn
+		return m.Data
 	}
-	return ""
+	return nil
 }
 
-type ModemConectResponse struct {
-	Status bool `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+func (m *RemoteMSG) GetRetry() int64 {
+	if m != nil {
+		return m.Retry
+	}
+	return 0
 }
 
-func (m *ModemConectResponse) Reset()      { *m = ModemConectResponse{} }
-func (*ModemConectResponse) ProtoMessage() {}
-func (*ModemConectResponse) Descriptor() ([]byte, []int) {
+func (m *RemoteMSG) GetTimeStamp() int64 {
+	if m != nil {
+		return m.TimeStamp
+	}
+	return 0
+}
+
+type RemoteSnapshot struct {
+	TimeStamp int64      `protobuf:"varint,1,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
+	LastMSG   *RemoteMSG `protobuf:"bytes,2,opt,name=LastMSG,proto3" json:"LastMSG,omitempty"`
+}
+
+func (m *RemoteSnapshot) Reset()      { *m = RemoteSnapshot{} }
+func (*RemoteSnapshot) ProtoMessage() {}
+func (*RemoteSnapshot) Descriptor() ([]byte, []int) {
 	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
 }
-func (m *ModemConectResponse) XXX_Unmarshal(b []byte) error {
+func (m *RemoteSnapshot) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ModemConectResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *RemoteSnapshot) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ModemConectResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_RemoteSnapshot.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -542,74 +551,30 @@ func (m *ModemConectResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *ModemConectResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemConectResponse.Merge(m, src)
+func (m *RemoteSnapshot) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoteSnapshot.Merge(m, src)
 }
-func (m *ModemConectResponse) XXX_Size() int {
+func (m *RemoteSnapshot) XXX_Size() int {
 	return m.Size()
 }
-func (m *ModemConectResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemConectResponse.DiscardUnknown(m)
+func (m *RemoteSnapshot) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoteSnapshot.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ModemConectResponse proto.InternalMessageInfo
+var xxx_messageInfo_RemoteSnapshot proto.InternalMessageInfo
 
-func (m *ModemConectResponse) GetStatus() bool {
+func (m *RemoteSnapshot) GetTimeStamp() int64 {
 	if m != nil {
-		return m.Status
+		return m.TimeStamp
 	}
-	return false
+	return 0
 }
 
-type ModemCheck struct {
-	Addr string `protobuf:"bytes,1,opt,name=Addr,proto3" json:"Addr,omitempty"`
-	Apn  string `protobuf:"bytes,2,opt,name=Apn,proto3" json:"Apn,omitempty"`
-}
-
-func (m *ModemCheck) Reset()      { *m = ModemCheck{} }
-func (*ModemCheck) ProtoMessage() {}
-func (*ModemCheck) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{13}
-}
-func (m *ModemCheck) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ModemCheck) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ModemCheck.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ModemCheck) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ModemCheck.Merge(m, src)
-}
-func (m *ModemCheck) XXX_Size() int {
-	return m.Size()
-}
-func (m *ModemCheck) XXX_DiscardUnknown() {
-	xxx_messageInfo_ModemCheck.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ModemCheck proto.InternalMessageInfo
-
-func (m *ModemCheck) GetAddr() string {
+func (m *RemoteSnapshot) GetLastMSG() *RemoteMSG {
 	if m != nil {
-		return m.Addr
+		return m.LastMSG
 	}
-	return ""
-}
-
-func (m *ModemCheck) GetApn() string {
-	if m != nil {
-		return m.Apn
-	}
-	return ""
+	return nil
 }
 
 func init() {
@@ -619,47 +584,46 @@ func init() {
 	proto.RegisterType((*Restart)(nil), "messages.Restart")
 	proto.RegisterType((*StatusRequest)(nil), "messages.StatusRequest")
 	proto.RegisterType((*StatusResponse)(nil), "messages.StatusResponse")
-	proto.RegisterType((*ModemAddrRequest)(nil), "messages.ModemAddrRequest")
-	proto.RegisterType((*ModemOnRequest)(nil), "messages.ModemOnRequest")
-	proto.RegisterType((*ModemAddr)(nil), "messages.ModemAddr")
-	proto.RegisterType((*ModemOnResponse)(nil), "messages.ModemOnResponse")
-	proto.RegisterType((*ModemReset)(nil), "messages.ModemReset")
-	proto.RegisterType((*ModemPowerOff)(nil), "messages.ModemPowerOff")
-	proto.RegisterType((*ModemConect)(nil), "messages.ModemConect")
-	proto.RegisterType((*ModemConectResponse)(nil), "messages.ModemConectResponse")
-	proto.RegisterType((*ModemCheck)(nil), "messages.ModemCheck")
+	proto.RegisterType((*TokenRequest)(nil), "messages.TokenRequest")
+	proto.RegisterType((*TokenResponse)(nil), "messages.TokenResponse")
+	proto.RegisterType((*GroupIDRequest)(nil), "messages.GroupIDRequest")
+	proto.RegisterType((*GroupIDResponse)(nil), "messages.GroupIDResponse")
+	proto.RegisterType((*KeycloakAddressRequest)(nil), "messages.KeycloakAddressRequest")
+	proto.RegisterType((*KeycloakAddressResponse)(nil), "messages.KeycloakAddressResponse")
+	proto.RegisterType((*RemoteMSG)(nil), "messages.RemoteMSG")
+	proto.RegisterType((*RemoteSnapshot)(nil), "messages.RemoteSnapshot")
 }
 
 func init() { proto.RegisterFile("messages.proto", fileDescriptor_4dc296cbfe5ffcd5) }
 
 var fileDescriptor_4dc296cbfe5ffcd5 = []byte{
-	// 414 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0xc1, 0x6e, 0xd3, 0x40,
-	0x10, 0x86, 0xbd, 0xa6, 0x38, 0xf5, 0x94, 0xba, 0xd6, 0x82, 0xaa, 0x8a, 0xc3, 0x82, 0xf6, 0x52,
-	0x2e, 0x8d, 0xa5, 0x80, 0x10, 0x57, 0xd3, 0xf6, 0x10, 0x21, 0xe2, 0xc8, 0x36, 0xe2, 0xec, 0xda,
-	0xd3, 0x14, 0x55, 0xf1, 0x1a, 0xef, 0x46, 0x28, 0x17, 0xc4, 0x23, 0xf0, 0x18, 0x3c, 0x0a, 0xc7,
-	0x1c, 0x73, 0x24, 0xce, 0x85, 0x63, 0x1e, 0x01, 0x65, 0xb3, 0xb6, 0x82, 0xd4, 0x93, 0xe7, 0xff,
-	0xf5, 0x79, 0xfe, 0xf9, 0x2d, 0x83, 0x37, 0x45, 0x29, 0xb3, 0x09, 0xca, 0x7e, 0x55, 0x0b, 0x25,
-	0xe8, 0x61, 0xab, 0x9f, 0xbf, 0x9d, 0x7c, 0x51, 0x77, 0xb3, 0x9b, 0x7e, 0x2e, 0xa6, 0x41, 0x28,
-	0xe7, 0xe5, 0x7d, 0x2d, 0xca, 0x61, 0x1a, 0x68, 0x2c, 0xcb, 0x95, 0xa8, 0x2f, 0x26, 0x22, 0xd0,
-	0xc3, 0xce, 0x33, 0x1b, 0x78, 0x0f, 0x1e, 0x27, 0x2a, 0xab, 0x15, 0x77, 0xe0, 0x20, 0x51, 0xa2,
-	0xe2, 0x2e, 0xf4, 0x62, 0x94, 0xda, 0x3a, 0x87, 0xe3, 0x44, 0x65, 0x6a, 0x26, 0x63, 0xfc, 0x3a,
-	0x43, 0xa9, 0xe8, 0x29, 0x38, 0x09, 0x96, 0x05, 0xd6, 0x67, 0xe4, 0x25, 0x79, 0xe5, 0xc6, 0x46,
-	0xf1, 0xef, 0xe0, 0xb5, 0xa0, 0xac, 0x44, 0x29, 0x91, 0xbe, 0xd3, 0x6b, 0x15, 0x6a, 0xd0, 0x1b,
-	0xf0, 0x7e, 0x77, 0xf8, 0xff, 0xa0, 0x96, 0x98, 0xce, 0x2b, 0x8c, 0x77, 0x2f, 0xf0, 0x01, 0xb8,
-	0x9d, 0x47, 0x8f, 0xa0, 0x97, 0xa4, 0x61, 0x9c, 0x5e, 0x5f, 0xf9, 0xd6, 0x4e, 0x44, 0xe3, 0xf1,
-	0xf5, 0x95, 0x4f, 0xb6, 0xe2, 0xd3, 0xe8, 0xc3, 0x28, 0xfa, 0x3c, 0xf2, 0x6d, 0x4e, 0xc1, 0xff,
-	0x28, 0x0a, 0x9c, 0x86, 0x45, 0x51, 0x9b, 0x5b, 0xb9, 0x0f, 0x9e, 0xf6, 0xa2, 0xb2, 0x75, 0x02,
-	0x70, 0x3b, 0x8a, 0x52, 0x38, 0xd8, 0x3e, 0x4d, 0x11, 0x3d, 0x53, 0x0f, 0xec, 0x61, 0x71, 0x66,
-	0x6b, 0xc7, 0x1e, 0x16, 0xfc, 0x1c, 0x4e, 0xba, 0x15, 0xa6, 0xd7, 0xb3, 0xfd, 0x5e, 0x87, 0xed,
-	0xcd, 0x4f, 0x00, 0x34, 0x18, 0xa3, 0x44, 0xc5, 0x4f, 0xe0, 0x58, 0xab, 0xb1, 0xf8, 0x86, 0x75,
-	0x74, 0x7b, 0xcb, 0x5f, 0xc0, 0x91, 0x36, 0x2e, 0x45, 0x89, 0xb9, 0xa2, 0x3e, 0x3c, 0x0a, 0xab,
-	0xd2, 0x24, 0x6f, 0x47, 0x7e, 0x01, 0x4f, 0xf7, 0x80, 0x2e, 0xec, 0x14, 0x1c, 0xa9, 0xbf, 0x96,
-	0x49, 0x33, 0x8a, 0x0f, 0x4c, 0xdc, 0xe5, 0x1d, 0xe6, 0xf7, 0x0f, 0x36, 0x31, 0x11, 0x76, 0x17,
-	0xf1, 0xfe, 0xcd, 0x62, 0xc5, 0xac, 0xe5, 0x8a, 0x59, 0x9b, 0x15, 0x23, 0x3f, 0x1a, 0x46, 0x7e,
-	0x35, 0x8c, 0xfc, 0x6e, 0x18, 0x59, 0x34, 0x8c, 0xfc, 0x69, 0x18, 0xf9, 0xdb, 0x30, 0x6b, 0xd3,
-	0x30, 0xf2, 0x73, 0xcd, 0xac, 0xc5, 0x9a, 0x59, 0xcb, 0x35, 0xb3, 0x6e, 0x1c, 0xfd, 0x93, 0xbc,
-	0xfe, 0x17, 0x00, 0x00, 0xff, 0xff, 0x2b, 0x2d, 0x10, 0x8e, 0x78, 0x02, 0x00, 0x00,
+	// 406 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0xbb, 0x8e, 0xd3, 0x40,
+	0x18, 0x85, 0x3d, 0x7b, 0x89, 0xf1, 0xbf, 0xbb, 0xc6, 0x32, 0x68, 0x31, 0x12, 0x1a, 0xad, 0x46,
+	0x42, 0x6c, 0xc3, 0x16, 0x81, 0x82, 0x76, 0x91, 0x57, 0x11, 0x0a, 0xb9, 0x68, 0xc6, 0x88, 0x8a,
+	0x62, 0x20, 0xbf, 0x00, 0x05, 0x7b, 0x8c, 0x67, 0x52, 0xa4, 0x41, 0x3c, 0x02, 0x8f, 0xc1, 0xa3,
+	0x50, 0xa6, 0x4c, 0x49, 0x9c, 0x86, 0x32, 0x8f, 0x80, 0x32, 0xbe, 0x44, 0x81, 0xed, 0xfc, 0x9d,
+	0x39, 0xe7, 0xf8, 0xc8, 0x1e, 0xf0, 0x53, 0xd4, 0x5a, 0x7e, 0x44, 0x7d, 0x95, 0x17, 0xca, 0xa8,
+	0xf0, 0x4e, 0xc3, 0xcc, 0x85, 0x63, 0x61, 0x64, 0x61, 0x58, 0x07, 0x8e, 0x84, 0x51, 0x39, 0xf3,
+	0xc0, 0xe5, 0xa8, 0xad, 0xf4, 0x04, 0xce, 0x84, 0x91, 0x66, 0xa6, 0x39, 0x7e, 0x9d, 0xa1, 0x36,
+	0xe1, 0x39, 0x74, 0x04, 0x66, 0x13, 0x2c, 0x22, 0x72, 0x41, 0x2e, 0x3d, 0x5e, 0x13, 0xfb, 0x06,
+	0x7e, 0x63, 0xd4, 0xb9, 0xca, 0x34, 0x86, 0x2f, 0x6c, 0xad, 0x41, 0x6b, 0xf4, 0xbb, 0xec, 0xaa,
+	0x1d, 0xb0, 0x6f, 0xb4, 0x88, 0xc9, 0x3c, 0x47, 0x5e, 0x05, 0x58, 0x17, 0xbc, 0x56, 0x0b, 0x4f,
+	0xc0, 0x15, 0xc9, 0x35, 0x4f, 0x6e, 0xe2, 0xc0, 0xa9, 0x60, 0x34, 0x1e, 0xdf, 0xc4, 0x01, 0xd9,
+	0xc2, 0x9b, 0x61, 0x7f, 0x38, 0x7a, 0x3b, 0x0c, 0x0e, 0x98, 0x0f, 0xa7, 0x89, 0x9a, 0x62, 0x56,
+	0xef, 0x64, 0x8f, 0xe1, 0xac, 0xe6, 0x7a, 0xce, 0x7d, 0x38, 0xb6, 0x82, 0x9d, 0x73, 0xca, 0x2b,
+	0x60, 0x01, 0xf8, 0xbd, 0x42, 0xcd, 0xf2, 0x57, 0xf1, 0x2e, 0x78, 0xb7, 0x55, 0xea, 0x68, 0x08,
+	0x47, 0xb1, 0x34, 0xb2, 0x4e, 0xda, 0x67, 0x16, 0xc1, 0x79, 0x1f, 0xe7, 0x1f, 0xbe, 0x28, 0x39,
+	0xbd, 0x9e, 0x4c, 0x0a, 0xd4, 0xcd, 0x17, 0x62, 0x0f, 0xe1, 0xc1, 0x7f, 0x27, 0x55, 0x11, 0x13,
+	0xe0, 0x71, 0x4c, 0x95, 0xc1, 0x81, 0xe8, 0xdd, 0xd6, 0xba, 0x1d, 0xc9, 0xd1, 0x14, 0xf3, 0xe8,
+	0xe0, 0x82, 0x5c, 0x1e, 0xf2, 0x0a, 0xc2, 0x47, 0xe0, 0x25, 0x9f, 0x53, 0x14, 0x46, 0xa6, 0x79,
+	0x74, 0x68, 0x4f, 0x76, 0x02, 0x7b, 0x07, 0x7e, 0x55, 0x2a, 0x32, 0x99, 0xeb, 0x4f, 0xca, 0xec,
+	0xfb, 0xc9, 0x3f, 0xfe, 0xf0, 0x29, 0xb8, 0xaf, 0xa5, 0x36, 0x03, 0xd1, 0xb3, 0x6f, 0x39, 0xe9,
+	0xde, 0xdb, 0xfd, 0x99, 0x76, 0x1d, 0x6f, 0x3c, 0x2f, 0x9f, 0x2f, 0x56, 0xd4, 0x59, 0xae, 0xa8,
+	0xb3, 0x59, 0x51, 0xf2, 0xbd, 0xa4, 0xe4, 0x67, 0x49, 0xc9, 0xaf, 0x92, 0x92, 0x45, 0x49, 0xc9,
+	0xef, 0x92, 0x92, 0x3f, 0x25, 0x75, 0x36, 0x25, 0x25, 0x3f, 0xd6, 0xd4, 0x59, 0xac, 0xa9, 0xb3,
+	0x5c, 0x53, 0xe7, 0x7d, 0xc7, 0x5e, 0xb2, 0x67, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xc3, 0x4a,
+	0xcb, 0x36, 0x76, 0x02, 0x00, 0x00,
 }
 
 func (x StatusResponse_StateType) String() string {
@@ -780,14 +744,14 @@ func (this *StatusResponse) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *ModemAddrRequest) Equal(that interface{}) bool {
+func (this *TokenRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemAddrRequest)
+	that1, ok := that.(*TokenRequest)
 	if !ok {
-		that2, ok := that.(ModemAddrRequest)
+		that2, ok := that.(TokenRequest)
 		if ok {
 			that1 = &that2
 		} else {
@@ -801,14 +765,38 @@ func (this *ModemAddrRequest) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *ModemOnRequest) Equal(that interface{}) bool {
+func (this *TokenResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemOnRequest)
+	that1, ok := that.(*TokenResponse)
 	if !ok {
-		that2, ok := that.(ModemOnRequest)
+		that2, ok := that.(TokenResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !bytes.Equal(this.Token, that1.Token) {
+		return false
+	}
+	return true
+}
+func (this *GroupIDRequest) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*GroupIDRequest)
+	if !ok {
+		that2, ok := that.(GroupIDRequest)
 		if ok {
 			that1 = &that2
 		} else {
@@ -822,14 +810,14 @@ func (this *ModemOnRequest) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *ModemAddr) Equal(that interface{}) bool {
+func (this *GroupIDResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemAddr)
+	that1, ok := that.(*GroupIDResponse)
 	if !ok {
-		that2, ok := that.(ModemAddr)
+		that2, ok := that.(GroupIDResponse)
 		if ok {
 			that1 = &that2
 		} else {
@@ -841,46 +829,19 @@ func (this *ModemAddr) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Addr != that1.Addr {
-		return false
-	}
-	if this.Id != that1.Id {
+	if !bytes.Equal(this.Data, that1.Data) {
 		return false
 	}
 	return true
 }
-func (this *ModemOnResponse) Equal(that interface{}) bool {
+func (this *KeycloakAddressRequest) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemOnResponse)
+	that1, ok := that.(*KeycloakAddressRequest)
 	if !ok {
-		that2, ok := that.(ModemOnResponse)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.State != that1.State {
-		return false
-	}
-	return true
-}
-func (this *ModemReset) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*ModemReset)
-	if !ok {
-		that2, ok := that.(ModemReset)
+		that2, ok := that.(KeycloakAddressRequest)
 		if ok {
 			that1 = &that2
 		} else {
@@ -894,14 +855,14 @@ func (this *ModemReset) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *ModemPowerOff) Equal(that interface{}) bool {
+func (this *KeycloakAddressResponse) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemPowerOff)
+	that1, ok := that.(*KeycloakAddressResponse)
 	if !ok {
-		that2, ok := that.(ModemPowerOff)
+		that2, ok := that.(KeycloakAddressResponse)
 		if ok {
 			that1 = &that2
 		} else {
@@ -915,14 +876,14 @@ func (this *ModemPowerOff) Equal(that interface{}) bool {
 	}
 	return true
 }
-func (this *ModemConect) Equal(that interface{}) bool {
+func (this *RemoteMSG) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemConect)
+	that1, ok := that.(*RemoteMSG)
 	if !ok {
-		that2, ok := that.(ModemConect)
+		that2, ok := that.(RemoteMSG)
 		if ok {
 			that1 = &that2
 		} else {
@@ -934,19 +895,25 @@ func (this *ModemConect) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Apn != that1.Apn {
+	if !bytes.Equal(this.Data, that1.Data) {
+		return false
+	}
+	if this.Retry != that1.Retry {
+		return false
+	}
+	if this.TimeStamp != that1.TimeStamp {
 		return false
 	}
 	return true
 }
-func (this *ModemConectResponse) Equal(that interface{}) bool {
+func (this *RemoteSnapshot) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	that1, ok := that.(*ModemConectResponse)
+	that1, ok := that.(*RemoteSnapshot)
 	if !ok {
-		that2, ok := that.(ModemConectResponse)
+		that2, ok := that.(RemoteSnapshot)
 		if ok {
 			that1 = &that2
 		} else {
@@ -958,34 +925,10 @@ func (this *ModemConectResponse) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if this.Status != that1.Status {
+	if this.TimeStamp != that1.TimeStamp {
 		return false
 	}
-	return true
-}
-func (this *ModemCheck) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	that1, ok := that.(*ModemCheck)
-	if !ok {
-		that2, ok := that.(ModemCheck)
-		if ok {
-			that1 = &that2
-		} else {
-			return false
-		}
-	}
-	if that1 == nil {
-		return this == nil
-	} else if this == nil {
-		return false
-	}
-	if this.Addr != that1.Addr {
-		return false
-	}
-	if this.Apn != that1.Apn {
+	if !this.LastMSG.Equal(that1.LastMSG) {
 		return false
 	}
 	return true
@@ -1037,91 +980,84 @@ func (this *StatusResponse) GoString() string {
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *ModemAddrRequest) GoString() string {
+func (this *TokenRequest) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 4)
-	s = append(s, "&messages.ModemAddrRequest{")
+	s = append(s, "&messages.TokenRequest{")
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *ModemOnRequest) GoString() string {
+func (this *TokenResponse) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 5)
+	s = append(s, "&messages.TokenResponse{")
+	s = append(s, "Token: "+fmt.Sprintf("%#v", this.Token)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *GroupIDRequest) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 4)
-	s = append(s, "&messages.ModemOnRequest{")
+	s = append(s, "&messages.GroupIDRequest{")
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
-func (this *ModemAddr) GoString() string {
+func (this *GroupIDResponse) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 5)
+	s = append(s, "&messages.GroupIDResponse{")
+	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *KeycloakAddressRequest) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 4)
+	s = append(s, "&messages.KeycloakAddressRequest{")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *KeycloakAddressResponse) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 4)
+	s = append(s, "&messages.KeycloakAddressResponse{")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *RemoteMSG) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 7)
+	s = append(s, "&messages.RemoteMSG{")
+	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	s = append(s, "Retry: "+fmt.Sprintf("%#v", this.Retry)+",\n")
+	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *RemoteSnapshot) GoString() string {
 	if this == nil {
 		return "nil"
 	}
 	s := make([]string, 0, 6)
-	s = append(s, "&messages.ModemAddr{")
-	s = append(s, "Addr: "+fmt.Sprintf("%#v", this.Addr)+",\n")
-	s = append(s, "Id: "+fmt.Sprintf("%#v", this.Id)+",\n")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *ModemOnResponse) GoString() string {
-	if this == nil {
-		return "nil"
+	s = append(s, "&messages.RemoteSnapshot{")
+	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
+	if this.LastMSG != nil {
+		s = append(s, "LastMSG: "+fmt.Sprintf("%#v", this.LastMSG)+",\n")
 	}
-	s := make([]string, 0, 5)
-	s = append(s, "&messages.ModemOnResponse{")
-	s = append(s, "State: "+fmt.Sprintf("%#v", this.State)+",\n")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *ModemReset) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 4)
-	s = append(s, "&messages.ModemReset{")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *ModemPowerOff) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 4)
-	s = append(s, "&messages.ModemPowerOff{")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *ModemConect) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 5)
-	s = append(s, "&messages.ModemConect{")
-	s = append(s, "Apn: "+fmt.Sprintf("%#v", this.Apn)+",\n")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *ModemConectResponse) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 5)
-	s = append(s, "&messages.ModemConectResponse{")
-	s = append(s, "Status: "+fmt.Sprintf("%#v", this.Status)+",\n")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *ModemCheck) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 6)
-	s = append(s, "&messages.ModemCheck{")
-	s = append(s, "Addr: "+fmt.Sprintf("%#v", this.Addr)+",\n")
-	s = append(s, "Apn: "+fmt.Sprintf("%#v", this.Apn)+",\n")
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
@@ -1260,7 +1196,7 @@ func (m *StatusResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ModemAddrRequest) Marshal() (dAtA []byte, err error) {
+func (m *TokenRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1270,12 +1206,12 @@ func (m *ModemAddrRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ModemAddrRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *TokenRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ModemAddrRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *TokenRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1283,7 +1219,7 @@ func (m *ModemAddrRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ModemOnRequest) Marshal() (dAtA []byte, err error) {
+func (m *TokenResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1293,12 +1229,42 @@ func (m *ModemOnRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ModemOnRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *TokenResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ModemOnRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *TokenResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Token) > 0 {
+		i -= len(m.Token)
+		copy(dAtA[i:], m.Token)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Token)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GroupIDRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupIDRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GroupIDRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1306,7 +1272,7 @@ func (m *ModemOnRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ModemAddr) Marshal() (dAtA []byte, err error) {
+func (m *GroupIDResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1316,208 +1282,148 @@ func (m *ModemAddr) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ModemAddr) MarshalTo(dAtA []byte) (int, error) {
+func (m *GroupIDResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ModemAddr) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GroupIDResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Id) > 0 {
-		i -= len(m.Id)
-		copy(dAtA[i:], m.Id)
-		i = encodeVarintMessages(dAtA, i, uint64(len(m.Id)))
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *KeycloakAddressRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *KeycloakAddressRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *KeycloakAddressRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *KeycloakAddressResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *KeycloakAddressResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *KeycloakAddressResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *RemoteMSG) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RemoteMSG) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RemoteMSG) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.TimeStamp != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Retry != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.Retry))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RemoteSnapshot) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RemoteSnapshot) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RemoteSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.LastMSG != nil {
+		{
+			size, err := m.LastMSG.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMessages(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Addr) > 0 {
-		i -= len(m.Addr)
-		copy(dAtA[i:], m.Addr)
-		i = encodeVarintMessages(dAtA, i, uint64(len(m.Addr)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ModemOnResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ModemOnResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ModemOnResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.State {
-		i--
-		if m.State {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
+	if m.TimeStamp != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
 		i--
 		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ModemReset) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ModemReset) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ModemReset) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *ModemPowerOff) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ModemPowerOff) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ModemPowerOff) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	return len(dAtA) - i, nil
-}
-
-func (m *ModemConect) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ModemConect) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ModemConect) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Apn) > 0 {
-		i -= len(m.Apn)
-		copy(dAtA[i:], m.Apn)
-		i = encodeVarintMessages(dAtA, i, uint64(len(m.Apn)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ModemConectResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ModemConectResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ModemConectResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Status {
-		i--
-		if m.Status {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ModemCheck) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ModemCheck) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ModemCheck) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Apn) > 0 {
-		i -= len(m.Apn)
-		copy(dAtA[i:], m.Apn)
-		i = encodeVarintMessages(dAtA, i, uint64(len(m.Apn)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Addr) > 0 {
-		i -= len(m.Addr)
-		copy(dAtA[i:], m.Addr)
-		i = encodeVarintMessages(dAtA, i, uint64(len(m.Addr)))
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1585,7 +1491,7 @@ func (m *StatusResponse) Size() (n int) {
 	return n
 }
 
-func (m *ModemAddrRequest) Size() (n int) {
+func (m *TokenRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1594,45 +1500,20 @@ func (m *ModemAddrRequest) Size() (n int) {
 	return n
 }
 
-func (m *ModemOnRequest) Size() (n int) {
+func (m *TokenResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	return n
-}
-
-func (m *ModemAddr) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Addr)
-	if l > 0 {
-		n += 1 + l + sovMessages(uint64(l))
-	}
-	l = len(m.Id)
+	l = len(m.Token)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
 	return n
 }
 
-func (m *ModemOnResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.State {
-		n += 2
-	}
-	return n
-}
-
-func (m *ModemReset) Size() (n int) {
+func (m *GroupIDRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1641,52 +1522,67 @@ func (m *ModemReset) Size() (n int) {
 	return n
 }
 
-func (m *ModemPowerOff) Size() (n int) {
+func (m *GroupIDResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	return n
-}
-
-func (m *ModemConect) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Apn)
+	l = len(m.Data)
 	if l > 0 {
 		n += 1 + l + sovMessages(uint64(l))
 	}
 	return n
 }
 
-func (m *ModemConectResponse) Size() (n int) {
+func (m *KeycloakAddressRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Status {
-		n += 2
+	return n
+}
+
+func (m *KeycloakAddressResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *RemoteMSG) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	if m.Retry != 0 {
+		n += 1 + sovMessages(uint64(m.Retry))
+	}
+	if m.TimeStamp != 0 {
+		n += 1 + sovMessages(uint64(m.TimeStamp))
 	}
 	return n
 }
 
-func (m *ModemCheck) Size() (n int) {
+func (m *RemoteSnapshot) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Addr)
-	if l > 0 {
-		n += 1 + l + sovMessages(uint64(l))
+	if m.TimeStamp != 0 {
+		n += 1 + sovMessages(uint64(m.TimeStamp))
 	}
-	l = len(m.Apn)
-	if l > 0 {
+	if m.LastMSG != nil {
+		l = m.LastMSG.Size()
 		n += 1 + l + sovMessages(uint64(l))
 	}
 	return n
@@ -1745,90 +1641,81 @@ func (this *StatusResponse) String() string {
 	}, "")
 	return s
 }
-func (this *ModemAddrRequest) String() string {
+func (this *TokenRequest) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemAddrRequest{`,
+	s := strings.Join([]string{`&TokenRequest{`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemOnRequest) String() string {
+func (this *TokenResponse) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemOnRequest{`,
+	s := strings.Join([]string{`&TokenResponse{`,
+		`Token:` + fmt.Sprintf("%v", this.Token) + `,`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemAddr) String() string {
+func (this *GroupIDRequest) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemAddr{`,
-		`Addr:` + fmt.Sprintf("%v", this.Addr) + `,`,
-		`Id:` + fmt.Sprintf("%v", this.Id) + `,`,
+	s := strings.Join([]string{`&GroupIDRequest{`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemOnResponse) String() string {
+func (this *GroupIDResponse) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemOnResponse{`,
-		`State:` + fmt.Sprintf("%v", this.State) + `,`,
+	s := strings.Join([]string{`&GroupIDResponse{`,
+		`Data:` + fmt.Sprintf("%v", this.Data) + `,`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemReset) String() string {
+func (this *KeycloakAddressRequest) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemReset{`,
+	s := strings.Join([]string{`&KeycloakAddressRequest{`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemPowerOff) String() string {
+func (this *KeycloakAddressResponse) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemPowerOff{`,
+	s := strings.Join([]string{`&KeycloakAddressResponse{`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemConect) String() string {
+func (this *RemoteMSG) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemConect{`,
-		`Apn:` + fmt.Sprintf("%v", this.Apn) + `,`,
+	s := strings.Join([]string{`&RemoteMSG{`,
+		`Data:` + fmt.Sprintf("%v", this.Data) + `,`,
+		`Retry:` + fmt.Sprintf("%v", this.Retry) + `,`,
+		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
 		`}`,
 	}, "")
 	return s
 }
-func (this *ModemConectResponse) String() string {
+func (this *RemoteSnapshot) String() string {
 	if this == nil {
 		return "nil"
 	}
-	s := strings.Join([]string{`&ModemConectResponse{`,
-		`Status:` + fmt.Sprintf("%v", this.Status) + `,`,
-		`}`,
-	}, "")
-	return s
-}
-func (this *ModemCheck) String() string {
-	if this == nil {
-		return "nil"
-	}
-	s := strings.Join([]string{`&ModemCheck{`,
-		`Addr:` + fmt.Sprintf("%v", this.Addr) + `,`,
-		`Apn:` + fmt.Sprintf("%v", this.Apn) + `,`,
+	s := strings.Join([]string{`&RemoteSnapshot{`,
+		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
+		`LastMSG:` + strings.Replace(this.LastMSG.String(), "RemoteMSG", "RemoteMSG", 1) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -2157,7 +2044,7 @@ func (m *StatusResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ModemAddrRequest) Unmarshal(dAtA []byte) error {
+func (m *TokenRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2180,10 +2067,10 @@ func (m *ModemAddrRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ModemAddrRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: TokenRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemAddrRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: TokenRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -2210,7 +2097,7 @@ func (m *ModemAddrRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ModemOnRequest) Unmarshal(dAtA []byte) error {
+func (m *TokenResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2233,70 +2120,17 @@ func (m *ModemOnRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ModemOnRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: TokenResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemOnRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ModemAddr) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ModemAddr: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemAddr: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: TokenResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Addr", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -2306,55 +2140,25 @@ func (m *ModemAddr) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthMessages
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthMessages
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Addr = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			m.Token = append(m.Token[:0], dAtA[iNdEx:postIndex]...)
+			if m.Token == nil {
+				m.Token = []byte{}
 			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMessages
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Id = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2380,7 +2184,7 @@ func (m *ModemAddr) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ModemOnResponse) Unmarshal(dAtA []byte) error {
+func (m *GroupIDRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2403,17 +2207,388 @@ func (m *ModemOnResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ModemOnResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: GroupIDRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemOnResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GroupIDRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupIDResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupIDResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupIDResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *KeycloakAddressRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: KeycloakAddressRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: KeycloakAddressRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *KeycloakAddressResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: KeycloakAddressResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: KeycloakAddressResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RemoteMSG) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RemoteMSG: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RemoteMSG: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Retry", wireType)
+			}
+			m.Retry = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Retry |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
+			}
+			m.TimeStamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TimeStamp |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RemoteSnapshot) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RemoteSnapshot: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RemoteSnapshot: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
 			}
-			var v int
+			m.TimeStamp = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -2423,366 +2598,16 @@ func (m *ModemOnResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int(b&0x7F) << shift
+				m.TimeStamp |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			m.State = bool(v != 0)
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ModemReset) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ModemReset: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemReset: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ModemPowerOff) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ModemPowerOff: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemPowerOff: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ModemConect) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ModemConect: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemConect: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Apn", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMessages
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Apn = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ModemConectResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ModemConectResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemConectResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Status = bool(v != 0)
-		default:
-			iNdEx = preIndex
-			skippy, err := skipMessages(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ModemCheck) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowMessages
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ModemCheck: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ModemCheck: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Addr", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowMessages
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthMessages
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthMessages
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Addr = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Apn", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LastMSG", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMessages
@@ -2792,23 +2617,27 @@ func (m *ModemCheck) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthMessages
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthMessages
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Apn = string(dAtA[iNdEx:postIndex])
+			if m.LastMSG == nil {
+				m.LastMSG = &RemoteMSG{}
+			}
+			if err := m.LastMSG.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
