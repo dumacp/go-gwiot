@@ -34,6 +34,8 @@ type RemoteActor struct {
 	client        mqtt.Client
 	token         *oauth2.Token
 	lastReconnect time.Time
+	countReplay   int
+	disableReplay bool
 }
 
 //NewRemote new remote actor
@@ -43,6 +45,10 @@ func NewRemote(test bool) *RemoteActor {
 	r.lastBackMSG = &messages.RemoteSnapshot{TimeStamp: 0, LastMSG: nil}
 	go r.tickrReconnect()
 	return r
+}
+
+func (ps *RemoteActor) DisableReplay(disable bool) {
+	ps.disableReplay = disable
 }
 
 type reconnectRemote struct{}
@@ -143,6 +149,12 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			logs.LogBuild.Printf("persist message -> %v", time.Unix(msg.TimeStamp, 0))
 			ps.lastCacheMSG = msg
 			ps.PersistReceive(msg)
+			ps.countReplay = 0
+		} else {
+			if ps.disableReplay {
+				break
+			}
+			ps.countReplay += 1
 		}
 
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
@@ -165,6 +177,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			}
 		} else {
 			ps.lastMSG = msg
+			if v := ps.countReplay % 30; v == 0 && ps.countReplay != 0 {
+				time.Sleep(3 * time.Second)
+			}
 		}
 
 	case *messages.RemoteSnapshot:
@@ -215,7 +230,7 @@ func sendMSG(client mqtt.Client, topic string, msg []byte, test bool) (bool, err
 	} else {
 		topicSend = topic
 	}
-	tk := client.Publish(topicSend, 0, false, msg)
+	tk := client.Publish(topicSend, 1, false, msg)
 
 	for range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} {
 		if tk.WaitTimeout(300 * time.Millisecond) {
@@ -285,6 +300,7 @@ func client(tk *oauth2.Token) mqtt.Client {
 	opt.SetPassword(tk.AccessToken)
 	opt.SetUsername("unused")
 	opt.SetProtocolVersion(protocolVersion)
+	opt.SetOrderMatters(true)
 	opt.SetTLSConfig(tlsconfig)
 
 	opt.SetClientID(fmt.Sprintf("%s-%d", Hostname(), time.Now().Unix()))

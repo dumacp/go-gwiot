@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	showVersion = "1.0.2"
+	showVersion = "1.0.5"
 )
 
 var debug bool
+var disableRetransmission bool
 var test bool
 var logStd bool
 var version bool
@@ -32,6 +33,7 @@ func init() {
 	flag.BoolVar(&version, "version", false, "show version")
 	flag.StringVar(&pathdb, "pathdb", "/SD/boltdbs/gwiotdb", "path to db")
 	flag.StringVar(&hostname, "hostname", "", "test hostname")
+	flag.BoolVar(&disableRetransmission, "disableRetransmission", false, "disable retransmission")
 }
 
 func main() {
@@ -62,6 +64,9 @@ func main() {
 	rootContext := actor.EmptyRootContext
 
 	remote := business.NewRemote(test)
+	if disableRetransmission {
+		remote.DisableReplay(true)
+	}
 
 	propsRemote := actor.PropsFromProducer(func() actor.Actor { return remote }).
 		WithReceiverMiddleware(persistence.Using(provider))

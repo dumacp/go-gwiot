@@ -91,7 +91,7 @@ func replaceKeys(data map[string]interface{}) map[string]interface{} {
 }
 
 var keysStatic = map[string]int{"uTC": 0, "eTC": 0, "t": 0, "sDv": 0, "tsOB": 0, "tsBT": 0,
-	"tsUA": 0, "tsDA": 0, "tsAN": 0, "bDPUA": 0, "bDPDA": 0, "fDPUA": 0, "fDPDA": 0}
+	"tsUA": 0, "tsDA": 0, "tsAN": 0, "bDPUA": 0, "bDPDA": 0, "fDPUA": 0, "fDPDA": 0, "AVer": 0}
 var keysRemove = map[string]int{"sM": 0, "sDs": 0, "sW": 0, "sn-cn": 0}
 
 //OnlyChanges expose only new values in fields
