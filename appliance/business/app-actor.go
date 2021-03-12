@@ -22,6 +22,16 @@ type DeviceMSG struct {
 	Events *Events    `json:"events"`
 }
 
+//DeviceStateMSG device message
+type DeviceStateMSG struct {
+	State *StatusMsg `json:"state"`
+}
+
+//DeviceEventsMSG device message
+type DeviceEventsMSG struct {
+	Events *Events `json:"events"`
+}
+
 //App main app
 type App struct {
 	pidKeycloak *actor.PID
@@ -132,12 +142,17 @@ func (app *App) Receive(ctx actor.Context) {
 		(*msg)["muuid"] = muuid
 		(*msg)["v"] = messagesVersion
 
-		remoteMsg := &DeviceMSG{State: msg, Events: &Events{}}
-		data, err := json.Marshal(remoteMsg)
+		stateMsg := &DeviceStateMSG{State: msg}
+		dataState, err := json.Marshal(stateMsg)
 		if err != nil {
-			logs.LogWarn.Printf("status messages error -> %q", err)
+			logs.LogWarn.Printf("events messages error -> %q", err)
 		}
-		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data, Retry: 0, TimeStamp: time.Now().Unix()})
+		eventsMsg := &DeviceEventsMSG{Events: &Events{}}
+		dataEvents, err := json.Marshal(eventsMsg)
+		if err != nil {
+			logs.LogWarn.Printf("events messages error -> %q", err)
+		}
+		ctx.Send(app.pidRemote, &messages.RemoteMSG2{State: dataState, Events: dataEvents, Serial: app.snDev, Retry: 0, TimeStamp: time.Now().Unix(), Version: 2, Data: nil})
 	case *Events:
 		if len(app.snDev) <= 0 {
 			app.snDev = Hostname()
@@ -151,12 +166,17 @@ func (app *App) Receive(ctx actor.Context) {
 		(state)["muuid"] = muuid
 		(state)["v"] = messagesVersion
 
-		remoteMsg := &DeviceMSG{State: (*StatusMsg)(&state), Events: msg}
-		data, err := json.Marshal(remoteMsg)
+		stateMsg := &DeviceStateMSG{State: (*StatusMsg)(&state)}
+		dataState, err := json.Marshal(stateMsg)
 		if err != nil {
 			logs.LogWarn.Printf("events messages error -> %q", err)
 		}
-		ctx.Send(app.pidRemote, &messages.RemoteMSG{Data: data, Retry: 0, TimeStamp: time.Now().Unix()})
+		eventsMsg := &DeviceEventsMSG{Events: msg}
+		dataEvents, err := json.Marshal(eventsMsg)
+		if err != nil {
+			logs.LogWarn.Printf("events messages error -> %q", err)
+		}
+		ctx.Send(app.pidRemote, &messages.RemoteMSG2{State: dataState, Events: dataEvents, Serial: app.snDev, Retry: 0, TimeStamp: time.Now().Unix(), Version: 2, Data: nil})
 	case *actor.Stopping:
 		logs.LogError.Printf("stopping actor, reason: %s", msg)
 	case *ErrorRemote:

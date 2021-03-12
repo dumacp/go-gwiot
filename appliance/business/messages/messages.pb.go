@@ -471,6 +471,7 @@ type RemoteMSG struct {
 	Data      []byte `protobuf:"bytes,1,opt,name=Data,proto3" json:"Data,omitempty"`
 	Retry     int64  `protobuf:"varint,2,opt,name=Retry,proto3" json:"Retry,omitempty"`
 	TimeStamp int64  `protobuf:"varint,3,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
+	Version   int64  `protobuf:"varint,4,opt,name=version,proto3" json:"version,omitempty"`
 }
 
 func (m *RemoteMSG) Reset()      { *m = RemoteMSG{} }
@@ -526,6 +527,104 @@ func (m *RemoteMSG) GetTimeStamp() int64 {
 	return 0
 }
 
+func (m *RemoteMSG) GetVersion() int64 {
+	if m != nil {
+		return m.Version
+	}
+	return 0
+}
+
+type RemoteMSG2 struct {
+	State     []byte `protobuf:"bytes,1,opt,name=State,proto3" json:"State,omitempty"`
+	Events    []byte `protobuf:"bytes,2,opt,name=Events,proto3" json:"Events,omitempty"`
+	Serial    string `protobuf:"bytes,3,opt,name=Serial,proto3" json:"Serial,omitempty"`
+	Retry     int64  `protobuf:"varint,4,opt,name=Retry,proto3" json:"Retry,omitempty"`
+	TimeStamp int64  `protobuf:"varint,5,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
+	Data      []byte `protobuf:"bytes,6,opt,name=Data,proto3" json:"Data,omitempty"`
+	Version   int64  `protobuf:"varint,7,opt,name=version,proto3" json:"version,omitempty"`
+}
+
+func (m *RemoteMSG2) Reset()      { *m = RemoteMSG2{} }
+func (*RemoteMSG2) ProtoMessage() {}
+func (*RemoteMSG2) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
+}
+func (m *RemoteMSG2) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RemoteMSG2) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RemoteMSG2.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RemoteMSG2) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RemoteMSG2.Merge(m, src)
+}
+func (m *RemoteMSG2) XXX_Size() int {
+	return m.Size()
+}
+func (m *RemoteMSG2) XXX_DiscardUnknown() {
+	xxx_messageInfo_RemoteMSG2.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RemoteMSG2 proto.InternalMessageInfo
+
+func (m *RemoteMSG2) GetState() []byte {
+	if m != nil {
+		return m.State
+	}
+	return nil
+}
+
+func (m *RemoteMSG2) GetEvents() []byte {
+	if m != nil {
+		return m.Events
+	}
+	return nil
+}
+
+func (m *RemoteMSG2) GetSerial() string {
+	if m != nil {
+		return m.Serial
+	}
+	return ""
+}
+
+func (m *RemoteMSG2) GetRetry() int64 {
+	if m != nil {
+		return m.Retry
+	}
+	return 0
+}
+
+func (m *RemoteMSG2) GetTimeStamp() int64 {
+	if m != nil {
+		return m.TimeStamp
+	}
+	return 0
+}
+
+func (m *RemoteMSG2) GetData() []byte {
+	if m != nil {
+		return m.Data
+	}
+	return nil
+}
+
+func (m *RemoteMSG2) GetVersion() int64 {
+	if m != nil {
+		return m.Version
+	}
+	return 0
+}
+
 type RemoteSnapshot struct {
 	TimeStamp int64      `protobuf:"varint,1,opt,name=TimeStamp,proto3" json:"TimeStamp,omitempty"`
 	LastMSG   *RemoteMSG `protobuf:"bytes,2,opt,name=LastMSG,proto3" json:"LastMSG,omitempty"`
@@ -534,7 +633,7 @@ type RemoteSnapshot struct {
 func (m *RemoteSnapshot) Reset()      { *m = RemoteSnapshot{} }
 func (*RemoteSnapshot) ProtoMessage() {}
 func (*RemoteSnapshot) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4dc296cbfe5ffcd5, []int{12}
+	return fileDescriptor_4dc296cbfe5ffcd5, []int{13}
 }
 func (m *RemoteSnapshot) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -591,39 +690,44 @@ func init() {
 	proto.RegisterType((*KeycloakAddressRequest)(nil), "messages.KeycloakAddressRequest")
 	proto.RegisterType((*KeycloakAddressResponse)(nil), "messages.KeycloakAddressResponse")
 	proto.RegisterType((*RemoteMSG)(nil), "messages.RemoteMSG")
+	proto.RegisterType((*RemoteMSG2)(nil), "messages.RemoteMSG2")
 	proto.RegisterType((*RemoteSnapshot)(nil), "messages.RemoteSnapshot")
 }
 
 func init() { proto.RegisterFile("messages.proto", fileDescriptor_4dc296cbfe5ffcd5) }
 
 var fileDescriptor_4dc296cbfe5ffcd5 = []byte{
-	// 406 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0xbb, 0x8e, 0xd3, 0x40,
-	0x18, 0x85, 0x3d, 0x7b, 0x89, 0xf1, 0xbf, 0xbb, 0xc6, 0x32, 0x68, 0x31, 0x12, 0x1a, 0xad, 0x46,
-	0x42, 0x6c, 0xc3, 0x16, 0x81, 0x82, 0x76, 0x91, 0x57, 0x11, 0x0a, 0xb9, 0x68, 0xc6, 0x88, 0x8a,
-	0x62, 0x20, 0xbf, 0x00, 0x05, 0x7b, 0x8c, 0x67, 0x52, 0xa4, 0x41, 0x3c, 0x02, 0x8f, 0xc1, 0xa3,
-	0x50, 0xa6, 0x4c, 0x49, 0x9c, 0x86, 0x32, 0x8f, 0x80, 0x32, 0xbe, 0x44, 0x81, 0xed, 0xfc, 0x9d,
-	0x39, 0xe7, 0xf8, 0xc8, 0x1e, 0xf0, 0x53, 0xd4, 0x5a, 0x7e, 0x44, 0x7d, 0x95, 0x17, 0xca, 0xa8,
-	0xf0, 0x4e, 0xc3, 0xcc, 0x85, 0x63, 0x61, 0x64, 0x61, 0x58, 0x07, 0x8e, 0x84, 0x51, 0x39, 0xf3,
-	0xc0, 0xe5, 0xa8, 0xad, 0xf4, 0x04, 0xce, 0x84, 0x91, 0x66, 0xa6, 0x39, 0x7e, 0x9d, 0xa1, 0x36,
-	0xe1, 0x39, 0x74, 0x04, 0x66, 0x13, 0x2c, 0x22, 0x72, 0x41, 0x2e, 0x3d, 0x5e, 0x13, 0xfb, 0x06,
-	0x7e, 0x63, 0xd4, 0xb9, 0xca, 0x34, 0x86, 0x2f, 0x6c, 0xad, 0x41, 0x6b, 0xf4, 0xbb, 0xec, 0xaa,
-	0x1d, 0xb0, 0x6f, 0xb4, 0x88, 0xc9, 0x3c, 0x47, 0x5e, 0x05, 0x58, 0x17, 0xbc, 0x56, 0x0b, 0x4f,
-	0xc0, 0x15, 0xc9, 0x35, 0x4f, 0x6e, 0xe2, 0xc0, 0xa9, 0x60, 0x34, 0x1e, 0xdf, 0xc4, 0x01, 0xd9,
-	0xc2, 0x9b, 0x61, 0x7f, 0x38, 0x7a, 0x3b, 0x0c, 0x0e, 0x98, 0x0f, 0xa7, 0x89, 0x9a, 0x62, 0x56,
-	0xef, 0x64, 0x8f, 0xe1, 0xac, 0xe6, 0x7a, 0xce, 0x7d, 0x38, 0xb6, 0x82, 0x9d, 0x73, 0xca, 0x2b,
-	0x60, 0x01, 0xf8, 0xbd, 0x42, 0xcd, 0xf2, 0x57, 0xf1, 0x2e, 0x78, 0xb7, 0x55, 0xea, 0x68, 0x08,
-	0x47, 0xb1, 0x34, 0xb2, 0x4e, 0xda, 0x67, 0x16, 0xc1, 0x79, 0x1f, 0xe7, 0x1f, 0xbe, 0x28, 0x39,
-	0xbd, 0x9e, 0x4c, 0x0a, 0xd4, 0xcd, 0x17, 0x62, 0x0f, 0xe1, 0xc1, 0x7f, 0x27, 0x55, 0x11, 0x13,
-	0xe0, 0x71, 0x4c, 0x95, 0xc1, 0x81, 0xe8, 0xdd, 0xd6, 0xba, 0x1d, 0xc9, 0xd1, 0x14, 0xf3, 0xe8,
-	0xe0, 0x82, 0x5c, 0x1e, 0xf2, 0x0a, 0xc2, 0x47, 0xe0, 0x25, 0x9f, 0x53, 0x14, 0x46, 0xa6, 0x79,
-	0x74, 0x68, 0x4f, 0x76, 0x02, 0x7b, 0x07, 0x7e, 0x55, 0x2a, 0x32, 0x99, 0xeb, 0x4f, 0xca, 0xec,
-	0xfb, 0xc9, 0x3f, 0xfe, 0xf0, 0x29, 0xb8, 0xaf, 0xa5, 0x36, 0x03, 0xd1, 0xb3, 0x6f, 0x39, 0xe9,
-	0xde, 0xdb, 0xfd, 0x99, 0x76, 0x1d, 0x6f, 0x3c, 0x2f, 0x9f, 0x2f, 0x56, 0xd4, 0x59, 0xae, 0xa8,
-	0xb3, 0x59, 0x51, 0xf2, 0xbd, 0xa4, 0xe4, 0x67, 0x49, 0xc9, 0xaf, 0x92, 0x92, 0x45, 0x49, 0xc9,
-	0xef, 0x92, 0x92, 0x3f, 0x25, 0x75, 0x36, 0x25, 0x25, 0x3f, 0xd6, 0xd4, 0x59, 0xac, 0xa9, 0xb3,
-	0x5c, 0x53, 0xe7, 0x7d, 0xc7, 0x5e, 0xb2, 0x67, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xc3, 0x4a,
-	0xcb, 0x36, 0x76, 0x02, 0x00, 0x00,
+	// 477 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x93, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xc7, 0xbd, 0x6d, 0x12, 0x93, 0x69, 0x6a, 0x22, 0x83, 0x8a, 0x91, 0xd0, 0xaa, 0x5a, 0x09,
+	0xd1, 0x0b, 0x3d, 0x04, 0x0e, 0x5c, 0x8b, 0x12, 0x45, 0xa8, 0x34, 0xad, 0x76, 0x8d, 0x38, 0x71,
+	0x58, 0xc8, 0x08, 0xa2, 0xd6, 0x5e, 0xe3, 0xdd, 0x54, 0xca, 0x05, 0xf1, 0x08, 0x3c, 0x06, 0x0f,
+	0xc0, 0x43, 0x70, 0xcc, 0xb1, 0x47, 0xe2, 0x5c, 0x38, 0xf6, 0x11, 0x90, 0xd7, 0x5f, 0x4d, 0x81,
+	0x5b, 0xfe, 0xf3, 0xf1, 0x9f, 0xdf, 0xec, 0xc4, 0xe0, 0x45, 0xa8, 0xb5, 0xfc, 0x88, 0xfa, 0x30,
+	0x49, 0x95, 0x51, 0xfe, 0x9d, 0x4a, 0x33, 0x17, 0xda, 0xc2, 0xc8, 0xd4, 0xb0, 0x0e, 0xb4, 0x84,
+	0x51, 0x09, 0xeb, 0x82, 0xcb, 0x51, 0xdb, 0xd0, 0x13, 0xd8, 0x15, 0x46, 0x9a, 0xb9, 0xe6, 0xf8,
+	0x79, 0x8e, 0xda, 0xf8, 0x7b, 0xd0, 0x11, 0x18, 0x4f, 0x31, 0x0d, 0xc8, 0x3e, 0x39, 0xe8, 0xf2,
+	0x52, 0xb1, 0x2f, 0xe0, 0x55, 0x85, 0x3a, 0x51, 0xb1, 0x46, 0xff, 0x85, 0xb5, 0x35, 0x68, 0x0b,
+	0xbd, 0x01, 0x3b, 0xac, 0x01, 0x36, 0x0b, 0xad, 0xc4, 0x70, 0x91, 0x20, 0x2f, 0x1a, 0xd8, 0x00,
+	0xba, 0x75, 0xcc, 0xdf, 0x01, 0x57, 0x84, 0x47, 0x3c, 0x1c, 0x0d, 0xfb, 0x4e, 0x21, 0x4e, 0xcf,
+	0xce, 0x46, 0xc3, 0x3e, 0xc9, 0xc5, 0x9b, 0xc9, 0xf1, 0xe4, 0xf4, 0xed, 0xa4, 0xbf, 0xc5, 0x3c,
+	0xe8, 0x85, 0xea, 0x1c, 0xe3, 0x92, 0x93, 0x3d, 0x86, 0xdd, 0x52, 0x97, 0x38, 0xf7, 0xa1, 0x6d,
+	0x03, 0x16, 0xa7, 0xc7, 0x0b, 0xc1, 0xfa, 0xe0, 0x8d, 0x53, 0x35, 0x4f, 0x5e, 0x0d, 0x9b, 0xc6,
+	0xbb, 0x75, 0xa4, 0x6c, 0xf5, 0xa1, 0x35, 0x94, 0x46, 0x96, 0x9d, 0xf6, 0x37, 0x0b, 0x60, 0xef,
+	0x18, 0x17, 0x1f, 0x2e, 0x94, 0x3c, 0x3f, 0x9a, 0x4e, 0x53, 0xd4, 0xd5, 0x0b, 0xb1, 0x87, 0xf0,
+	0xe0, 0xaf, 0x4c, 0x61, 0xc4, 0x22, 0xe8, 0x72, 0x8c, 0x94, 0xc1, 0x13, 0x31, 0xfe, 0x97, 0x6b,
+	0x0e, 0xc9, 0xd1, 0xa4, 0x8b, 0x60, 0x6b, 0x9f, 0x1c, 0x6c, 0xf3, 0x42, 0xf8, 0x8f, 0xa0, 0x1b,
+	0xce, 0x22, 0x14, 0x46, 0x46, 0x49, 0xb0, 0x6d, 0x33, 0x4d, 0xc0, 0x0f, 0xc0, 0xbd, 0xc4, 0x54,
+	0xcf, 0x54, 0x1c, 0xb4, 0x6c, 0xae, 0x92, 0xec, 0x07, 0x01, 0xa8, 0xe7, 0x0d, 0x72, 0xf3, 0xe6,
+	0x20, 0xbd, 0xf2, 0xb1, 0xf3, 0x83, 0x8e, 0x2e, 0x31, 0x36, 0xda, 0xce, 0xec, 0xf1, 0x52, 0x15,
+	0x87, 0x4e, 0x67, 0xf2, 0xc2, 0x4e, 0xb4, 0x87, 0xce, 0x55, 0x83, 0xd8, 0xfa, 0x2f, 0x62, 0xfb,
+	0x36, 0x62, 0xb5, 0x6a, 0xe7, 0xc6, 0xaa, 0x37, 0xb0, 0xdd, 0x4d, 0xec, 0x77, 0xe0, 0x15, 0xd4,
+	0x22, 0x96, 0x89, 0xfe, 0xa4, 0xcc, 0xa6, 0x3b, 0xb9, 0xed, 0xfe, 0x14, 0xdc, 0xd7, 0x52, 0x9b,
+	0x13, 0x31, 0xb6, 0x2b, 0xec, 0x0c, 0xee, 0x35, 0x7f, 0xb5, 0x7a, 0x7d, 0x5e, 0xd5, 0xbc, 0x7c,
+	0xbe, 0x5c, 0x51, 0xe7, 0x6a, 0x45, 0x9d, 0xeb, 0x15, 0x25, 0x5f, 0x33, 0x4a, 0xbe, 0x67, 0x94,
+	0xfc, 0xcc, 0x28, 0x59, 0x66, 0x94, 0xfc, 0xca, 0x28, 0xf9, 0x9d, 0x51, 0xe7, 0x3a, 0xa3, 0xe4,
+	0xdb, 0x9a, 0x3a, 0xcb, 0x35, 0x75, 0xae, 0xd6, 0xd4, 0x79, 0xdf, 0xb1, 0x5f, 0xcd, 0xb3, 0x3f,
+	0x01, 0x00, 0x00, 0xff, 0xff, 0xe7, 0xe3, 0x5b, 0xa3, 0x47, 0x03, 0x00, 0x00,
 }
 
 func (x StatusResponse_StateType) String() string {
@@ -904,6 +1008,51 @@ func (this *RemoteMSG) Equal(that interface{}) bool {
 	if this.TimeStamp != that1.TimeStamp {
 		return false
 	}
+	if this.Version != that1.Version {
+		return false
+	}
+	return true
+}
+func (this *RemoteMSG2) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*RemoteMSG2)
+	if !ok {
+		that2, ok := that.(RemoteMSG2)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !bytes.Equal(this.State, that1.State) {
+		return false
+	}
+	if !bytes.Equal(this.Events, that1.Events) {
+		return false
+	}
+	if this.Serial != that1.Serial {
+		return false
+	}
+	if this.Retry != that1.Retry {
+		return false
+	}
+	if this.TimeStamp != that1.TimeStamp {
+		return false
+	}
+	if !bytes.Equal(this.Data, that1.Data) {
+		return false
+	}
+	if this.Version != that1.Version {
+		return false
+	}
 	return true
 }
 func (this *RemoteSnapshot) Equal(that interface{}) bool {
@@ -1040,11 +1189,28 @@ func (this *RemoteMSG) GoString() string {
 	if this == nil {
 		return "nil"
 	}
-	s := make([]string, 0, 7)
+	s := make([]string, 0, 8)
 	s = append(s, "&messages.RemoteMSG{")
 	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
 	s = append(s, "Retry: "+fmt.Sprintf("%#v", this.Retry)+",\n")
 	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
+	s = append(s, "Version: "+fmt.Sprintf("%#v", this.Version)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
+}
+func (this *RemoteMSG2) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 11)
+	s = append(s, "&messages.RemoteMSG2{")
+	s = append(s, "State: "+fmt.Sprintf("%#v", this.State)+",\n")
+	s = append(s, "Events: "+fmt.Sprintf("%#v", this.Events)+",\n")
+	s = append(s, "Serial: "+fmt.Sprintf("%#v", this.Serial)+",\n")
+	s = append(s, "Retry: "+fmt.Sprintf("%#v", this.Retry)+",\n")
+	s = append(s, "TimeStamp: "+fmt.Sprintf("%#v", this.TimeStamp)+",\n")
+	s = append(s, "Data: "+fmt.Sprintf("%#v", this.Data)+",\n")
+	s = append(s, "Version: "+fmt.Sprintf("%#v", this.Version)+",\n")
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
@@ -1368,6 +1534,11 @@ func (m *RemoteMSG) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Version != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.Version))
+		i--
+		dAtA[i] = 0x20
+	}
 	if m.TimeStamp != 0 {
 		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
 		i--
@@ -1382,6 +1553,72 @@ func (m *RemoteMSG) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.Data)
 		copy(dAtA[i:], m.Data)
 		i = encodeVarintMessages(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RemoteMSG2) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RemoteMSG2) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RemoteMSG2) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Version != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.Version))
+		i--
+		dAtA[i] = 0x38
+	}
+	if len(m.Data) > 0 {
+		i -= len(m.Data)
+		copy(dAtA[i:], m.Data)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Data)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.TimeStamp != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.TimeStamp))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.Retry != 0 {
+		i = encodeVarintMessages(dAtA, i, uint64(m.Retry))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.Serial) > 0 {
+		i -= len(m.Serial)
+		copy(dAtA[i:], m.Serial)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Serial)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Events) > 0 {
+		i -= len(m.Events)
+		copy(dAtA[i:], m.Events)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.Events)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintMessages(dAtA, i, uint64(len(m.State)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1569,6 +1806,43 @@ func (m *RemoteMSG) Size() (n int) {
 	if m.TimeStamp != 0 {
 		n += 1 + sovMessages(uint64(m.TimeStamp))
 	}
+	if m.Version != 0 {
+		n += 1 + sovMessages(uint64(m.Version))
+	}
+	return n
+}
+
+func (m *RemoteMSG2) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	l = len(m.Events)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	l = len(m.Serial)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	if m.Retry != 0 {
+		n += 1 + sovMessages(uint64(m.Retry))
+	}
+	if m.TimeStamp != 0 {
+		n += 1 + sovMessages(uint64(m.TimeStamp))
+	}
+	l = len(m.Data)
+	if l > 0 {
+		n += 1 + l + sovMessages(uint64(l))
+	}
+	if m.Version != 0 {
+		n += 1 + sovMessages(uint64(m.Version))
+	}
 	return n
 }
 
@@ -1705,6 +1979,23 @@ func (this *RemoteMSG) String() string {
 		`Data:` + fmt.Sprintf("%v", this.Data) + `,`,
 		`Retry:` + fmt.Sprintf("%v", this.Retry) + `,`,
 		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
+		`Version:` + fmt.Sprintf("%v", this.Version) + `,`,
+		`}`,
+	}, "")
+	return s
+}
+func (this *RemoteMSG2) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&RemoteMSG2{`,
+		`State:` + fmt.Sprintf("%v", this.State) + `,`,
+		`Events:` + fmt.Sprintf("%v", this.Events) + `,`,
+		`Serial:` + fmt.Sprintf("%v", this.Serial) + `,`,
+		`Retry:` + fmt.Sprintf("%v", this.Retry) + `,`,
+		`TimeStamp:` + fmt.Sprintf("%v", this.TimeStamp) + `,`,
+		`Data:` + fmt.Sprintf("%v", this.Data) + `,`,
+		`Version:` + fmt.Sprintf("%v", this.Version) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -2527,6 +2818,269 @@ func (m *RemoteMSG) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.TimeStamp |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+			}
+			m.Version = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Version |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMessages(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RemoteMSG2) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMessages
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RemoteMSG2: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RemoteMSG2: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = append(m.State[:0], dAtA[iNdEx:postIndex]...)
+			if m.State == nil {
+				m.State = []byte{}
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Events = append(m.Events[:0], dAtA[iNdEx:postIndex]...)
+			if m.Events == nil {
+				m.Events = []byte{}
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Serial", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Serial = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Retry", wireType)
+			}
+			m.Retry = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Retry |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TimeStamp", wireType)
+			}
+			m.TimeStamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TimeStamp |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthMessages
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMessages
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Data = append(m.Data[:0], dAtA[iNdEx:postIndex]...)
+			if m.Data == nil {
+				m.Data = []byte{}
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+			}
+			m.Version = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMessages
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Version |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

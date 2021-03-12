@@ -38,6 +38,17 @@ message RemoteMSG {
     bytes Data = 1;
     int64 Retry = 2;
     int64 TimeStamp = 3;
+    int64 version = 4;
+}
+
+message RemoteMSG2 {
+    bytes State = 1;
+    bytes Events = 2;
+    string Serial = 3;
+    int64 Retry = 4;
+    int64 TimeStamp = 5;
+    bytes Data = 6; //back support
+    int64 version = 7;
 }
 
 message RemoteSnapshot {

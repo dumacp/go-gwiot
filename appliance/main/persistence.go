@@ -15,7 +15,7 @@ type provider struct {
 }
 
 var parseEvent = func(src []byte) proto.Message {
-	i := new(messages.RemoteMSG)
+	i := new(messages.RemoteMSG2)
 	srcCopy := make([]byte, len(src))
 	copy(srcCopy, src)
 	err := i.XXX_Unmarshal(srcCopy[:len(src)])
