@@ -14,12 +14,15 @@ import (
 )
 
 const (
-	remoteMqttBrokerURL   = "wss://fleet-mqtt.nebulae.com.co/mqtt"
 	remoteQueueEvents     = "/devices/%s/events"
 	remoteQueueEventsTest = "TEST/%s"
 	protocolVersion       = 4  // corresponds to mqtt 3.1.1
 	minimumBackoffTime    = 1  // initial backoff time in seconds
 	maximumBackoffTime    = 32 // maximum backoff time in seconds
+)
+
+var (
+	RemoteMqttBrokerURL = "wss://fleet-mqtt.nebulae.com.co/mqtt"
 )
 
 //RemoteActor remote actor
@@ -314,7 +317,7 @@ func (ps *RemoteActor) tickrReconnect() {
 func client(tk *oauth2.Token) mqtt.Client {
 	_, tlsconfig := utils.LoadLocalCert(localCertDir)
 	opt := mqtt.NewClientOptions()
-	opt.AddBroker(remoteMqttBrokerURL)
+	opt.AddBroker(RemoteMqttBrokerURL)
 	opt.SetConnectRetry(true)
 	opt.SetAutoReconnect(false)
 	opt.SetConnectRetryInterval(10 * time.Second)

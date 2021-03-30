@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 	"github.com/dumacp/keycloak"
 	"github.com/dumacp/utils"
 	"golang.org/x/oauth2"
@@ -12,24 +13,28 @@ import (
 
 const (
 	localCertDir = "/usr/local/share/ca-certificates/"
-	keycloakurl  = "https://fleet.nebulae.com.co/auth"
-	clientid     = "devices2"
-	// clientSecret = "da9bbc28-01d8-43af-8c8a-fb0654937231"
-	clientSecret = "b73479a3-225b-4b96-ad65-22edd82623a3"
-	redirecturl  = "https://fleet-mqtt.nebulae.com.co/"
-	realm        = "DEVICES"
+	// ClientSecret = "da9bbc28-01d8-43af-8c8a-fb0654937231"
 
 	pathenvfile = "/usr/include/serial-dev"
 )
 
+var (
+	Clientid     = "devices2"
+	ClientSecret = "b73479a3-225b-4b96-ad65-22edd82623a3"
+	Redirecturl  = "https://fleet-mqtt.nebulae.com.co/"
+	Keycloakurl  = "https://fleet.nebulae.com.co/auth"
+	Realm        = "DEVICES"
+)
+
 func newKeyConfig() *keycloak.ServerConfig {
 
+	logs.LogBuild.Printf("keycloak url: %s", Keycloakurl)
 	return &keycloak.ServerConfig{
-		Url:          keycloakurl,
-		ClientID:     clientid,
-		ClientSecret: clientSecret,
-		RedirectUrl:  redirecturl,
-		Realm:        realm,
+		Url:          Keycloakurl,
+		ClientID:     Clientid,
+		ClientSecret: ClientSecret,
+		RedirectUrl:  Redirecturl,
+		Realm:        Realm,
 	}
 }
 
