@@ -1,6 +1,7 @@
 package business
 
 import (
+	"flag"
 	"fmt"
 	"time"
 
@@ -22,7 +23,7 @@ const (
 )
 
 var (
-	RemoteMqttBrokerURL = "wss://fleet-mqtt.nebulae.com.co/mqtt"
+	RemoteMqttBrokerURL string
 )
 
 //RemoteActor remote actor
@@ -40,6 +41,10 @@ type RemoteActor struct {
 	lastReconnect time.Time
 	countReplay   int
 	disableReplay bool
+}
+
+func init() {
+	flag.StringVar(&RemoteMqttBrokerURL, "remoteBrokerURL", "wss://fleet-mqtt.nebulae.com.co/mqtt", "remote URL broker (mqtt)")
 }
 
 //NewRemote new remote actor
@@ -135,7 +140,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			ps.lastReconnect = time.Now()
 			if err := ps.connect(); err != nil {
 				logs.LogError.Println(err)
-				ps.client.Disconnect(300)
+				if ps.client != nil {
+					ps.client.Disconnect(300)
+				}
 			} else {
 				logs.LogInfo.Printf("RECONNECT SUCESSFULL")
 				logs.LogBuild.Printf("Request recovery, lastChahe messages -> %s, lastBackup -> %v", time.Unix(ps.lastCacheMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))

@@ -41,13 +41,15 @@ var instance *pubsubActor
 var once sync.Once
 
 //getInstance create pubsub Gateway
-func getInstance() *pubsubActor {
+func getInstance(ctx *actor.RootContext) *pubsubActor {
 
 	once.Do(func() {
 		instance = &pubsubActor{}
-		instance.mux = sync.Mutex{}
+		// instance.mux = sync.Mutex{}
 		instance.subscriptions = make(map[string]*subscribeMSG)
-		ctx := actor.EmptyRootContext
+		if ctx == nil {
+			ctx = actor.NewActorSystem().Root
+		}
 		props := actor.PropsFromFunc(instance.Receive)
 		_, err := ctx.SpawnNamed(props, "pubsub-actor")
 		if err != nil {
@@ -58,9 +60,9 @@ func getInstance() *pubsubActor {
 }
 
 //Init init pubsub instance
-func Init() error {
+func Init(ctx *actor.RootContext) error {
 	defer time.Sleep(3 * time.Second)
-	if getInstance() == nil {
+	if getInstance(ctx) == nil {
 		return fmt.Errorf("error instance")
 	}
 	return nil
@@ -78,12 +80,12 @@ type subscribeMSG struct {
 
 //Publish function to publish messages in pubsub gateway
 func Publish(topic string, msg []byte) {
-	getInstance().ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
+	getInstance(nil).ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
 }
 
 //Subscribe subscribe to topics
 func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) error {
-	instance := getInstance()
+	instance := getInstance(nil)
 	subs := &subscribeMSG{pid: pid, parse: parse}
 	instance.mux.Lock()
 	instance.subscriptions[topic] = subs

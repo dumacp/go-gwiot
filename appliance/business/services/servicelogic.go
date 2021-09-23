@@ -10,7 +10,8 @@ import (
 )
 
 type service struct {
-	state messages.StatusResponse_StateType
+	state    messages.StatusResponse_StateType
+	evstream *eventstream.EventStream
 }
 
 var instance *service
@@ -21,26 +22,31 @@ func GetInstance() services.Service {
 	if instance == nil {
 		once.Do(func() {
 			instance = &service{}
+			instance.evstream = eventstream.NewEventStream()
 		})
 	}
 	return instance
 }
 
+func (svc *service) Subscribe(fun func(evt interface{})) {
+	svc.evstream.Subscribe(fun)
+}
+
 func (svc *service) Start() {
 	svc.state = messages.STARTED
-	eventstream.Publish(&messages.Start{})
+	svc.evstream.Publish(&messages.Start{})
 }
 
 func (svc *service) Stop() {
 	svc.state = messages.STOPPED
-	eventstream.Publish(&messages.Stop{})
+	svc.evstream.Publish(&messages.Stop{})
 }
 
 func (svc *service) Restart() {
 	svc.state = messages.STOPPED
-	eventstream.Publish(&messages.Stop{})
+	svc.evstream.Publish(&messages.Stop{})
 	time.Sleep(1 * time.Second)
-	eventstream.Publish(&messages.Start{})
+	svc.evstream.Publish(&messages.Start{})
 	svc.state = messages.STARTED
 }
 
