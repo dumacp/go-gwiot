@@ -3,6 +3,7 @@ package business
 import (
 	"context"
 	"crypto/tls"
+	"flag"
 	"fmt"
 
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
@@ -19,12 +20,20 @@ const (
 )
 
 var (
-	Clientid     = "devices2"
-	ClientSecret = "b73479a3-225b-4b96-ad65-22edd82623a3"
-	Redirecturl  = "https://fleet-mqtt.nebulae.com.co/"
-	Keycloakurl  = "https://fleet.nebulae.com.co/auth"
-	Realm        = "DEVICES"
+	Clientid     string
+	ClientSecret string
+	Redirecturl  string
+	Keycloakurl  string
+	Realm        string
 )
+
+func init() {
+	flag.StringVar(&Clientid, "clientID", "devices2", "client id in oauth")
+	flag.StringVar(&ClientSecret, "clientSecret", "b73479a3-225b-4b96-ad65-22edd82623a3", "client id in oauth")
+	flag.StringVar(&Redirecturl, "redirectUrl", "https://fleet-mqtt.nebulae.com.co/", "redirect url ouath")
+	flag.StringVar(&Keycloakurl, "keycloakUrl", "https://fleet.nebulae.com.co/auth", "url ouath")
+	flag.StringVar(&Realm, "realm", "DEVICES", "realm name in oauth")
+}
 
 func newKeyConfig() *keycloak.ServerConfig {
 
