@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	showVersion = "1.0.9"
+	showVersion = "1.0.11"
 )
 
 var debug bool
@@ -50,18 +50,17 @@ func main() {
 	}
 	initLogs(debug, logStd)
 
-	pubsub.Init()
+	rootContext := actor.NewActorSystem().Root
+	pubsub.Init(rootContext)
 
 	// var provider *provider
 	// var err error
 	// if !disablePersistence {
-	provider, err := newProvider(pathdb, 6)
+	provider, err := newProvider(pathdb, 10)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	// }
-
-	rootContext := actor.EmptyRootContext
 
 	remote := business.NewRemote(test)
 	if disableRetransmission {
