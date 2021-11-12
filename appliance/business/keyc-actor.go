@@ -17,6 +17,8 @@ type KeycloakActor struct {
 	password    string
 	httpContext context.Context
 	tokenSource oauth2.TokenSource
+	keyc        keycloak.Keycloak
+	httContext  context.Context
 }
 
 //NewKeycActor create keycloak actor
@@ -43,15 +45,19 @@ func (act *KeycloakActor) Receive(ctx actor.Context) {
 			logs.LogWarn.Printf("token request error -> %s", err)
 		}
 
-		config := newKeyConfig()
-		httpContext, _ := newHTTPContext(context.Background())
-		keyc, err := keycServer(httpContext, config)
-		if err != nil {
-			logs.LogError.Printf("error getting token -> %s", err)
-			break
+		if act.httContext == nil {
+			act.httpContext, _ = newHTTPContext(context.Background())
+		}
+		if act.keyc == nil {
+			config := newKeyConfig()
+			act.keyc, err = keycServer(act.httpContext, config)
+			if err != nil {
+				logs.LogError.Printf("error getting token -> %s", err)
+				break
+			}
 		}
 
-		ts, err := tokenRequest(httpContext, keyc, act.username, act.password)
+		ts, err := tokenRequest(act.httpContext, act.keyc, act.username, act.password)
 		if err != nil {
 			logs.LogError.Printf("token request error -> %s", err)
 			break
@@ -60,31 +66,36 @@ func (act *KeycloakActor) Receive(ctx actor.Context) {
 		ctx.Send(ctx.Sender(), tk)
 
 	case *messages.GroupIDRequest:
-		config := newKeyConfig()
-		httpContext, _ := newHTTPContext(context.Background())
-		keyc, err := keycServer(httpContext, config)
-		if err != nil {
-			logs.LogError.Printf("error getting token -> %s", err)
-			break
+		var err error
+		if act.httContext == nil {
+			act.httpContext, _ = newHTTPContext(context.Background())
+		}
+		if act.keyc == nil {
+			config := newKeyConfig()
+			act.keyc, err = keycServer(act.httpContext, config)
+			if err != nil {
+				logs.LogError.Printf("error getting token -> %s", err)
+				break
+			}
 		}
 		if act.tokenSource != nil {
 			_, err = act.tokenSource.Token()
 			if err != nil {
-				act.tokenSource, err = tokenRequest(httpContext, keyc, act.username, act.password)
+				act.tokenSource, err = tokenRequest(act.httpContext, act.keyc, act.username, act.password)
 				if err != nil {
 					logs.LogError.Printf("error getting token -> %s", err)
 					break
 				}
 			}
 		} else {
-			act.tokenSource, err = tokenRequest(httpContext, keyc, act.username, act.password)
+			act.tokenSource, err = tokenRequest(act.httpContext, act.keyc, act.username, act.password)
 			if err != nil {
 				logs.LogError.Printf("error getting userInfo -> %s", err)
 				break
 			}
 		}
 
-		userInfo, err := keyc.UserInfo(httpContext, act.tokenSource)
+		userInfo, err := act.keyc.UserInfo(act.httpContext, act.tokenSource)
 		if err != nil {
 			logs.LogError.Printf("error getting userInfo -> %s", err)
 			break

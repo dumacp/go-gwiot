@@ -42,7 +42,7 @@ func (act *StatusActor) Receive(ctx actor.Context) {
 			(*status)["t"] = (int64)(v * 1000)
 		}
 
-		if act.groupID = groupID(ctx, act.groupID); act.groupID != nil {
+		if act.groupID = groupID(ctx, act.groupID); len(act.groupID) <= 0 {
 			// log.Printf("groupId end -> %T, %v", act.groupID, act.groupID)
 			(*status)["aD"] = map[string]interface{}{"gN": string(act.groupID)}
 		}
@@ -57,7 +57,7 @@ func (act *StatusActor) Receive(ctx actor.Context) {
 }
 
 func groupID(ctx actor.Context, groupID []byte) []byte {
-	if groupID != nil {
+	if len(groupID) <= 0 {
 		return groupID
 	}
 	req := ctx.RequestFuture(ctx.Parent(), &messages.GroupIDRequest{}, 3*time.Second)

@@ -41,10 +41,11 @@ type RemoteActor struct {
 	lastReconnect time.Time
 	countReplay   int
 	disableReplay bool
+	quit          chan int
 }
 
 func init() {
-	flag.StringVar(&RemoteMqttBrokerURL, "remoteBrokerURL", "wss://fleet-mqtt.nebulae.com.co/mqtt", "remote URL broker (mqtt)")
+	flag.StringVar(&RemoteMqttBrokerURL, "remoteBrokerURL", "", "example: \"wss://fleet-mqtt.nebulae.com.co/mqtt\", remote broker url")
 }
 
 //NewRemote new remote actor
@@ -55,7 +56,7 @@ func NewRemote(test bool) *RemoteActor {
 	r.lastMSG = &messages.RemoteMSG2{}
 	r.lastBackMSG = &messages.RemoteSnapshot{TimeStamp: 0, LastMSG: nil}
 	r.failCache = make([]*messages.RemoteMSG2, 0)
-	go r.tickrReconnect()
+
 	return r
 }
 
@@ -123,10 +124,22 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 		// ps.queueMSG.deletedata()
 
+		select {
+		case <-ps.quit:
+		default:
+			if ps.quit != nil {
+				close(ps.quit)
+			}
+		}
+		ps.quit = make(chan int)
+		go ps.tickrReconnect(ps.quit)
+
 		if err := ps.connect(); err != nil {
 			logs.LogError.Println(err)
 		}
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
+	case **actor.Stopping:
+		close(ps.quit)
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
 		if ps.client != nil && ps.client.IsConnectionOpen() {
@@ -144,6 +157,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 					ps.client.Disconnect(300)
 				}
 			} else {
+				fmt.Printf("RECONNECT SUCESSFULL\n")
 				logs.LogInfo.Printf("RECONNECT SUCESSFULL")
 				logs.LogBuild.Printf("Request recovery, lastChahe messages -> %s, lastBackup -> %v", time.Unix(ps.lastCacheMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
 
@@ -174,9 +188,10 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 			if ps.client == nil || !ps.client.IsConnectionOpen() {
 				t1 := ps.lastReconnect
+				fmt.Printf("not connections\n")
 				logs.LogBuild.Printf("  *****************     dont connect!!!!   *********************")
 				logs.LogBuild.Printf("last connect at -> %s", t1)
-				if time.Now().After(t1.Add(20 * time.Second)) {
+				if time.Now().After(t1.Add(90 * time.Second)) {
 					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
 				}
 				return
@@ -194,7 +209,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				*ps.lastMSG = *msg
 				logs.LogBuild.Printf("send message -> %v", time.Unix(msg.TimeStamp, 0))
 				if v := ps.countReplay % 30; v == 0 && ps.countReplay != 0 {
-					time.Sleep(2 * time.Second)
+					time.Sleep(1 * time.Second)
 				}
 			}
 		}()
@@ -260,7 +275,7 @@ func sendMSG(client mqtt.Client, topic string, msg *messages.RemoteMSG2, test bo
 	} else {
 		data = msg.GetData()
 	}
-	logs.LogBuild.Printf("data to send: ")
+	logs.LogBuild.Printf("data to send: %s", data)
 	tk := client.Publish(topicSend, 1, false, data)
 
 	for range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} {
@@ -300,7 +315,7 @@ func (ps *RemoteActor) execSnapshot() {
 	}
 }
 
-func (ps *RemoteActor) tickrReconnect() {
+func (ps *RemoteActor) tickrReconnect(quit chan int) {
 	defer func() {
 		if r := recover(); r != nil {
 			logs.LogError.Println("exit tickrReconnect()")
@@ -308,15 +323,20 @@ func (ps *RemoteActor) tickrReconnect() {
 	}()
 	tick := time.NewTicker(30 * time.Second)
 	defer tick.Stop()
-	for range tick.C {
-		if ps.Recovering() {
-			continue
-		}
-		if ps.client == nil || !ps.client.IsConnectionOpen() {
-			t1 := ps.lastReconnect
-			if time.Now().After(t1.Add(20 * time.Second)) {
-				ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
+	for {
+		select {
+		case <-tick.C:
+			if ps.Recovering() {
+				continue
 			}
+			if ps.client == nil || !ps.client.IsConnectionOpen() {
+				t1 := ps.lastReconnect
+				if time.Now().After(t1.Add(20 * time.Second)) {
+					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
+				}
+			}
+		case <-quit:
+			return
 		}
 	}
 }

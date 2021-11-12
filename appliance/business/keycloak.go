@@ -28,11 +28,11 @@ var (
 )
 
 func init() {
-	flag.StringVar(&Clientid, "clientID", "devices2", "client id in oauth")
-	flag.StringVar(&ClientSecret, "clientSecret", "b73479a3-225b-4b96-ad65-22edd82623a3", "client id in oauth")
-	flag.StringVar(&Redirecturl, "redirectUrl", "https://fleet-mqtt.nebulae.com.co/", "redirect url ouath")
-	flag.StringVar(&Keycloakurl, "keycloakUrl", "https://fleet.nebulae.com.co/auth", "url ouath")
-	flag.StringVar(&Realm, "realm", "DEVICES", "realm name in oauth")
+	flag.StringVar(&Keycloakurl, "keycloakUrl", "", "example: \"https://fleet.nebulae.com.co/auth\", keycloak url")
+	flag.StringVar(&Clientid, "clientID", "", "example: \"devices3\", clientid in realm")
+	flag.StringVar(&ClientSecret, "clientSecret", "", "example: \"da9bbc28-01d8-43af-8c8a-fb0654937231\", client secret")
+	flag.StringVar(&Redirecturl, "redirectUrl", "", "example: \"https://fleet-mqtt.nebulae.com.co/\", redirecturl url")
+	flag.StringVar(&Realm, "realm", "", "example: \"DEVICES\", realm name")
 }
 
 func newKeyConfig() *keycloak.ServerConfig {

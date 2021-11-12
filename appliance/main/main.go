@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	showVersion = "1.0.11"
+	showVersion = "1.1.0"
 )
 
 var debug bool
@@ -49,6 +49,8 @@ func main() {
 		os.Exit(2)
 	}
 	initLogs(debug, logStd)
+
+	getENV()
 
 	rootContext := actor.NewActorSystem().Root
 	pubsub.Init(rootContext)
@@ -84,4 +86,32 @@ func main() {
 			return
 		}
 	}
+}
+
+func getENV() {
+	if len(business.Keycloakurl) <= 0 {
+		business.Keycloakurl = os.Getenv("KEYCLOAK_URL_DEVICES")
+	}
+	if len(business.Redirecturl) <= 0 {
+		business.Redirecturl = os.Getenv("REDIRECT_URL_DEVICES")
+	}
+	if len(business.RemoteMqttBrokerURL) <= 0 {
+		business.RemoteMqttBrokerURL = os.Getenv("BROKER_URL_DEVICES")
+	}
+	if len(business.Realm) <= 0 {
+		business.Realm = os.Getenv("REALM_DEVICES")
+	}
+	if len(business.ClientSecret) <= 0 {
+		business.ClientSecret = os.Getenv("CLIENTSECRET_DEVICES")
+	}
+	if len(business.Clientid) <= 0 {
+		business.Clientid = os.Getenv("CLIENTID_DEVICES")
+	}
+
+	fmt.Printf("keycloakurl: %s\n", business.Keycloakurl)
+	fmt.Printf("redirecturl: %s\n", business.Redirecturl)
+	fmt.Printf("remoteMqttBrokerURL: %s\n", business.RemoteMqttBrokerURL)
+	fmt.Printf("realm: %s\n", business.Realm)
+	fmt.Printf("clientSecret: %s\n", business.ClientSecret)
+	fmt.Printf("clientid: %s\n", business.Clientid)
 }
