@@ -109,6 +109,8 @@ func (app *App) Receive(ctx actor.Context) {
 			logs.LogError.Panic(err)
 		}
 
+		ctx.Watch(app.pidRemote)
+
 		// if err := services(ctx); err != nil {
 		// 	time.Sleep(3 * time.Second)
 		// 	logs.LogError.Panic(err)
@@ -119,6 +121,16 @@ func (app *App) Receive(ctx actor.Context) {
 	case *messages.KeycloakAddressRequest:
 		ctx.Send(ctx.Sender(), app.pidKeycloak)
 
+	case *actor.Terminated:
+		logs.LogInfo.Printf("actor %q terminated (supervised)", msg.Who.GetId())
+		if msg.Who.GetId() == app.pidRemote.GetId() {
+			var err error
+			app.pidRemote, err = ctx.SpawnNamed(app.propsRemote, "remote-actor")
+			if err != nil {
+				time.Sleep(3 * time.Second)
+				logs.LogError.Panic(err)
+			}
+		}
 	case *messages.GroupIDRequest:
 		req := ctx.RequestFuture(app.pidKeycloak, &messages.GroupIDRequest{}, 3*time.Second)
 		if err := req.Wait(); err != nil {

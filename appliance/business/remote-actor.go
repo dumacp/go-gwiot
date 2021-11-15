@@ -9,7 +9,6 @@ import (
 	"github.com/AsynkronIT/protoactor-go/persistence"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
-	"github.com/dumacp/utils"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"golang.org/x/oauth2"
 )
@@ -120,15 +119,20 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
-		// logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
+		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 
 		// ps.queueMSG.deletedata()
 
 		select {
-		case <-ps.quit:
+		case _, ok := <-ps.quit:
+			if ok {
+				close(ps.quit)
+				time.Sleep(1 * time.Second)
+			}
 		default:
 			if ps.quit != nil {
 				close(ps.quit)
+				time.Sleep(1 * time.Second)
 			}
 		}
 		ps.quit = make(chan int)
@@ -139,6 +143,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 	case **actor.Stopping:
+		logs.LogInfo.Printf("Stopping, actor, pid: %v\n", ctx.Self())
 		close(ps.quit)
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
@@ -149,7 +154,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogBuild.Printf("  *****************     RECONNECT   *********************")
 
 		logs.LogBuild.Printf("last connect at -> %s", t1)
-		if time.Now().After(t1.Add(20 * time.Second)) {
+		if time.Now().After(t1.Add(45 * time.Second)) {
 			ps.lastReconnect = time.Now()
 			if err := ps.connect(); err != nil {
 				logs.LogError.Println(err)
@@ -162,6 +167,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				logs.LogBuild.Printf("Request recovery, lastChahe messages -> %s, lastBackup -> %v", time.Unix(ps.lastCacheMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
 
 				if ps.lastCacheMSG == nil || ps.lastCacheMSG.GetTimeStamp() > ps.lastBackMSG.GetTimeStamp() {
+					// ctx.Poison(ctx.Self())
 					panic(msg)
 				}
 			}
@@ -177,7 +183,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if !ps.Recovering() {
 				logs.LogBuild.Printf("persist message -> %v", time.Unix(msg.TimeStamp, 0))
 				*ps.lastCacheMSG = *msg
-				defer ps.PersistReceive(msg)
+				// defer ps.PersistReceive(msg)
 				ps.countReplay = 0
 			} else {
 				if ps.disableReplay {
@@ -187,6 +193,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			}
 
 			if ps.client == nil || !ps.client.IsConnectionOpen() {
+				ps.PersistReceive(msg)
 				t1 := ps.lastReconnect
 				fmt.Printf("not connections\n")
 				logs.LogBuild.Printf("  *****************     dont connect!!!!   *********************")
@@ -203,6 +210,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				logs.LogError.Printf("publish error -> %s, message -> %s", err, msg.GetData())
 				ps.failCache = append(ps.failCache, msg)
 				if !ps.Recovering() {
+					ps.PersistReceive(msg)
 					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
 				}
 			} else {
@@ -319,6 +327,8 @@ func (ps *RemoteActor) tickrReconnect(quit chan int) {
 	defer func() {
 		if r := recover(); r != nil {
 			logs.LogError.Println("exit tickrReconnect()")
+		} else {
+			logs.LogError.Println("exit tickrReconnect()")
 		}
 	}()
 	tick := time.NewTicker(30 * time.Second)
@@ -342,7 +352,8 @@ func (ps *RemoteActor) tickrReconnect(quit chan int) {
 }
 
 func client(tk *oauth2.Token) mqtt.Client {
-	_, tlsconfig := utils.LoadLocalCert(localCertDir)
+	tlsconfig := LoadLocalCert(localCertDir)
+
 	opt := mqtt.NewClientOptions()
 	opt.AddBroker(RemoteMqttBrokerURL)
 	opt.SetConnectRetry(true)

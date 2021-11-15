@@ -2,13 +2,14 @@ package business
 
 import (
 	"context"
-	"crypto/tls"
 	"flag"
 	"fmt"
+	"net"
+	"net/http"
+	"time"
 
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 	"github.com/dumacp/keycloak"
-	"github.com/dumacp/utils"
 	"golang.org/x/oauth2"
 )
 
@@ -47,10 +48,29 @@ func newKeyConfig() *keycloak.ServerConfig {
 	}
 }
 
-func newHTTPContext(ctx context.Context) (context.Context, *tls.Config) {
-	client, tlsconfig := utils.LoadLocalCert(localCertDir)
+func newHTTPContext(ctx context.Context, client *http.Client) context.Context {
+	// client, tlsconfig := utils.LoadLocalCert(localCertDir)
+	if client == nil {
+		tlsConfig := LoadLocalCert(localCertDir)
+		tr := &http.Transport{
+			TLSClientConfig: tlsConfig,
+			Dial: (&net.Dialer{
+				Timeout: 30 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout: 10 * time.Second,
+			// Dial: (&net.Dialer{
+			// 	Timeout:   30 * time.Second,
+			// 	KeepAlive: 60 * time.Second,
+			// }).Dial,
+			// TLSHandshakeTimeout:   10 * time.Second,
+			// ResponseHeaderTimeout: 10 * time.Second,
+			// ExpectContinueTimeout: 3 * time.Second,
+		}
+		client = &http.Client{Transport: tr}
+		client.Timeout = 30 * time.Second
+	}
 	ctx = keycloak.NewClientContext(ctx, client)
-	return ctx, tlsconfig
+	return ctx
 }
 
 func keycServer(ctx context.Context, config *keycloak.ServerConfig) (keycloak.Keycloak, error) {

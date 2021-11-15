@@ -7,6 +7,9 @@ import (
 	pdb "github.com/dumacp/go-actors/persistence"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+
+	// "google.golang.org/protobuf/proto"
+	// "github.com/gogo/protobuf/proto"
 	"github.com/golang/protobuf/proto"
 )
 

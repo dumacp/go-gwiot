@@ -39,7 +39,7 @@ func Test_tokenSorce(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			config := newKeyConfig()
-			httpContext, _ := newHTTPContext(context.Background())
+			httpContext := newHTTPContext(context.Background(), nil)
 			keyc, _ := keycServer(httpContext, config)
 			tt.args.keyc = keyc
 

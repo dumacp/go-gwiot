@@ -3,6 +3,7 @@ package business
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
@@ -16,6 +17,7 @@ type KeycloakActor struct {
 	username    string
 	password    string
 	httpContext context.Context
+	httpClient  *http.Client
 	tokenSource oauth2.TokenSource
 	keyc        keycloak.Keycloak
 	httContext  context.Context
@@ -46,7 +48,7 @@ func (act *KeycloakActor) Receive(ctx actor.Context) {
 		}
 
 		if act.httContext == nil {
-			act.httpContext, _ = newHTTPContext(context.Background())
+			act.httpContext = newHTTPContext(context.Background(), act.httpClient)
 		}
 		if act.keyc == nil {
 			config := newKeyConfig()
@@ -68,7 +70,7 @@ func (act *KeycloakActor) Receive(ctx actor.Context) {
 	case *messages.GroupIDRequest:
 		var err error
 		if act.httContext == nil {
-			act.httpContext, _ = newHTTPContext(context.Background())
+			act.httpContext = newHTTPContext(context.Background(), act.httpClient)
 		}
 		if act.keyc == nil {
 			config := newKeyConfig()

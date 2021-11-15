@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	showVersion = "1.1.0"
+	showVersion = "1.1.2"
 )
 
 var debug bool
@@ -69,8 +69,15 @@ func main() {
 		remote.DisableReplay(true)
 	}
 
+	// decider := func(reason interface{}) actor.Directive {
+	// 	fmt.Println("handling failure for child")
+	// 	return actor.StopDirective
+	// }
+	// supervisor := actor.NewOneForOneStrategy(10, 1000, decider)
+
 	propsRemote := actor.PropsFromProducer(func() actor.Actor { return remote }).
 		WithReceiverMiddleware(persistence.Using(provider))
+		// WithSupervisor(supervisor)
 
 	propsApp := actor.PropsFromProducer(func() actor.Actor { return business.NewApp(propsRemote) })
 	rootContext.SpawnNamed(propsApp, "deviceIot")
