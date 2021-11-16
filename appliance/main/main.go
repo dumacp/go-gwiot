@@ -9,13 +9,12 @@ import (
 	"syscall"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/persistence"
 	"github.com/dumacp/go-gwiot/appliance/business"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/comm/pubsub"
 )
 
 const (
-	showVersion = "1.1.2"
+	showVersion = "1.2.0"
 )
 
 var debug bool
@@ -55,14 +54,14 @@ func main() {
 	rootContext := actor.NewActorSystem().Root
 	pubsub.Init(rootContext)
 
-	// var provider *provider
-	// var err error
-	// if !disablePersistence {
-	provider, err := newProvider(pathdb, 10)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	// // var provider *provider
+	// // var err error
+	// // if !disablePersistence {
+	// provider, err := newProvider(pathdb, 10)
+	// if err != nil {
+	// 	log.Fatalln(err)
 	// }
+	// // }
 
 	remote := business.NewRemote(test)
 	if disableRetransmission {
@@ -75,9 +74,9 @@ func main() {
 	// }
 	// supervisor := actor.NewOneForOneStrategy(10, 1000, decider)
 
-	propsRemote := actor.PropsFromProducer(func() actor.Actor { return remote }).
-		WithReceiverMiddleware(persistence.Using(provider))
-		// WithSupervisor(supervisor)
+	propsRemote := actor.PropsFromProducer(func() actor.Actor { return remote })
+	// WithReceiverMiddleware(persistence.Using(provider))
+	// WithSupervisor(supervisor)
 
 	propsApp := actor.PropsFromProducer(func() actor.Actor { return business.NewApp(propsRemote) })
 	rootContext.SpawnNamed(propsApp, "deviceIot")

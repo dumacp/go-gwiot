@@ -3,7 +3,7 @@ package business
 import (
 	"encoding/json"
 
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 //EventMsg event message

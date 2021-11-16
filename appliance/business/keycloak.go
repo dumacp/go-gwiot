@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/dumacp/keycloak"
 	"golang.org/x/oauth2"
 )

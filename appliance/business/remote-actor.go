@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/AsynkronIT/protoactor-go/persistence"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-gwiot/appliance/crosscutting/database"
+	"github.com/dumacp/go-logs/pkg/logs"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"golang.org/x/oauth2"
 )
@@ -19,6 +19,10 @@ const (
 	protocolVersion       = 4  // corresponds to mqtt 3.1.1
 	minimumBackoffTime    = 1  // initial backoff time in seconds
 	maximumBackoffTime    = 32 // maximum backoff time in seconds
+
+	dbpath             = "/SD/boltdbs/gwiotdb"
+	databaseName       = "replayeventsdb"
+	collectionUsosData = "events"
 )
 
 var (
@@ -27,20 +31,18 @@ var (
 
 //RemoteActor remote actor
 type RemoteActor struct {
-	persistence.Mixin
-	test          bool
-	lastMSG       *messages.RemoteMSG2
-	lastCacheMSG  *messages.RemoteMSG2
-	lastBackMSG   *messages.RemoteSnapshot
-	failCache     []*messages.RemoteMSG2
-	ctx           actor.Context
-	pidKeycloak   *actor.PID
-	client        mqtt.Client
-	token         *oauth2.Token
-	lastReconnect time.Time
-	countReplay   int
-	disableReplay bool
-	quit          chan int
+	test           bool
+	ctx            actor.Context
+	pidKeycloak    *actor.PID
+	client         mqtt.Client
+	token          *oauth2.Token
+	lastReconnect  time.Time
+	lastSendedMsg  time.Time
+	disableReplay  bool
+	isConnected    bool
+	isDatabaseOpen bool
+	db             database.DBservice
+	quit           chan int
 }
 
 func init() {
@@ -51,10 +53,6 @@ func init() {
 func NewRemote(test bool) *RemoteActor {
 	r := &RemoteActor{}
 	r.test = test
-	r.lastCacheMSG = &messages.RemoteMSG2{}
-	r.lastMSG = &messages.RemoteMSG2{}
-	r.lastBackMSG = &messages.RemoteSnapshot{TimeStamp: 0, LastMSG: nil}
-	r.failCache = make([]*messages.RemoteMSG2, 0)
 
 	return r
 }
@@ -66,6 +64,7 @@ func (ps *RemoteActor) DisableReplay(disable bool) {
 type reconnectRemote struct{}
 
 type resendMSG struct{}
+type verifyReplay struct{}
 
 func (ps *RemoteActor) connect() error {
 	if ps.client != nil {
@@ -123,6 +122,17 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 		// ps.queueMSG.deletedata()
 
+		if db, err := database.Open(ctx.ActorSystem().Root, dbpath); err != nil {
+			if !ps.disableReplay {
+				time.Sleep(3 * time.Second)
+				panic(fmt.Sprintf("database open error: %s", err))
+			}
+		} else {
+			ps.db = database.NewService(db)
+			time.Sleep(1 * time.Second)
+			ps.db.Close()
+		}
+
 		select {
 		case _, ok := <-ps.quit:
 			if ok {
@@ -145,6 +155,41 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	case **actor.Stopping:
 		logs.LogInfo.Printf("Stopping, actor, pid: %v\n", ctx.Self())
 		close(ps.quit)
+	case *verifyReplay:
+		if err := func() error {
+
+			if ps.db == nil {
+				return fmt.Errorf("database is nil")
+			}
+			if err := ps.db.Open(); err != nil {
+				return fmt.Errorf("database is closed")
+			}
+			defer func() {
+				ps.db.Close()
+				ps.isDatabaseOpen = false
+			}()
+
+			topic := fmt.Sprintf(remoteQueueEvents, Hostname())
+
+			query := func(id string, el []byte) bool {
+				logs.LogBuild.Printf("re-send event (id: %s)", id)
+				if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
+					logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
+					return false
+				}
+				// TODO if wait response develop accumulative ids
+				ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
+				return true
+			}
+
+			err := ps.db.Query(databaseName, collectionUsosData, "", false, query)
+			if err != nil {
+				return err
+			}
+			return nil
+		}(); err != nil {
+			logs.LogError.Printf("re-send data error: %s", err)
+		}
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
 		if ps.client != nil && ps.client.IsConnectionOpen() {
@@ -154,7 +199,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogBuild.Printf("  *****************     RECONNECT   *********************")
 
 		logs.LogBuild.Printf("last connect at -> %s", t1)
-		if time.Now().After(t1.Add(45 * time.Second)) {
+		if t1.Before(time.Now().Add(-30 * time.Second)) {
 			ps.lastReconnect = time.Now()
 			if err := ps.connect(); err != nil {
 				logs.LogError.Println(err)
@@ -164,11 +209,11 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			} else {
 				fmt.Printf("RECONNECT SUCESSFULL\n")
 				logs.LogInfo.Printf("RECONNECT SUCESSFULL")
-				logs.LogBuild.Printf("Request recovery, lastChahe messages -> %s, lastBackup -> %v", time.Unix(ps.lastCacheMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
+				logs.LogBuild.Printf("lastSendedMsg: %s, disableReplay: %v", ps.lastSendedMsg, ps.disableReplay)
 
-				if ps.lastCacheMSG == nil || ps.lastCacheMSG.GetTimeStamp() > ps.lastBackMSG.GetTimeStamp() {
-					// ctx.Poison(ctx.Self())
-					panic(msg)
+				ps.isConnected = true
+				if !ps.disableReplay {
+					ctx.Send(ctx.Self(), &verifyReplay{})
 				}
 			}
 		}
@@ -178,80 +223,52 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	case *resendMSG:
 
 	case *messages.RemoteMSG2:
-		func() {
-			logs.LogBuild.Printf("recovering: %v, remote message -> %s", ps.Recovering(), time.Unix(msg.GetTimeStamp(), 0))
-			if !ps.Recovering() {
-				logs.LogBuild.Printf("persist message -> %v", time.Unix(msg.TimeStamp, 0))
-				*ps.lastCacheMSG = *msg
-				// defer ps.PersistReceive(msg)
-				ps.countReplay = 0
-			} else {
-				if ps.disableReplay {
-					return
-				}
-				ps.countReplay++
+		data := prepareMSG(msg)
+		if err := func(data []byte) error {
+			logs.LogBuild.Printf("new data to send: %s", data)
+
+			if !ps.isConnected {
+				return fmt.Errorf("not connection")
 			}
 
 			if ps.client == nil || !ps.client.IsConnectionOpen() {
-				ps.PersistReceive(msg)
-				t1 := ps.lastReconnect
-				fmt.Printf("not connections\n")
-				logs.LogBuild.Printf("  *****************     dont connect!!!!   *********************")
-				logs.LogBuild.Printf("last connect at -> %s", t1)
-				if time.Now().After(t1.Add(90 * time.Second)) {
-					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
-				}
-				return
+				ps.isConnected = false
+				return fmt.Errorf("not connection")
 			}
 
 			topic := fmt.Sprintf(remoteQueueEvents, Hostname())
 
-			if _, err := sendMSG(ps.client, topic, msg, ps.test); err != nil {
-				logs.LogError.Printf("publish error -> %s, message -> %s", err, msg.GetData())
-				ps.failCache = append(ps.failCache, msg)
-				if !ps.Recovering() {
-					ps.PersistReceive(msg)
-					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
-				}
-			} else {
-				*ps.lastMSG = *msg
-				logs.LogBuild.Printf("send message -> %v", time.Unix(msg.TimeStamp, 0))
-				if v := ps.countReplay % 30; v == 0 && ps.countReplay != 0 {
-					time.Sleep(1 * time.Second)
+			diff_time := time.Since(ps.lastReconnect)
+			if diff_time < 100*time.Millisecond && diff_time > 0 {
+				time.Sleep(diff_time)
+			}
+
+			if _, err := sendMSG(ps.client, topic, data, ps.test); err != nil {
+				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.GetData())
+			}
+			ps.lastSendedMsg = time.Now()
+			return nil
+		}(data); err != nil {
+
+			if ps.db != nil && !ps.isDatabaseOpen {
+				if err := ps.db.Open(); err != nil {
+					logs.LogError.Println("database is closed")
+				} else {
+					ps.isDatabaseOpen = true
 				}
 			}
-		}()
 
-	case *messages.RemoteSnapshot:
-		logs.LogInfo.Printf("recover snapshot at -> %s", time.Unix(msg.GetTimeStamp(), 0))
-		*ps.lastBackMSG = *msg
-
-	case *persistence.ReplayComplete:
-		logs.LogBuild.Println("Replay Complete")
-		if ps.lastMSG == nil {
-			break
-		}
-		logs.LogBuild.Printf("Replay Request Snapshot, backup -> %v, last messages -> %s", time.Unix(ps.lastBackMSG.TimeStamp, 0), time.Unix(ps.lastMSG.TimeStamp, 0))
-		if ps.lastBackMSG.GetTimeStamp() <= ps.lastMSG.GetTimeStamp() {
-			ps.execSnapshot()
-		}
-
-	case *persistence.RequestSnapshot:
-		logs.LogBuild.Printf("Request snapshot init, last cache -> %s, last msg -> %s", time.Unix(ps.lastCacheMSG.TimeStamp, 0), time.Unix(ps.lastMSG.TimeStamp, 0))
-		if ps.lastMSG == nil {
-			break
-		}
-		if ps.lastCacheMSG != nil && ps.lastCacheMSG.GetTimeStamp() > ps.lastMSG.GetTimeStamp() {
-			break
-		}
-		for _, v := range ps.failCache {
-			if v.Retry < 3 {
-				ctx.Send(ctx.Self(), v)
-				v.Retry++
+			if !ps.disableReplay && ps.db != nil && ps.isDatabaseOpen {
+				logs.LogBuild.Printf("backup event: %s", data)
+				uid := fmt.Sprintf("%d", time.Now().UnixNano())
+				if _, err := ps.db.Update(uid, data, databaseName, collectionUsosData); err != nil {
+					logs.LogError.Printf("storage data (id: %s) %q error: %s", uid, data, err)
+				}
+			}
+			if ps.lastReconnect.Before(time.Now().Add(-40 * time.Second)) {
+				ctx.Send(ctx.Self(), &reconnectRemote{})
 			}
 		}
-		ps.failCache = make([]*messages.RemoteMSG2, 0)
-		ps.execSnapshot()
 
 	case *actor.Stopping:
 		ps.client.Disconnect(600)
@@ -265,7 +282,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 }
 
 //sendMSG return (response?, error)
-func sendMSG(client mqtt.Client, topic string, msg *messages.RemoteMSG2, test bool) (bool, error) {
+func sendMSG(client mqtt.Client, topic string, data []byte, test bool) (bool, error) {
 
 	if client != nil && !client.IsConnectionOpen() {
 		client.Disconnect(300)
@@ -277,12 +294,7 @@ func sendMSG(client mqtt.Client, topic string, msg *messages.RemoteMSG2, test bo
 	} else {
 		topicSend = topic
 	}
-	var data []byte
-	if msg.Version == 2 {
-		data = []byte(fmt.Sprintf("{\"sDv\": %q, %s, %s}", Hostname(), msg.State[1:len(msg.State)-1], msg.Events[1:len(msg.Events)-1]))
-	} else {
-		data = msg.GetData()
-	}
+
 	logs.LogBuild.Printf("data to send: %s", data)
 	tk := client.Publish(topicSend, 1, false, data)
 
@@ -299,28 +311,17 @@ func sendMSG(client mqtt.Client, topic string, msg *messages.RemoteMSG2, test bo
 	return false, fmt.Errorf("message dont send")
 }
 
-func (ps *RemoteActor) execSnapshot() {
-	logs.LogBuild.Printf("Request Snapshot -> %v, last messages -> %s", time.Unix(ps.lastBackMSG.TimeStamp, 0), ps.lastBackMSG.GetLastMSG())
-	snap := &messages.RemoteSnapshot{}
+//sendMSG return (response?, error)
+func prepareMSG(msg *messages.RemoteMSG2) []byte {
 
-	// if ps.client != nil {
-	// 	if !ps.client.IsConnectionOpen() {
-	// 		ps.client.Disconnect(300)
-	// 		return
-	// 	}
-	// } else {
-	// 	return
-	// }
-
-	if ps.lastMSG != nil {
-		// if ps.lastBackMSG.TimeStamp < ps.lastMSG.TimeStamp {
-		logs.LogBuild.Printf("Request Snapshot, last messages -> %s, lastBackup -> %v", time.Unix(ps.lastMSG.GetTimeStamp(), 0), time.Unix(ps.lastBackMSG.GetTimeStamp(), 0))
-		snap.TimeStamp = ps.lastMSG.GetTimeStamp()
-		ps.PersistSnapshot(snap)
-		logs.LogBuild.Printf("Request Snapshot, lastBackup -> %v", time.Unix(snap.GetTimeStamp(), 0))
-		*ps.lastBackMSG = *snap
-		// }
+	var data []byte
+	if msg.Version == 2 {
+		data = []byte(fmt.Sprintf("{\"sDv\": %q, %s, %s}", Hostname(), msg.State[1:len(msg.State)-1], msg.Events[1:len(msg.Events)-1]))
+	} else {
+		data = msg.GetData()
 	}
+
+	return data
 }
 
 func (ps *RemoteActor) tickrReconnect(quit chan int) {
@@ -336,12 +337,9 @@ func (ps *RemoteActor) tickrReconnect(quit chan int) {
 	for {
 		select {
 		case <-tick.C:
-			if ps.Recovering() {
-				continue
-			}
-			if ps.client == nil || !ps.client.IsConnectionOpen() {
+			if !ps.isConnected || ps.client == nil || !ps.client.IsConnectionOpen() {
 				t1 := ps.lastReconnect
-				if time.Now().After(t1.Add(20 * time.Second)) {
+				if t1.Before(time.Now().Add(-60 * time.Second)) {
 					ps.ctx.Send(ps.ctx.Self(), &reconnectRemote{})
 				}
 			}

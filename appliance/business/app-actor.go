@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	// svcpubsub "github.com/dumacp/go-gwiot/appliance/business/services/pubsub"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -106,7 +106,9 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 		m.Ack()
 		msg := subs.parse(m.Payload())
 		// logs.LogBuild.Printf("parse payload-> %s", msg)
-		ps.ctx.Send(subs.pid, msg)
+		if msg != nil {
+			ps.ctx.Send(subs.pid, msg)
+		}
 	}
 	if tk := instance.client.Subscribe(topic, 1, handler); !tk.WaitTimeout(3 * time.Second) {
 		if err := tk.Error(); err != nil {

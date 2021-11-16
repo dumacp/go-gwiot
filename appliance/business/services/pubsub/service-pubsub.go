@@ -7,8 +7,8 @@ import (
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
 	svc "github.com/dumacp/go-gwiot/appliance/business/services"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/comm/pubsub"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
 	"github.com/dumacp/go-gwiot/appliance/services"
+	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 //Gateway interface

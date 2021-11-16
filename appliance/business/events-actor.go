@@ -6,7 +6,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/appliance/crosscutting/comm/pubsub"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 //EventsActor actor to listen events

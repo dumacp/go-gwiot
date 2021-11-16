@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 )
 
 var hostname string

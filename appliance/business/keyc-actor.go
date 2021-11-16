@@ -7,7 +7,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/appliance/business/messages"
-	"github.com/dumacp/go-gwiot/appliance/crosscutting/logs"
+	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/dumacp/keycloak"
 	"golang.org/x/oauth2"
 )
