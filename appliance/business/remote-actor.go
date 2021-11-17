@@ -173,10 +173,15 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 			query := func(id string, el []byte) bool {
 				logs.LogBuild.Printf("re-send event (id: %s)", id)
+				diff_time := time.Since(ps.lastReconnect)
+				if diff_time < 100*time.Millisecond && diff_time > 0 {
+					time.Sleep(diff_time)
+				}
 				if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
 					logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
 					return false
 				}
+				ps.lastSendedMsg = time.Now()
 				// TODO if wait response develop accumulative ids
 				ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
 				return true
@@ -242,7 +247,6 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if diff_time < 100*time.Millisecond && diff_time > 0 {
 				time.Sleep(diff_time)
 			}
-
 			if _, err := sendMSG(ps.client, topic, data, ps.test); err != nil {
 				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.GetData())
 			}
