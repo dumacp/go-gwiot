@@ -20,7 +20,7 @@ type DBservice interface {
 	Get(id string, database string, collection string) ([]byte, error)
 	Delete(id string, database string, collection string) error
 	DeleteWithoutResponse(id, database, collection string)
-	Query(database, collection, prefixID string, reverse bool, query func(id string, data []byte) bool) error
+	Query(database, collection, prefixID string, reverse bool, timeout time.Duration, query func(id string, data []byte) bool) error
 	// PID() *actor.PID
 }
 
@@ -152,10 +152,10 @@ func (db *svc) Get(id string, database string, collection string) ([]byte, error
 	return nil, errors.New("whitout response")
 }
 
-func (db *svc) Query(database, collection, prefixID string, reverse bool, query func(id string, data []byte) bool) error {
+func (db *svc) Query(database, collection, prefixID string, reverse bool, timeout time.Duration, query func(id string, data []byte) bool) error {
 
 	type start struct{}
-	timeout := 10 * time.Second
+	// timeout := 10 * time.Second
 	sender := &actor.PID{}
 	// var errFinal error
 	props := actor.PropsFromFunc(func(ctx actor.Context) {
@@ -170,8 +170,8 @@ func (db *svc) Query(database, collection, prefixID string, reverse bool, query 
 				Reverse:    reverse,
 			})
 		case *MsgQueryResponse:
+			ctx.Respond(&MsgQueryNext{})
 			if query(msg.ID, msg.Data) {
-				ctx.Respond(&MsgQueryNext{})
 				break
 			}
 			ctx.Send(sender, nil)

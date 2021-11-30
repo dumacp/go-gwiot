@@ -306,7 +306,7 @@ func (a *dbActor) WaitState(ctx actor.Context) {
 						ID:         v.ID,
 						Database:   msg.Database,
 						Collection: msg.Collection,
-					}, 10*time.Second).Wait(); err != nil {
+					}, 3*time.Second).Wait(); err != nil {
 						logs.LogWarn.Printf("error send datadb: %s, %s", err, pid)
 						return
 					}
