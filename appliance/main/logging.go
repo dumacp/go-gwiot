@@ -21,10 +21,10 @@ func initLogs(debug, logStd bool) {
 	if logStd {
 		return
 	}
-	newLog(logs.LogInfo, "[ warn ] ", log.LstdFlags, 4)
-	newLog(logs.LogWarn, "[ info ] ", log.LstdFlags, 6)
-	newLog(logs.LogError, "[ build ] ", log.LstdFlags, 7)
-	newLog(logs.LogBuild, "[ error ] ", log.LstdFlags, 3)
+	newLog(logs.LogWarn, "[ warn ] ", log.LstdFlags, 4)
+	newLog(logs.LogInfo, "[ info ] ", log.LstdFlags, 6)
+	newLog(logs.LogBuild, "[ build ] ", log.LstdFlags, 7)
+	newLog(logs.LogError, "[ error ] ", log.LstdFlags, 3)
 	if !debug {
 		logs.LogBuild.Disable()
 	}

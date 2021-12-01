@@ -1,6 +1,7 @@
 package business
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"time"
@@ -63,10 +64,14 @@ func (ps *RemoteActor) DisableReplay(disable bool) {
 
 type reconnectRemote struct{}
 
-type resendMSG struct {
-	ID   string
-	Data []byte
-}
+// func (m *resendMSG) GetPriority() int8 {
+// 	return 6
+// }
+
+// type resendMSG struct {
+// 	ID   string
+// 	Data []byte
+// }
 type verifyReplay struct{}
 
 func (ps *RemoteActor) connect() error {
@@ -166,57 +171,68 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	case **actor.Stopping:
 		logs.LogInfo.Printf("Stopping, actor, pid: %v\n", ctx.Self())
 		close(ps.quit)
+
 	case *verifyReplay:
 		if err := func() error {
 
-			if ps.db == nil {
-				return fmt.Errorf("database is nil")
+			if ps.db != nil && !ps.isDatabaseOpen {
+				if err := ps.db.Open(); err != nil {
+					logs.LogError.Println("database is closed")
+				} else {
+					ps.isDatabaseOpen = true
+				}
 			}
-			// if err := ps.db.Open(); err != nil {
-			// 	return fmt.Errorf("database is closed")
-			// }
+			if ps.db == nil || !ps.isDatabaseOpen {
+				return errors.New("database is closed")
+			}
 			// defer func() {
 			// 	ps.db.Close()
 			// 	ps.isDatabaseOpen = false
 			// }()
 
-			// topic := fmt.Sprintf(remoteQueueEvents, Hostname())
+			topic := fmt.Sprintf(remoteQueueEvents, Hostname())
 
 			count := 0
 			query := func(id string, el []byte) bool {
-				// logs.LogBuild.Printf("re-send event (id: %s)", id)
-				// diff_time := time.Since(ps.lastReconnect)
-				// if diff_time < 100*time.Millisecond && diff_time > 0 {
-				// 	time.Sleep(diff_time)
-				// }
-				// if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
-				// 	logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
-				// 	return false
-				// }
-				if len(el) <= 0 {
-					return true
+				logs.LogBuild.Printf("re-send event (id: %s)", id)
+				diff_time := time.Since(ps.lastReconnect)
+				if diff_time < 80*time.Millisecond && diff_time > 0 {
+					time.Sleep(diff_time)
 				}
-				data := make([]byte, len(el))
-				copy(data, el)
-				ctx.Send(ctx.Self(), &resendMSG{
-					ID:   id,
-					Data: data,
-				})
+				if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
+					logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
+					return false
+				}
+				// if len(el) <= 0 {
+				// 	return true
+				// }
+				// data := make([]byte, len(el))
+				// copy(data, el)
+				// ctx.Send(ctx.Self(), &resendMSG{
+				// 	ID:   id,
+				// 	Data: data,
+				// })
 				if count > 30 {
 					logs.LogWarn.Println("re-send, count limit")
+					go func() {
+						time.Sleep(1800 * time.Millisecond)
+						ctx.Send(ctx.Self(), &verifyReplay{})
+					}()
 					return false
 				}
 				count++
-				// ps.lastSendedMsg = time.Now()
-				// // TODO if wait response develop accumulative ids
-				// ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
+				ps.lastSendedMsg = time.Now()
+				// TODO if wait response develop accumulative ids
+				ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
 				return true
 			}
 			err := ps.db.Query(databaseName, collectionUsosData, "", false, 30*time.Second, query)
 			if err != nil {
 				if !ps.disableReplay {
-					time.Sleep(1 * time.Second)
-					ctx.Send(ctx.Self(), &verifyReplay{})
+					go func() {
+						time.Sleep(1800 * time.Millisecond)
+						ctx.Send(ctx.Self(), &verifyReplay{})
+					}()
 				}
 				return err
 			}
@@ -224,6 +240,33 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}(); err != nil {
 			logs.LogError.Printf("re-send data error: %s", err)
 		}
+	// case *resendMSG:
+	// 	if ps.db != nil && !ps.isDatabaseOpen {
+	// 		if err := ps.db.Open(); err != nil {
+	// 			logs.LogError.Println("database is closed")
+	// 		} else {
+	// 			ps.isDatabaseOpen = true
+	// 		}
+	// 	}
+	// 	if ps.db == nil || !ps.isDatabaseOpen {
+	// 		logs.LogError.Println("database is closed")
+	// 		break
+	// 	}
+	// 	id := msg.ID
+	// 	el := msg.Data
+	// 	topic := fmt.Sprintf(remoteQueueEvents, Hostname())
+	// 	logs.LogBuild.Printf("re-send event (id: %s)", id)
+	// 	diff_time := time.Since(ps.lastReconnect)
+	// 	if diff_time < 80*time.Millisecond && diff_time > 0 {
+	// 		time.Sleep(diff_time)
+	// 	}
+	// 	if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
+	// 		logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
+	// 		break
+	// 	}
+	// 	ps.lastSendedMsg = time.Now()
+	// 	// TODO if wait response develop accumulative ids
+	// 	ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
 		if ps.client != nil && ps.client.IsConnectionOpen() {
@@ -253,35 +296,6 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}
 	case *oauth2.Token:
 		ps.token = msg
-
-	case *resendMSG:
-
-		if ps.db != nil && !ps.isDatabaseOpen {
-			if err := ps.db.Open(); err != nil {
-				logs.LogError.Println("database is closed")
-			} else {
-				ps.isDatabaseOpen = true
-			}
-		}
-		if ps.db != nil || !ps.isDatabaseOpen {
-			break
-		}
-
-		id := msg.ID
-		el := msg.Data
-		topic := fmt.Sprintf(remoteQueueEvents, Hostname())
-		logs.LogBuild.Printf("re-send event (id: %s)", id)
-		diff_time := time.Since(ps.lastReconnect)
-		if diff_time < 80*time.Millisecond && diff_time > 0 {
-			time.Sleep(diff_time)
-		}
-		if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
-			logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
-			break
-		}
-		ps.lastSendedMsg = time.Now()
-		// TODO if wait response develop accumulative ids
-		ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
 
 	case *messages.RemoteMSG2:
 		data := prepareMSG(msg)
