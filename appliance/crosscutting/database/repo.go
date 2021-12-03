@@ -167,11 +167,13 @@ func QueryData(data chan *QueryType, stop chan int, database, collection string,
 				c.Seek(prefixID)
 				for k, v := c.Last(); k != nil && bytes.HasPrefix(k, prefixID); k, v = c.Prev() {
 					// fmt.Printf("key=%s, value=%s\n", k, v)
+					replica := make([]byte, len(v))
+					copy(replica, v)
 					select {
 					case <-stop:
 						fmt.Printf("close query datadb")
 						return nil
-					case data <- &QueryType{ID: string(k), Data: v}:
+					case data <- &QueryType{ID: string(k), Data: replica}:
 					case <-time.After(10 * time.Second):
 						fmt.Printf("timeout query datadb, %s", collection)
 					}
@@ -179,11 +181,13 @@ func QueryData(data chan *QueryType, stop chan int, database, collection string,
 			} else {
 				for k, v := c.Seek(prefixID); k != nil && bytes.HasPrefix(k, prefixID); k, v = c.Next() {
 					// fmt.Printf("key=%s, value=%s\n", k, v)
+					replica := make([]byte, len(v))
+					copy(replica, v)
 					select {
 					case <-stop:
 						fmt.Printf("close query datadb")
 						return nil
-					case data <- &QueryType{ID: string(k), Data: v}:
+					case data <- &QueryType{ID: string(k), Data: replica}:
 					case <-time.After(10 * time.Second):
 						fmt.Printf("timeout query datadb, %s", collection)
 					}
@@ -193,11 +197,13 @@ func QueryData(data chan *QueryType, stop chan int, database, collection string,
 			if reverse {
 				for k, v := c.Last(); k != nil; k, v = c.Prev() {
 					// fmt.Printf("key=%s, value=%s\n", k, v)
+					replica := make([]byte, len(v))
+					copy(replica, v)
 					select {
 					case <-stop:
 						fmt.Printf("close query datadb")
 						return nil
-					case data <- &QueryType{ID: string(k), Data: v}:
+					case data <- &QueryType{ID: string(k), Data: replica}:
 					case <-time.After(10 * time.Second):
 						fmt.Printf("timeout query datadb, %s", collection)
 					}
@@ -205,11 +211,13 @@ func QueryData(data chan *QueryType, stop chan int, database, collection string,
 			} else {
 				for k, v := c.First(); k != nil; k, v = c.Next() {
 					// fmt.Printf("key=%s, value=%s\n", k, v)
+					replica := make([]byte, len(v))
+					copy(replica, v)
 					select {
 					case <-stop:
 						fmt.Printf("close query datadb")
 						return nil
-					case data <- &QueryType{ID: string(k), Data: v}:
+					case data <- &QueryType{ID: string(k), Data: replica}:
 					case <-time.After(10 * time.Second):
 						fmt.Printf("timeout query datadb, %s", collection)
 					}
@@ -241,7 +249,8 @@ func Last(data *[]byte, database, collection string, prefixID []byte) func(*bbol
 				// fmt.Printf("key=%s, value=%s\n", k, v)
 			}
 		}
-		*data = v
+		*data = make([]byte, len(v))
+		copy(*data, v)
 		return nil
 	}
 }

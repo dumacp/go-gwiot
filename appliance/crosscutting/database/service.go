@@ -155,6 +155,7 @@ func (db *svc) Get(id string, database string, collection string) ([]byte, error
 func (db *svc) Query(database, collection, prefixID string, reverse bool, timeout time.Duration, query func(id string, data []byte) bool) error {
 
 	type start struct{}
+	type stop struct{}
 	// timeout := 10 * time.Second
 	sender := &actor.PID{}
 	// var errFinal error
@@ -174,9 +175,9 @@ func (db *svc) Query(database, collection, prefixID string, reverse bool, timeou
 			if query(msg.ID, msg.Data) {
 				break
 			}
-			ctx.Send(sender, nil)
+			ctx.Send(sender, &stop{})
 		case *MsgAckGetData:
-			ctx.Send(sender, nil)
+			ctx.Send(sender, &stop{})
 		case *MsgNoAckGetData:
 			// errFinal = errors.New(msg.Error)
 			ctx.Send(sender, errors.New(msg.Error))
