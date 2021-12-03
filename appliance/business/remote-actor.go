@@ -199,10 +199,14 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				if diff_time < 80*time.Millisecond && diff_time > 0 {
 					time.Sleep(diff_time)
 				}
+				// id_int, _ := strconv.ParseInt(id, 10, 64)
+				// t1 := time.Unix(id_int/1000_000_0000, id_int%1000_000_0000)
+				// if time.Since(t1) < 72*time.Hour {
 				if _, err := sendMSG(ps.client, topic, el, ps.test); err != nil {
 					logs.LogWarn.Printf("re-send transaction: %s, errror: %w", id, err)
 					return false
 				}
+				// }
 				// if len(el) <= 0 {
 				// 	return true
 				// }
