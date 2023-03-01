@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coreos/go-oidc"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/dumacp/keycloak"
@@ -72,4 +73,29 @@ func tokenSorce(ctx context.Context, keyc keycloak.Keycloak, username, password 
 		return nil, fmt.Errorf("tokenSource nil")
 	}
 	return ts, nil
+}
+
+func TokenSource(ctx context.Context, username, password, url, realm, clientid, clientsecret string) (oauth2.TokenSource, error) {
+
+	issuer := fmt.Sprintf("%s/realms/%s", url, realm)
+	provider, err := oidc.NewProvider(ctx, issuer)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &oauth2.Config{
+		ClientID:     clientid,
+		ClientSecret: clientsecret,
+		Endpoint:     provider.Endpoint(),
+		RedirectURL:  url,
+		Scopes:       []string{oidc.ScopeOpenID},
+	}
+
+	tk, err := config.PasswordCredentialsToken(ctx, username, password)
+	if err != nil {
+		return nil, err
+	}
+	ts := config.TokenSource(ctx, tk)
+	return ts, nil
+
 }

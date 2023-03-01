@@ -290,8 +290,10 @@ func (a *dbActor) WaitState(ctx actor.Context) {
 				}()
 				for v := range data {
 					// log.Printf("data in channel: %s, %s", v.ID, pid)
+					datac := make([]byte, len(v.Data))
+					copy(datac, v.Data)
 					if err := ctx.RequestFuture(pid, &MsgQueryResponse{
-						Data:       v.Data,
+						Data:       datac,
 						ID:         v.ID,
 						Database:   msg.Database,
 						Collection: msg.Collection,

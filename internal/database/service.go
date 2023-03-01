@@ -17,10 +17,12 @@ type DBservice interface {
 	Close() error
 	Insert(id string, data []byte, database string, collection string) (string, error)
 	Update(id string, data []byte, database string, collection string) (string, error)
+	UpdateAsync(id string, data []byte, database string, collection string)
 	Get(id string, database string, collection string) ([]byte, error)
 	Delete(id string, database string, collection string) error
 	DeleteWithoutResponse(id, database, collection string)
 	Query(database, collection, prefixID string, reverse bool, timeout time.Duration, query func(id string, data []byte) bool) error
+	Searchcollections(database string, prefixID string, reverse bool) ([]string, error)
 	// PID() *actor.PID
 }
 
@@ -99,6 +101,16 @@ func (db *svc) Update(id string, data []byte, database string, collection string
 		return "", errors.New(msg.Error)
 	}
 	return "", errors.New("whitout response")
+}
+
+func (db *svc) UpdateAsync(id string, data []byte, database string, collection string) {
+
+	db.db.RootContext().Send(db.db.PID(), &MsgUpdateData{
+		ID:         id,
+		Data:       data,
+		Database:   database,
+		Collection: collection,
+	})
 }
 
 func (db *svc) Delete(id, database, collection string) error {

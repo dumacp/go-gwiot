@@ -28,12 +28,12 @@ var (
 	hostname        string
 )
 
-//SetHostname test name
+// SetHostname test name
 func SetHostname(h string) {
 	hostname = h
 }
 
-//Hostname get hostname
+// Hostname get hostname
 func Hostname() string {
 	if len(hostname) > 0 {
 		return hostname
@@ -102,20 +102,8 @@ func LoadLocalCert(localCertDir string) *tls.Config {
 		//InsecureSkipVerify: *insecure,
 		RootCAs: rootCAs,
 	}
-	// tr := &http.Transport{}
 	tr := &http.Transport{
 		TLSClientConfig: config,
-		// Dial: (&net.Dialer{
-		// 	Timeout: 30 * time.Second,
-		// }).Dial,
-		// TLSHandshakeTimeout: 10 * time.Second,
-		// Dial: (&net.Dialer{
-		// 	Timeout:   30 * time.Second,
-		// 	KeepAlive: 60 * time.Second,
-		// }).Dial,
-		// TLSHandshakeTimeout:   10 * time.Second,
-		// ResponseHeaderTimeout: 10 * time.Second,
-		// ExpectContinueTimeout: 3 * time.Second,
 	}
 	tr.TLSClientConfig = config
 

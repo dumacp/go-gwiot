@@ -1,7 +1,6 @@
 package renatsio
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -27,7 +26,7 @@ const (
 	collectionUsosData = "events"
 )
 
-//RemoteActor remote actor
+// RemoteActor remote actor
 type RemoteActor struct {
 	test           bool
 	ctx            actor.Context
@@ -42,7 +41,7 @@ type RemoteActor struct {
 	quit           chan int
 }
 
-//NewRemote new remote actor
+// NewRemote new remote actor
 func NewRemote(test bool) *RemoteActor {
 	r := &RemoteActor{}
 	r.test = test
@@ -107,7 +106,7 @@ func (ps *RemoteActor) connect() error {
 	return nil
 }
 
-//Receive function
+// Receive function
 func (ps *RemoteActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
 	switch msg := ctx.Message().(type) {
@@ -115,36 +114,6 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogInfo.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
 		fmt.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
 
-		if db, err := database.Open(ctx.ActorSystem().Root, dbpath); err != nil {
-			if !ps.disableReplay {
-				time.Sleep(3 * time.Second)
-				panic(fmt.Sprintf("database open error: %s", err))
-			}
-		} else {
-			ps.db = database.NewService(db)
-			time.Sleep(1 * time.Second)
-
-			if ps.db != nil && !ps.isDatabaseOpen {
-				if err := ps.db.Open(); err != nil {
-					logs.LogError.Println("database is closed")
-				} else {
-					ps.isDatabaseOpen = true
-				}
-			}
-		}
-
-		select {
-		case _, ok := <-ps.quit:
-			if ok {
-				close(ps.quit)
-				time.Sleep(1 * time.Second)
-			}
-		default:
-			if ps.quit != nil {
-				close(ps.quit)
-				time.Sleep(1 * time.Second)
-			}
-		}
 		ps.quit = make(chan int)
 		go ps.tickrReconnect(ps.quit)
 
@@ -156,67 +125,6 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		logs.LogInfo.Printf("Stopping, actor, pid: %v\n", ctx.Self())
 		close(ps.quit)
 
-	case *verifyReplay:
-		if err := func() error {
-
-			if ps.db != nil && !ps.isDatabaseOpen {
-				if err := ps.db.Open(); err != nil {
-					logs.LogError.Println("database is closed")
-				} else {
-					ps.isDatabaseOpen = true
-				}
-			}
-			if ps.db == nil || !ps.isDatabaseOpen {
-				return errors.New("database is closed")
-			}
-
-			if ps.conn == nil {
-				return errors.New("verify Replay cancel, client mqtt remote is nil")
-			}
-
-			topic := remoteQueueEvents
-
-			count := 0
-			query := func(id string, el []byte) bool {
-				diff_time := time.Since(ps.lastReconnect)
-				if diff_time < 80*time.Millisecond && diff_time > 0 {
-					time.Sleep(diff_time)
-				}
-				headers := map[string]string{"id": utils.Hostname()}
-				if _, err := sendMSG(ps.conn, topic, el, headers, ps.test); err != nil {
-					ps.conn.Close()
-					logs.LogWarn.Printf("re-send transaction: %s, errror: %s", id, err)
-					return false
-				}
-				logs.LogWarn.Printf("re-send event (id: %s)", id)
-				if count > 30 {
-					logs.LogWarn.Println("re-send, count limit")
-					go func() {
-						time.Sleep(1800 * time.Millisecond)
-						ctx.Send(ctx.Self(), &verifyReplay{})
-					}()
-					return false
-				}
-				count++
-				ps.lastSendedMsg = time.Now()
-				// TODO if wait response develop accumulative ids
-				ps.db.DeleteWithoutResponse(id, databaseName, collectionUsosData)
-				return true
-			}
-			err := ps.db.Query(databaseName, collectionUsosData, "", false, 30*time.Second, query)
-			if err != nil {
-				if !ps.disableReplay {
-					go func() {
-						time.Sleep(1800 * time.Millisecond)
-						ctx.Send(ctx.Self(), &verifyReplay{})
-					}()
-				}
-				return err
-			}
-			return nil
-		}(); err != nil {
-			logs.LogError.Printf("re-send data error: %s", err)
-		}
 	case *reconnectRemote:
 		t1 := ps.lastReconnect
 		if ps.conn != nil && ps.conn.IsConnected() {
@@ -301,7 +209,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	}
 }
 
-//sendMSG return (response?, error)
+// sendMSG return (response?, error)
 func prepareMSG(msg *messages.RemoteMSG2) []byte {
 
 	var data []byte
