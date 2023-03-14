@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/events"
 	"github.com/dumacp/go-gwiot/internal/keyc"
 	"github.com/dumacp/go-gwiot/internal/state"

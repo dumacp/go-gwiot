@@ -3,7 +3,7 @@ package schsvc
 import (
 	"encoding/json"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/pubsub"
 	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/dumacp/go-schservices/pkg/messages"

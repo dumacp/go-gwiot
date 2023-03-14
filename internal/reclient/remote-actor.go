@@ -1,4 +1,4 @@
-package remote
+package reclient
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/database"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/messages"

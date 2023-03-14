@@ -8,13 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/app"
 	"github.com/dumacp/go-gwiot/internal/env"
 	"github.com/dumacp/go-gwiot/internal/keyc"
 	"github.com/dumacp/go-gwiot/internal/pubsub"
-	"github.com/dumacp/go-gwiot/internal/remote"
-	remqtt "github.com/dumacp/go-gwiot/internal/remote-mqtt"
 	renatsio "github.com/dumacp/go-gwiot/internal/remote-natsio"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/google/uuid"
@@ -70,36 +68,9 @@ func main() {
 
 	var propsRemote *actor.Props
 
-	if !isnats {
-		conf := remqtt.JwtConf{
-			User:         utils.Hostname(),
-			Pass:         utils.Hostname(),
-			Realm:        keyc.Realm,
-			ClientID:     keyc.Clientid,
-			ClientSecret: keyc.ClientSecret,
-			KeycloakURL:  keyc.Keycloakurl,
-		}
+	reclient := renatsio.NewClientNatsio("", nil, false)
 
-		client := remqtt.NewRemote(test, &conf)
-
-		propsClient := actor.PropsFromProducer(func() actor.Actor { return client })
-		reclient := remote.NewRemote(propsClient)
-		if disableRetransmission {
-			reclient.DisableReplay(true)
-		}
-		if retryDays > 0 {
-			reclient.RetryDaysReplay(retryDays)
-		}
-
-		propsRemote = actor.PropsFromProducer(func() actor.Actor { return reclient })
-
-	} else {
-		reclient := renatsio.NewRemote(test)
-		if disableRetransmission {
-			reclient.DisableReplay(true)
-		}
-		propsRemote = actor.PropsFromProducer(func() actor.Actor { return reclient })
-	}
+	propsRemote = actor.PropsFromProducer(func() actor.Actor { return reclient })
 
 	propsApp := actor.PropsFromProducer(func() actor.Actor { return app.NewApp(propsRemote) })
 	rootContext.SpawnNamed(propsApp, "deviceIot")

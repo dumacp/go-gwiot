@@ -1,0 +1,119 @@
+syntax = "proto3";
+package gwiotmsg;
+
+option go_package = "github.com/dumacp/go-gwiot/pkg/gwiotmsg";
+
+message ping {}
+message pong {}
+
+message eventPubSub {
+    string id = 1;
+    string subject = 2;
+    map<string, string> headers = 3;
+
+    bytes data = 11;
+}
+
+message event {
+    string id = 1;
+    string subject = 2;
+    map<string, string> headers = 3;
+
+    bytes data = 11;
+}
+
+message ack {
+    string ids = 1; 
+}
+
+message error {
+    string ids = 1;
+    string error = 2;
+}
+
+message requestPubSub {
+    string id = 1;
+    string subject = 2;
+    bytes data = 11;
+}
+
+message request {
+    string id = 1;
+    string subject = 2;
+    string reply = 3;
+    uint32 timeout = 4;
+    map<string, string> headers = 5;
+
+    bytes data = 11;
+}
+
+message response {
+    string id = 1;
+    bytes data = 11;
+}
+
+enum ackType {
+    AckNone = 0;
+    AckAll = 1;    
+    AckExplicit = 2;
+}
+
+enum deliverPolicy {
+    DeliverAll = 0;
+    DeliverLast = 1;
+    DeliverNew = 2;
+    DeliverByStartSeq = 3;
+    DeliverByStartTime = 4;
+}
+
+message subcriptionSubject {
+    string stream = 1;
+    string subject = 2;
+    ackType ackType = 3;
+    uint32 MaxAckPending = 4;
+    uint32 MaxDeliver = 5;
+    int64 startTime = 6;
+    int64 startSeq = 7;
+
+    deliverPolicy deliverPolicy = 11;
+}
+
+message subscriptionMessage {
+    string id = 1;
+    string subject = 2;
+    string reply = 3;
+    map<string, string> headers = 4;
+
+    bytes data = 11;
+}
+
+message watchKeyValue {
+    string bucket = 1;
+    string key = 2;
+}
+
+message watchMessage {
+    string id = 1;
+    string bucket = 2;
+    string key = 3;
+    uint64 rev = 4;
+    uint64 delta = 5;
+    uint32 op = 6;
+
+    bytes data = 11;
+}
+
+message kvEntryMessage {
+    string id = 1;
+    string bucket = 2;
+    string key = 3;
+    uint64 rev = 4;
+    uint64 delta = 5;
+    uint32 op = 6;
+
+    bytes data = 11;
+}
+
+
+
+

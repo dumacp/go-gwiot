@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/dumacp/keycloak"
 	"golang.org/x/oauth2"
 )
 
-//KeycloakActor keycloak actor
+// KeycloakActor keycloak actor
 type KeycloakActor struct {
 	username    string
 	password    string
@@ -23,13 +23,13 @@ type KeycloakActor struct {
 	httContext  context.Context
 }
 
-//NewKeycActor create keycloak actor
+// NewKeycActor create keycloak actor
 func NewKeycActor(usernmae, password string) *KeycloakActor {
 	act := &KeycloakActor{username: usernmae, password: password}
 	return act
 }
 
-//Receive function Receive
+// Receive function Receive
 func (act *KeycloakActor) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:

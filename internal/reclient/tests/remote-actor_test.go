@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
-	"github.com/dumacp/go-gwiot/internal/remote"
+	"github.com/asynkron/protoactor-go/actor"
+	"github.com/dumacp/go-gwiot/internal/reclient"
 )
 
 type MsgDisconnect struct{}
@@ -14,7 +14,7 @@ type MsgConnect struct{}
 
 func TestNewRemote(t *testing.T) {
 
-	remote.Dbpath = "/tmp/gwiotdb"
+	reclient.Dbpath = "/tmp/gwiotdb"
 
 	disconnected := false
 
@@ -23,15 +23,15 @@ func TestNewRemote(t *testing.T) {
 		switch ctx.Message().(type) {
 		case *actor.Started:
 			if ctx.Parent() != nil {
-				ctx.Request(ctx.Parent(), &remote.MsgReconnect{})
+				ctx.Request(ctx.Parent(), &reclient.MsgReconnect{})
 			}
-		case *remote.MsgSendData:
+		case *reclient.MsgSendData:
 			time.Sleep(2800 * time.Millisecond)
 			if ctx.Sender() != nil {
 				if !disconnected {
-					ctx.Respond(&remote.MsgAck{})
+					ctx.Respond(&reclient.MsgAck{})
 				} else {
-					ctx.Respond(&remote.MsgError{
+					ctx.Respond(&reclient.MsgError{
 						Error: fmt.Errorf("Disconnected"),
 					})
 				}
@@ -63,7 +63,7 @@ func TestNewRemote(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reclient := remote.NewRemote(tt.args.client)
+			reclient := reclient.NewRemote(tt.args.client)
 
 			reclient.RetryDaysReplay(2)
 			reclient.DisableReplay(false)

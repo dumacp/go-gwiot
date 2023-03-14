@@ -1,0 +1,61 @@
+package renatsio
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/dumacp/go-gwiot/internal/keyc"
+	"github.com/dumacp/go-gwiot/messages"
+	"github.com/dumacp/go-logs/pkg/logs"
+	"golang.org/x/oauth2"
+)
+
+func connect(tks oauth2.TokenSource) error {
+	if ps.conn != nil && ps.conn.IsConnected() {
+		ps.conn.Close()
+	}
+	if len(keyc.Keycloakurl) > 0 {
+		request := ctx.RequestFuture(ctx.Parent(), &messages.KeycloakAddressRequest{}, 6*time.Second)
+		if err := request.Wait(); err != nil {
+			return fmt.Errorf("request keycloak actor address error -> %s", err)
+		}
+
+		res, err := request.Result()
+		if err != nil {
+			return fmt.Errorf("request keycloak actor address error -> %s", err)
+		}
+
+		var ok bool
+		if ps.pidKeycloak, ok = res.(*actor.PID); !ok {
+			return fmt.Errorf("request keycloak actor address error -> %s", err)
+		}
+		logs.LogBuild.Printf("remote keycloak -> %v", ps.pidKeycloak)
+
+		if ps.token == nil || ps.token.Expiry.Before(time.Now()) {
+			req := ctx.RequestFuture(ps.pidKeycloak, &messages.TokenRequest{}, 6*time.Second)
+			if err := req.Wait(); err != nil {
+				return fmt.Errorf("request JWT error -> %s", err)
+			}
+			res, err := req.Result()
+			if err != nil {
+				return fmt.Errorf("request JWT error -> %s", err)
+			}
+			if ps.token, ok = res.(*oauth2.Token); !ok {
+				return fmt.Errorf("request JWT error -> %s", err)
+			}
+			logs.LogBuild.Printf("new jwt -> %v", ps.token)
+		}
+		if ps.token == nil {
+			return fmt.Errorf("token is empty %v", nil)
+		}
+	}
+	var err error
+
+	ps.conn, err = connect(ps.token)
+	if err != nil {
+		time.Sleep(6 * time.Second)
+		return fmt.Errorf("connect error -> %s", err)
+	}
+	return nil
+}

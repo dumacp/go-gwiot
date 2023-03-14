@@ -3,7 +3,7 @@ package state
 import (
 	"time"
 
-	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/pubsub"
 	"github.com/dumacp/go-gwiot/messages"
 	"github.com/dumacp/go-logs/pkg/logs"

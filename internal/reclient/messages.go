@@ -1,4 +1,4 @@
-package remote
+package reclient
 
 type MsgSendData struct {
 	Data    []byte
