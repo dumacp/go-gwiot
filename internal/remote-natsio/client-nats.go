@@ -53,24 +53,6 @@ func jsclient(conn *nats.Conn) (nats.JetStreamContext, error) {
 	if err != nil {
 		return nil, err
 	}
-	// stream := nats.StreamConfig{
-	// 	Name:        "Events",
-	// 	Subjects:    []string{subEvent},
-	// 	Description: "stream events",
-	// 	Retention:   nats.LimitsPolicy,
-	// 	Discard:     nats.DiscardNew,
-	// 	// Storage:     nats.MemoryStorage,
-	// 	// MaxMsgsPerSubject: 5,
-	// 	// MaxBytes: 256,
-	// 	MaxMsgs: 10,
-	// }
-
-	// info, err := js.AddStream(&stream)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// fmt.Printf("stream info: %+v\n", info)
-
 	return js, nil
 }
 

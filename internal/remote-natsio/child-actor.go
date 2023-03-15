@@ -28,11 +28,11 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		if ctx.Parent() == nil {
 			break
 		}
-		ctx.Request(ctx.Parent(), &Connect{})
+		ctx.Request(ctx.Parent(), &Connection{})
 		contxt, cancel := context.WithCancel(context.TODO())
 		a.contxt = contxt
 		a.cancel = cancel
-	case *Connected:
+	case *ConnectionResponse:
 		a.conn = msg.Conn
 		js, err := a.conn.JetStream()
 		if err != nil {
@@ -51,13 +51,13 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			if err := publish(a.conn, a.js, topic, data, headers); err != nil {
 				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.Data)
 			}
-			if ctx.Sender() != nil && msg.Ack {
+			if ctx.Sender() != nil {
 				ctx.Respond(&gwiotmsg.Ack{})
 			}
 			return nil
 		}(); err != nil {
 			logs.LogError.Println(err)
-			if ctx.Sender() != nil && msg.Ack {
+			if ctx.Sender() != nil {
 				ctx.Respond(&gwiotmsg.Error{
 					Error: err.Error(),
 				})

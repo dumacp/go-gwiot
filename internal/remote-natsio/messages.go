@@ -2,8 +2,8 @@ package renatsio
 
 import "github.com/nats-io/nats.go"
 
-type Connect struct{}
+type Connection struct{}
 type Reconnect struct{}
-type Connected struct {
+type ConnectionResponse struct {
 	Conn *nats.Conn
 }
