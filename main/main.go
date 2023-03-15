@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	showVersion = "1.2.12"
+	showVersion = "1.2.13"
 )
 
 var debug bool
@@ -134,7 +134,6 @@ func getENV() {
 		}
 	}
 	if len(utils.RemoteBrokerURL) <= 0 {
-
 		if len(os.Getenv("BROKER_URL_DEVICES")) > 0 {
 			utils.RemoteBrokerURL = os.Getenv("BROKER_URL_DEVICES")
 		} else {
@@ -142,7 +141,6 @@ func getENV() {
 		}
 	}
 	if len(keyc.Realm) <= 0 {
-
 		if len(os.Getenv("REALM_DEVICES")) > 0 {
 			keyc.Realm = os.Getenv("REALM_DEVICES")
 		} else {
@@ -150,7 +148,6 @@ func getENV() {
 		}
 	}
 	if len(keyc.ClientSecret) <= 0 {
-
 		if len(os.Getenv("CLIENTSECRET_DEVICES")) > 0 {
 			keyc.ClientSecret = os.Getenv("CLIENTSECRET_DEVICES")
 		} else {

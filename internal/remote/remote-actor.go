@@ -192,10 +192,14 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if diff_time < 100*time.Millisecond && diff_time > 0 {
 				time.Sleep(diff_time)
 			}
-			if err := ctx.RequestFuture(ps.pidClient, &MsgSendData{
+			res, err := ctx.RequestFuture(ps.pidClient, &MsgSendData{
 				Data: data,
-			}, 5*time.Second).Wait(); err != nil {
-				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.GetData())
+			}, 5*time.Second).Result()
+			if err != nil {
+				return fmt.Errorf("publish error -> %s, message -> %s", err, data)
+			}
+			if err, ok := res.(*MsgError); ok {
+				return fmt.Errorf("publish error -> %s, message -> %s", err, data)
 			}
 			ps.lastSendedMsg = time.Now()
 			return nil
