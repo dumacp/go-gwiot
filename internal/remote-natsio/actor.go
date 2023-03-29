@@ -83,7 +83,6 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if a.subs == nil {
 			a.subs = make(map[string]*eventstream.Subscription, 0)
 		}
-
 		if err := func() error {
 			contxt, cancel := context.WithCancel(context.TODO())
 			a.contxt = contxt

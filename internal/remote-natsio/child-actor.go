@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
-	"github.com/dumacp/go-gwiot/internal/reclient"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/dumacp/go-logs/pkg/logs"
@@ -18,6 +17,10 @@ type ChildNats struct {
 	js     nats.JetStreamContext
 	contxt context.Context
 	cancel func()
+}
+
+func NewChildNatsio() *ChildNats {
+	return &ChildNats{}
 }
 
 func (a *ChildNats) Receive(ctx actor.Context) {
@@ -84,8 +87,8 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		}(); err != nil {
 			logs.LogError.Println(err)
 			if ctx.Sender() != nil {
-				ctx.Respond(&reclient.MsgError{
-					Error: err,
+				ctx.Respond(&gwiotmsg.Error{
+					Error: err.Error(),
 				})
 			}
 		}

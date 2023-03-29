@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
-	"github.com/dumacp/go-gwiot/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -29,9 +28,7 @@ const (
 // }
 
 type pubsubActor struct {
-	ctx actor.Context
-	// behavior      actor.Behavior
-	state         messages.StatusResponse_StateType
+	ctx           actor.Context
 	client        mqtt.Client
 	mux           sync.Mutex
 	subscriptions map[string]*subscribeMSG
@@ -40,7 +37,7 @@ type pubsubActor struct {
 var instance *pubsubActor
 var once sync.Once
 
-//getInstance create pubsub Gateway
+// getInstance create pubsub Gateway
 func getInstance(ctx *actor.RootContext) *pubsubActor {
 
 	once.Do(func() {
@@ -59,7 +56,7 @@ func getInstance(ctx *actor.RootContext) *pubsubActor {
 	return instance
 }
 
-//Init init pubsub instance
+// Init init pubsub instance
 func Init(ctx *actor.RootContext) error {
 	defer time.Sleep(3 * time.Second)
 	if getInstance(ctx) == nil {
@@ -78,12 +75,12 @@ type subscribeMSG struct {
 	parse func([]byte) interface{}
 }
 
-//Publish function to publish messages in pubsub gateway
+// Publish function to publish messages in pubsub gateway
 func Publish(topic string, msg []byte) {
 	getInstance(nil).ctx.Send(instance.ctx.Self(), &publishMSG{topic: topic, msg: msg})
 }
 
-//Subscribe subscribe to topics
+// Subscribe subscribe to topics
 func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) error {
 	instance := getInstance(nil)
 	subs := &subscribeMSG{pid: pid, parse: parse}
@@ -91,7 +88,6 @@ func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) err
 	instance.subscriptions[topic] = subs
 	instance.mux.Unlock()
 	if !instance.client.IsConnected() {
-		// instance.ctx.PoisonFuture(instance.ctx.Self()).Wait()
 		return fmt.Errorf("pubsub is not connected")
 	}
 	logs.LogBuild.Printf("subscription in topic -> %q -> %#v", topic, subs)
@@ -102,12 +98,15 @@ func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) err
 func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	handler := func(client mqtt.Client, m mqtt.Message) {
 		logs.LogBuild.Printf("local topic -> %q", m.Topic())
-		// logs.LogBuild.Printf("local payload - > %s", m.Payload())
 		m.Ack()
 		msg := subs.parse(m.Payload())
-		// logs.LogBuild.Printf("parse payload-> %s", msg)
 		if msg != nil {
-			ps.ctx.Send(subs.pid, msg)
+			switch msg.(type) {
+			case error:
+				fmt.Println(msg)
+			default:
+				ps.ctx.Send(subs.pid, msg)
+			}
 		}
 	}
 	if tk := instance.client.Subscribe(topic, 1, handler); !tk.WaitTimeout(3 * time.Second) {
@@ -118,7 +117,7 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	return nil
 }
 
-//Receive function
+// Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
 	switch ctx.Message().(type) {
