@@ -13,14 +13,15 @@ import (
 )
 
 type ChildNats struct {
-	conn   *nats.Conn
-	js     nats.JetStreamContext
-	contxt context.Context
-	cancel func()
+	pidMain *actor.PID
+	js      nats.JetStreamContext
+	contxt  context.Context
+	conn    *nats.Conn
+	cancel  func()
 }
 
-func NewChildNatsio() *ChildNats {
-	return &ChildNats{}
+func NewChildNatsio(pid *actor.PID) *ChildNats {
+	return &ChildNats{pidMain: pid}
 }
 
 func (a *ChildNats) Receive(ctx actor.Context) {
@@ -28,10 +29,9 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("started new internal client %q", ctx.Self().GetId())
-		if ctx.Parent() == nil {
-			break
+		if a.pidMain != nil {
+			ctx.Request(a.pidMain, &Connection{})
 		}
-		ctx.Request(ctx.Parent(), &Connection{})
 		contxt, cancel := context.WithCancel(context.TODO())
 		a.contxt = contxt
 		a.cancel = cancel

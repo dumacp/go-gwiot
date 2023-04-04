@@ -184,9 +184,11 @@ func request(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subje
 		select {
 		case msg := <-ch:
 			headers := make(map[string]string)
-			for k, v := range msg.Header {
-				if len(v) > 0 {
-					headers[k] = v[0]
+			if msg.Header != nil {
+				for k, v := range msg.Header {
+					if len(v) > 0 {
+						headers[k] = v[0]
+					}
 				}
 			}
 			data := make([]byte, len(msg.Data))

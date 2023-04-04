@@ -1,6 +1,7 @@
 package renatsio
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -30,7 +31,16 @@ func TestNatsActor_Receive(t *testing.T) {
 			fields: fields{
 				ctxroot: actor.NewActorSystem().Root,
 				url:     nats.DefaultURL,
+				// url:     "nats://fleet-nats.nebulae.com.co:443",
 				jwtConf: nil,
+				// jwtConf: &JwtConf{
+				// 	User:         "dumawork",
+				// 	Pass:         "dumawork",
+				// 	Realm:        "DEVICES",
+				// 	ClientID:     "devices3",
+				// 	ClientSecret: "da9bbc28-01d8-43af-8c8a-fb0654937231",
+				// 	KeycloakURL:  "https://fleet.nebulae.com.co/auth",
+				// },
 				// replyFunc: func() {
 				// 	exec.Command("nats", "")
 				// },
@@ -60,9 +70,15 @@ func TestNatsActor_Receive(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			time.Sleep(3 * time.Second)
+			propsChild := actor.PropsFromFunc(NewChildNatsio(pid).Receive)
+			pidChild, err := tt.fields.ctxroot.SpawnNamed(propsChild, fmt.Sprintf("%s-child", tt.name))
+			if err != nil {
+				t.Fatal(err)
+			}
 
 			for _, msg := range tt.args.messages {
-				response, err := tt.fields.ctxroot.RequestFuture(pid, msg, 6*time.Second).Result()
+				response, err := tt.fields.ctxroot.RequestFuture(pidChild, msg, 6*time.Second).Result()
 				if err != nil {
 					t.Errorf("error: %s", err)
 					continue
