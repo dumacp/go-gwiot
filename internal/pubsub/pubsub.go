@@ -98,6 +98,7 @@ func Subscribe(topic string, pid *actor.PID, parse func([]byte) interface{}) err
 func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	handler := func(client mqtt.Client, m mqtt.Message) {
 		logs.LogBuild.Printf("local topic -> %q", m.Topic())
+		logs.LogBuild.Printf("local msg -> %q", m.Payload())
 		m.Ack()
 		msg := subs.parse(m.Payload())
 		if msg != nil {
@@ -120,7 +121,7 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 // Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
-	switch ctx.Message().(type) {
+	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 		ps.client = client()
@@ -131,6 +132,18 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 		for k, v := range ps.subscriptions {
 			ps.subscribe(k, v)
 		}
+	case *publishMSG:
+		// fmt.Printf("publish msg: %s", msg.msg)
+		logs.LogBuild.Printf("publish msg: %s", msg.msg)
+		tk := ps.client.Publish(msg.topic, 0, false, msg.msg)
+		if !tk.WaitTimeout(3 * time.Second) {
+			if tk.Error() != nil {
+				logs.LogError.Printf("end error: %s, with messages -> %v", tk.Error(), msg)
+			} else {
+				logs.LogError.Printf("timeout error with message -> %v", msg)
+			}
+		}
+
 	case *actor.Stopping:
 		ps.client.Disconnect(600)
 		logs.LogError.Println("Stopping, actor is about to shut down")

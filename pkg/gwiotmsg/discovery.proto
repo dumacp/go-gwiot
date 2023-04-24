@@ -5,9 +5,9 @@ option go_package = "github.com/dumacp/go-gwiot/pkg/gwiotmsg";
 
 
 message discovery {
-    string id  = 1;
-    string address = 2;
+    string reply = 1;
 }
+
 
 message discoveryResponse {
     string kind  = 1;

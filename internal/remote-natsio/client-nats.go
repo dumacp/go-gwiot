@@ -30,6 +30,9 @@ func connect(url string, tk *oauth2.Token) (*nats.Conn, error) {
 		opts = append(opts, nats.SetJwtBearer(func() string { return tk.AccessToken }))
 	}
 
+	opts = append(opts, nats.Timeout(10*time.Second))
+	opts = append(opts, nats.ReconnectWait(10*time.Second))
+
 	conn, err := nats.Connect(url, opts...)
 	if err != nil {
 		fmt.Printf("%T, %s", err, err)
