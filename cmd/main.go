@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -21,7 +22,8 @@ import (
 )
 
 const (
-	showVersion = "1.2.12"
+	showVersion       = "1.2.12"
+	ACTOR_INTSANCE_ID = "gwiot"
 )
 
 var (
@@ -70,17 +72,13 @@ func main() {
 
 	uuid.SetNodeID([]byte(utils.Hostname()))
 
-	rootContext := actor.NewActorSystem().Root
-
-	pubsub.Init(rootContext)
-	<-time.After(3 * time.Second)
-
 	sys := actor.NewActorSystem()
+	pubsub.Init(sys.Root)
 
 	portlocal := portlocal()
 	rconfig := remote.Configure("127.0.0.1", portlocal)
 	r := remote.NewRemote(sys, rconfig)
-	prposNatsioclient := actor.PropsFromFunc(renatsio.NewChildNatsio().Receive)
+	prposNatsioclient := actor.PropsFromFunc(renatsio.NewChildNatsio(ACTOR_INTSANCE_ID).Receive)
 	r.Register(gwiot.KIND_NAME, prposNatsioclient)
 	r.Start()
 
@@ -88,8 +86,13 @@ func main() {
 		pidNatsio *actor.PID
 	)
 
+	rootContext := sys.Root
+
+	<-time.After(3 * time.Second)
+
 	props := actor.PropsFromFunc(
 		func(ctx actor.Context) {
+			fmt.Printf("message in actor: %s, msg type: %T, msg: %q\n", ctx.Self().GetId(), ctx.Message(), ctx.Message())
 			switch msg := ctx.Message().(type) {
 			case *actor.Started:
 				logs.LogInfo.Printf("started actor %q", ctx.Self().GetId())
@@ -107,7 +110,7 @@ func main() {
 					}
 					propsNatsio := actor.PropsFromFunc(renatsio.NewClientNatsio(remoteBroker, jwtConf, test).Receive)
 
-					pidNatsio, err = ctx.SpawnNamed(propsNatsio, "natsio-actor")
+					pidNatsio, err = ctx.SpawnNamed(propsNatsio, renatsio.INSTANCE_ID)
 					if err != nil {
 						return fmt.Errorf("create natsio actor error: %s", err)
 					}
@@ -122,28 +125,36 @@ func main() {
 					logs.LogError.Panic(err)
 				}
 			case *gwiotmsg.Discovery:
-				if len(msg.GetAddress()) <= 0 || len(msg.GetId()) <= 0 {
+				if len(msg.GetReply()) <= 0 {
 					break
 				}
 				if pidNatsio == nil {
 					break
 				}
-				pid := actor.NewPID(msg.GetAddress(), msg.GetId())
+				remote.GetRemote(ctx.ActorSystem())
+
 				host, port, err := ctx.ActorSystem().GetHostPort()
 				if err != nil {
 					logs.LogWarn.Printf("get remote address error: %s", err)
 					break
 				}
-				ctx.Request(pid, &gwiotmsg.DiscoveryResponse{
+				mss := &gwiotmsg.DiscoveryResponse{
 					Kind: gwiot.KIND_NAME,
 					Host: host,
 					Port: int32(port),
-				})
+				}
+				data, err := json.Marshal(mss)
+				if err != nil {
+					logs.LogWarn.Printf("get remote address error: %s", err)
+					break
+				}
+				fmt.Printf("publish (%s): %q\n", msg.GetReply(), data)
+				pubsub.Publish(msg.GetReply(), data)
 			case *gwiotmsg.Subscribe:
 			}
 		})
 
-	pidMain, err := rootContext.SpawnNamed(props, "gwiot")
+	pidMain, err := rootContext.SpawnNamed(props, ACTOR_INTSANCE_ID)
 	if err != nil {
 		logs.LogError.Printf("create main actor error: %s", err)
 	}

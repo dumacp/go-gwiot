@@ -117,6 +117,10 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 
 	go func() {
 		for update := range watcher.Updates() {
+			if update == nil {
+				fmt.Printf("update nil!!!!!!!!!!!!!!!")
+				continue
+			}
 			ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
 				Bucket: update.Bucket(),
 				Key:    update.Key(),
@@ -129,5 +133,3 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 	}()
 	return watcher, err
 }
-
-

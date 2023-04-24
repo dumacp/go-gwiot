@@ -13,25 +13,31 @@ import (
 )
 
 type ChildNats struct {
-	conn   *nats.Conn
-	js     nats.JetStreamContext
-	contxt context.Context
-	cancel func()
+	parentId string
+	conn     *nats.Conn
+	js       nats.JetStreamContext
+	contxt   context.Context
+	cancel   func()
 }
 
-func NewChildNatsio() *ChildNats {
-	return &ChildNats{}
+func NewChildNatsio(parentId string) *ChildNats {
+	a := &ChildNats{}
+	a.parentId = parentId
+	return a
 }
 
 func (a *ChildNats) Receive(ctx actor.Context) {
 
+	logs.LogBuild.Printf("Message arrived in %s: %s, %T, %s",
+		ctx.Self().GetId(), ctx.Message(), ctx.Message(), ctx.Sender())
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
-		logs.LogInfo.Printf("started new internal client %q", ctx.Self().GetId())
-		if ctx.Parent() == nil {
-			break
-		}
-		ctx.Request(ctx.Parent(), &Connection{})
+		logs.LogInfo.Printf("started new internal client %q, address: %s (%s)",
+			ctx.Self().GetId(), ctx.Self().GetAddress(), ctx.Parent())
+
+		pid := actor.NewPID(ctx.Self().GetAddress(), fmt.Sprintf("%s/%s", a.parentId, INSTANCE_ID))
+		fmt.Printf("////////////////// pid: %s\n", pid)
+		ctx.Request(pid, &Connection{})
 		contxt, cancel := context.WithCancel(context.TODO())
 		a.contxt = contxt
 		a.cancel = cancel
@@ -127,7 +133,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 	case *gwiotmsg.WatchKeyValue:
 		subs, err := wathcKV(ctx, a.conn, a.js, msg.GetBucket(), msg.GetKey())
 		if err != nil {
-			logs.LogWarn.Println(err)
+			logs.LogWarn.Printf("watchKeyValue error: %s", err)
 			break
 		}
 		go func() {

@@ -14,15 +14,17 @@ import (
 )
 
 const (
-// remoteQueueEvents     = "Events.Offline.%s"
-// remoteQueueEventsTest = "TEST/%s"
-// protocolVersion       = 4  // corresponds to mqtt 3.1.1
-// minimumBackoffTime    = 1  // initial backoff time in seconds
-// maximumBackoffTime    = 32 // maximum backoff time in seconds
+	// remoteQueueEvents     = "Events.Offline.%s"
+	// remoteQueueEventsTest = "TEST/%s"
+	// protocolVersion       = 4  // corresponds to mqtt 3.1.1
+	// minimumBackoffTime    = 1  // initial backoff time in seconds
+	// maximumBackoffTime    = 32 // maximum backoff time in seconds
 
-// dbpath             = "/SD/boltdbs/gwiotdb"
-// databaseName       = "replayeventsdb"
-// collectionUsosData = "events"
+	// dbpath             = "/SD/boltdbs/gwiotdb"
+	// databaseName       = "replayeventsdb"
+	// collectionUsosData = "events"
+
+	INSTANCE_ID = "natsio-actor"
 )
 
 // RemoteActor remote actor
@@ -122,7 +124,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			}
 			return nil
 		}(); err != nil {
-			logs.LogWarn.Println(err)
+			logs.LogWarn.Printf("connect nats error: %s", err)
 		}
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 	case *Connection:
@@ -176,7 +178,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 					if err != nil {
 						return err
 					}
-					a.js, err = a.conn.JetStream()
+					a.js, err = a.conn.JetStream(nats.Wait(10 * time.Second))
 					if err != nil {
 						return err
 					}

@@ -1,3 +1,6 @@
+//go:build sibus
+// +build sibus
+
 package main
 
 const (
