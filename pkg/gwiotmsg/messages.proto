@@ -93,14 +93,7 @@ message watchKeyValue {
 }
 
 message watchMessage {
-    string id = 1;
-    string bucket = 2;
-    string key = 3;
-    uint64 rev = 4;
-    uint64 delta = 5;
-    uint32 op = 6;
-
-    bytes data = 11;
+    kvEntryMessage kvEntryMessage = 1;
 }
 
 message kvEntryMessage {

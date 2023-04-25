@@ -3,11 +3,10 @@ package renatsio
 import (
 	"context"
 	"fmt"
-	"strings"
+	"net"
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
-	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/nats-io/nats.go"
@@ -19,19 +18,29 @@ const (
 )
 
 func connect(url string, tk *oauth2.Token) (*nats.Conn, error) {
-	tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
+	// tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
 
 	opts := make([]nats.Option, 0)
-	if strings.Contains(url, "https") || strings.Contains(url, "wss") {
-		opts = append(opts, nats.Secure(tlsconfig))
-	}
+	// if strings.Contains(url, "https") || strings.Contains(url, "wss") {
+	// 	opts = append(opts, nats.Secure(tlsconfig))
+	// }
 	if tk != nil {
 
 		opts = append(opts, nats.SetJwtBearer(func() string { return tk.AccessToken }))
 	}
 
-	opts = append(opts, nats.Timeout(10*time.Second))
-	opts = append(opts, nats.ReconnectWait(10*time.Second))
+	dialer := &CustomDialer{
+		Dialer: &net.Dialer{
+			Timeout:   20 * time.Second,
+			KeepAlive: 30 * time.Second,
+		},
+		delay:   1 * time.Second,
+		skipTLS: false,
+	}
+
+	opts = append(opts, nats.SetCustomDialer(dialer))
+	opts = append(opts, nats.Timeout(20*time.Second))
+	opts = append(opts, nats.Compression(true))
 
 	conn, err := nats.Connect(url, opts...)
 	if err != nil {

@@ -125,6 +125,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		go func() {
+			subs := subs
 			<-a.contxt.Done()
 			if err := subs.Unsubscribe(); err != nil {
 				logs.LogWarn.Println(err)
@@ -137,10 +138,13 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		go func() {
+			subs := subs
 			<-a.contxt.Done()
-			if err := subs.Stop(); err != nil {
+			fmt.Printf("stopping watch: %v\n", subs)
+			if err := subs.Unsubscribe(); err != nil {
 				logs.LogWarn.Println(err)
 			}
+			fmt.Printf("stopped watch: %v\n", subs)
 		}()
 	case *actor.Stopping:
 		if a.cancel != nil {

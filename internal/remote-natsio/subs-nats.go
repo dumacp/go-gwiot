@@ -95,7 +95,7 @@ func DurableSubscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamCo
 	)
 }
 
-func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (nats.KeyWatcher, error) {
+func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (*nats.Subscription, error) {
 
 	if conn == nil || !conn.IsConnected() {
 		return nil, fmt.Errorf("connection is not open")
@@ -105,31 +105,60 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 	self := ctx.Self()
 	sender := ctx.Sender()
 
-	kv, err := js.KeyValue(bucket)
+	// kv, err := js.KeyValue(bucket)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	si, err := js.StreamInfo(fmt.Sprintf("KV_%s", bucket))
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("/////////////////////// streamInfo: %v\n", si)
+	fmt.Printf("/////////////////////// streamInfo: %v\n", si)
+	fmt.Printf("/////////////////////// streamInfo: %v\n", si)
 
-	watcher, err := kv.Watch(key)
+	sub, err := js.Subscribe(fmt.Sprintf("$KV.FMS-DEV-ROUTES.%s", key), func(msg *nats.Msg) {
+		fmt.Printf("PUB DATA: %s (%v)\n", msg.Data, msg.Header)
+		ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
+			KvEntryMessage: &gwiotmsg.KvEntryMessage{
+				Bucket: bucket,
+				Key:    key,
+				Rev:    0,
+				Delta:  0,
+				Op:     0,
+				Data:   msg.Data,
+			},
+		}, self)
+		msg.Ack()
+	})
 	if err != nil {
 		return nil, err
 	}
+	return sub, nil
 
-	go func() {
-		for update := range watcher.Updates() {
-			if update == nil {
-				fmt.Printf("update nil!!!!!!!!!!!!!!!")
-				continue
-			}
-			ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
-				Bucket: update.Bucket(),
-				Key:    update.Key(),
-				Rev:    update.Revision(),
-				Delta:  update.Delta(),
-				Op:     uint32(update.Operation()),
-				Data:   update.Value(),
-			}, self)
-		}
-	}()
-	return watcher, err
+	// watcher, err := kv.Watch(key)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// go func() {
+	// 	for update := range watcher.Updates() {
+	// 		if update == nil {
+	// 			fmt.Println("update nil!!!!!!!!!!!!!!!")
+	// 			continue
+	// 		}
+
+	// 		ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
+	// 			KvEntryMessage: &gwiotmsg.KvEntryMessage{
+	// 				Bucket: update.Bucket(),
+	// 				Key:    update.Key(),
+	// 				Rev:    update.Revision(),
+	// 				Delta:  update.Delta(),
+	// 				Op:     uint32(update.Operation()),
+	// 				Data:   update.Value(),
+	// 			},
+	// 		}, self)
+	// 	}
+	// }()
+	// return watcher, err
 }

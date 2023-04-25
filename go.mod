@@ -12,12 +12,8 @@ require (
 	github.com/dumacp/go-logs v0.0.0-20220527154118-cf272998dc98
 	github.com/dumacp/keycloak v0.0.0-20191212174805-9e9a5c3da24f
 	github.com/eclipse/paho.mqtt.golang v1.4.2
-	github.com/gogo/protobuf v1.3.2
 	github.com/google/uuid v1.3.0
-	github.com/looplab/fsm v0.3.0
 	github.com/nats-io/nats.go v1.22.1
-	go.etcd.io/bbolt v1.3.6
-	golang.org/x/exp v0.0.0-20221012134508-3640c57a48ea
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/protobuf v1.28.1
 )
@@ -31,12 +27,13 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/lithammer/shortuuid/v4 v4.0.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/nats-io/nats-server/v2 v2.9.11 // indirect
-	github.com/nats-io/nkeys v0.3.0 // indirect
+	github.com/nats-io/nkeys v0.4.4 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/orcaman/concurrent-map v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
@@ -52,11 +49,12 @@ require (
 	go.opentelemetry.io/otel/sdk v1.12.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v0.35.0 // indirect
 	go.opentelemetry.io/otel/trace v1.12.0 // indirect
-	golang.org/x/crypto v0.5.0 // indirect
-	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/crypto v0.6.0 // indirect
+	golang.org/x/exp v0.0.0-20221012134508-3640c57a48ea // indirect
+	golang.org/x/net v0.6.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.4.0 // indirect
-	golang.org/x/text v0.6.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221118155620-16455021b5e6 // indirect
 	google.golang.org/grpc v1.52.3 // indirect

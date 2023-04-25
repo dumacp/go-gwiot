@@ -101,6 +101,7 @@ func LoadLocalCert(localCertDir string) *tls.Config {
 	config := &tls.Config{
 		//InsecureSkipVerify: *insecure,
 		RootCAs: rootCAs,
+		// InsecureSkipVerify: true,
 	}
 	tr := &http.Transport{
 		TLSClientConfig: config,

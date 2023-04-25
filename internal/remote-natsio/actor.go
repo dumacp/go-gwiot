@@ -178,7 +178,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 					if err != nil {
 						return err
 					}
-					a.js, err = a.conn.JetStream(nats.Wait(10 * time.Second))
+					a.js, err = a.conn.JetStream()
 					if err != nil {
 						return err
 					}

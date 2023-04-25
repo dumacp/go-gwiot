@@ -163,15 +163,14 @@ func main() {
 	signal.Notify(finish, syscall.SIGINT)
 	signal.Notify(finish, syscall.SIGTERM)
 	signal.Notify(finish, os.Interrupt)
-	for range finish {
-		if pidMain != nil {
-			log.Print("finish Console")
-			rootContext.Poison(pidMain)
-		}
-		logs.LogInfo.Printf("Stoping gwiot")
-		time.Sleep(300 * time.Millisecond)
-		log.Print("Finish")
-		time.Sleep(600 * time.Millisecond)
-		return
+
+	<-finish
+	if pidMain != nil {
+		log.Print("finish Console")
+		rootContext.PoisonFuture(pidMain).Wait()
 	}
+	logs.LogInfo.Printf("Stoping gwiot")
+	time.Sleep(300 * time.Millisecond)
+	log.Print("Finish")
+	time.Sleep(300 * time.Millisecond)
 }

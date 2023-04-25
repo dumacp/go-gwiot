@@ -66,12 +66,12 @@ func TestNatsActor_Receive(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			a := NewClientNatsio(tt.fields.url, tt.fields.jwtConf, true)
 			props := actor.PropsFromFunc(a.Receive)
-			pid, err := tt.fields.ctxroot.SpawnNamed(props, tt.name)
+			_, err := tt.fields.ctxroot.SpawnNamed(props, tt.name)
 			if err != nil {
 				t.Fatal(err)
 			}
 			time.Sleep(3 * time.Second)
-			propsChild := actor.PropsFromFunc(NewChildNatsio(pid).Receive)
+			propsChild := actor.PropsFromFunc(NewChildNatsio(tt.name).Receive)
 			pidChild, err := tt.fields.ctxroot.SpawnNamed(propsChild, fmt.Sprintf("%s-child", tt.name))
 			if err != nil {
 				t.Fatal(err)
