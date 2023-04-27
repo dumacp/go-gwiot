@@ -95,7 +95,8 @@ func DurableSubscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamCo
 	)
 }
 
-func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (*nats.Subscription, error) {
+// func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (*nats.Subscription, error) {
+func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (nats.KeyWatcher, error) {
 
 	if conn == nil || !conn.IsConnected() {
 		return nil, fmt.Errorf("connection is not open")
@@ -105,10 +106,11 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 	self := ctx.Self()
 	sender := ctx.Sender()
 
-	// kv, err := js.KeyValue(bucket)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	kv, err := js.KeyValue(bucket)
+	if err != nil {
+		return nil, err
+	}
+
 	si, err := js.StreamInfo(fmt.Sprintf("KV_%s", bucket))
 	if err != nil {
 		return nil, err
@@ -117,48 +119,59 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 	fmt.Printf("/////////////////////// streamInfo: %v\n", si)
 	fmt.Printf("/////////////////////// streamInfo: %v\n", si)
 
-	sub, err := js.Subscribe(fmt.Sprintf("$KV.FMS-DEV-ROUTES.%s", key), func(msg *nats.Msg) {
-		fmt.Printf("PUB DATA: %s (%v)\n", msg.Data, msg.Header)
-		ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
-			KvEntryMessage: &gwiotmsg.KvEntryMessage{
-				Bucket: bucket,
-				Key:    key,
-				Rev:    0,
-				Delta:  0,
-				Op:     0,
-				Data:   msg.Data,
-			},
-		}, self)
-		msg.Ack()
-	})
-	if err != nil {
-		return nil, err
-	}
-	return sub, nil
-
-	// watcher, err := kv.Watch(key)
+	// sub, err := js.Subscribe(fmt.Sprintf("$KV.FMS-DEV-ROUTES.%s", key), func(msg *nats.Msg) {
+	// 	fmt.Printf("PUB DATA: %s (%v)\n", msg.Data, msg.Header)
+	// 	ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
+	// 		KvEntryMessage: &gwiotmsg.KvEntryMessage{
+	// 			Bucket: bucket,
+	// 			Key:    key,
+	// 			Rev:    0,
+	// 			Delta:  0,
+	// 			Op:     0,
+	// 			Data:   msg.Data,
+	// 		},
+	// 	}, self)
+	// 	msg.Ack()
+	// },
+	// 	nats.DeliverLastPerSubject(),
+	// 	nats.OrderedConsumer(),
+	// 	nats.IdleHeartbeat(30*time.Second),
+	// )
 	// if err != nil {
 	// 	return nil, err
 	// }
+	// return sub, nil
 
-	// go func() {
-	// 	for update := range watcher.Updates() {
-	// 		if update == nil {
-	// 			fmt.Println("update nil!!!!!!!!!!!!!!!")
-	// 			continue
-	// 		}
+	watcher, err := kv.Watch(key,
+		nats.AddIdleHeartbeat(30*time.Second),
+		nats.MetaOnly(),
+	)
+	if err != nil {
+		return nil, err
+	}
 
-	// 		ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
-	// 			KvEntryMessage: &gwiotmsg.KvEntryMessage{
-	// 				Bucket: update.Bucket(),
-	// 				Key:    update.Key(),
-	// 				Rev:    update.Revision(),
-	// 				Delta:  update.Delta(),
-	// 				Op:     uint32(update.Operation()),
-	// 				Data:   update.Value(),
-	// 			},
-	// 		}, self)
-	// 	}
-	// }()
-	// return watcher, err
+	go func() {
+		for v := range watcher.Updates() {
+			if v == nil {
+				fmt.Println("update nil!!!!!!!!!!!!!!!")
+				continue
+			}
+			update, err := kv.GetRevision(v.Key(), v.Revision())
+			if err != nil {
+				fmt.Printf("update (key=%s,rev=%d) error: %s\n", v.Key(), v.Revision(), err)
+			}
+
+			ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
+				KvEntryMessage: &gwiotmsg.KvEntryMessage{
+					Bucket: update.Bucket(),
+					Key:    update.Key(),
+					Rev:    update.Revision(),
+					Delta:  update.Delta(),
+					Op:     uint32(update.Operation()),
+					Data:   update.Value(),
+				},
+			}, self)
+		}
+	}()
+	return watcher, err
 }

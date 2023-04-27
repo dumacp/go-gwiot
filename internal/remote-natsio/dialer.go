@@ -1,7 +1,7 @@
 package renatsio
 
 import (
-	"fmt"
+	"log"
 	"net"
 	"time"
 )
@@ -36,8 +36,7 @@ func (c *customConn) Read(b []byte) (int, error) {
 		return n, err
 	}
 
-	fmt.Printf("/////////////// data: %s\n", b)
-
+	log.Println("/////////////// data\n")
 	// time.Sleep(c.delay)
 
 	return n, err
