@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	clientID              = "gwiot"
+	clientID              = "gwiot-new"
 	TopicAppliance        = "appliance/gwiot"
 	TopicEvents           = TopicAppliance + "/events"
 	TopicStart            = TopicAppliance + "/START"
@@ -48,17 +48,17 @@ func getInstance(ctx *actor.RootContext) *pubsubActor {
 			ctx = actor.NewActorSystem().Root
 		}
 		props := actor.PropsFromFunc(instance.Receive)
-		_, err := ctx.SpawnNamed(props, "pubsub-actor")
+		pid, err := ctx.SpawnNamed(props, "pubsub-actor")
 		if err != nil {
 			logs.LogError.Panic(err)
 		}
+		ctx.RequestFuture(pid, &ping{}, 10*time.Second).Wait()
 	})
 	return instance
 }
 
 // Init init pubsub instance
 func Init(ctx *actor.RootContext) error {
-	defer time.Sleep(3 * time.Second)
 	if getInstance(ctx) == nil {
 		return fmt.Errorf("error instance")
 	}
@@ -118,6 +118,9 @@ func (ps *pubsubActor) subscribe(topic string, subs *subscribeMSG) error {
 	return nil
 }
 
+type ping struct{}
+type pong struct{}
+
 // Receive function
 func (ps *pubsubActor) Receive(ctx actor.Context) {
 	ps.ctx = ctx
@@ -142,6 +145,10 @@ func (ps *pubsubActor) Receive(ctx actor.Context) {
 			} else {
 				logs.LogError.Printf("timeout error with message -> %v", msg)
 			}
+		}
+	case *ping:
+		if ctx.Sender() != nil {
+			ctx.Respond(&pong{})
 		}
 
 	case *actor.Stopping:

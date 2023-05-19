@@ -125,6 +125,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			return nil
 		}(); err != nil {
 			logs.LogWarn.Printf("connect nats error: %s", err)
+			// a.evs.Publish(&Disconnected{Error: err})
 		}
 		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
 	case *Connection:
@@ -137,6 +138,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}
 		a.subs[ctx.Sender().GetId()] = subscribe(ctx, a.evs)
 		if a.conn == nil || !a.conn.IsConnected() {
+			ctx.Respond(&Disconnected{Error: fmt.Errorf("not connection")})
 			break
 		}
 		ctx.Respond(&ConnectionResponse{
@@ -189,7 +191,8 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			}
 			return nil
 		}(); err != nil {
-			logs.LogWarn.Println(err)
+			logs.LogWarn.Printf("connect nats error: %s", err)
+			a.evs.Publish(&Disconnected{Error: err})
 		}
 	case *gwiotmsg.Ping:
 		if ctx.Sender() != nil {

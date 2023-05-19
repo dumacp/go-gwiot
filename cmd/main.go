@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	showVersion       = "1.2.12"
+	showVersion       = "1.2.13"
 	ACTOR_INTSANCE_ID = "gwiot"
 )
 
@@ -60,6 +60,8 @@ func main() {
 
 	if len(hostname) > 0 {
 		utils.SetHostname(hostname)
+	} else {
+		hostname = utils.Hostname()
 	}
 
 	if version {

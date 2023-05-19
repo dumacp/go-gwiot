@@ -10,5 +10,5 @@ const (
 	redirecturl_  = "https://fleet-nats.nebulae.com.co"
 	realm_        = "DEVICES"
 	urlin_        = "https://fleet-nats.nebulae.com.co"
-	remoteBroker_ = "wss://fleet-nats.nebulae.com.co"
+	remoteBroker_ = "wss://fleet-nats.nebulae.com.co:443"
 )

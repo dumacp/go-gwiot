@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.26.0
 // 	protoc        v3.12.4
-// source: messages.proto
+// source: gwiot.proto
 
 package gwiotmsg
 
@@ -53,11 +53,11 @@ func (x AckType) String() string {
 }
 
 func (AckType) Descriptor() protoreflect.EnumDescriptor {
-	return file_messages_proto_enumTypes[0].Descriptor()
+	return file_gwiot_proto_enumTypes[0].Descriptor()
 }
 
 func (AckType) Type() protoreflect.EnumType {
-	return &file_messages_proto_enumTypes[0]
+	return &file_gwiot_proto_enumTypes[0]
 }
 
 func (x AckType) Number() protoreflect.EnumNumber {
@@ -66,7 +66,7 @@ func (x AckType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use AckType.Descriptor instead.
 func (AckType) EnumDescriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{0}
+	return file_gwiot_proto_rawDescGZIP(), []int{0}
 }
 
 type DeliverPolicy int32
@@ -108,11 +108,11 @@ func (x DeliverPolicy) String() string {
 }
 
 func (DeliverPolicy) Descriptor() protoreflect.EnumDescriptor {
-	return file_messages_proto_enumTypes[1].Descriptor()
+	return file_gwiot_proto_enumTypes[1].Descriptor()
 }
 
 func (DeliverPolicy) Type() protoreflect.EnumType {
-	return &file_messages_proto_enumTypes[1]
+	return &file_gwiot_proto_enumTypes[1]
 }
 
 func (x DeliverPolicy) Number() protoreflect.EnumNumber {
@@ -121,7 +121,7 @@ func (x DeliverPolicy) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DeliverPolicy.Descriptor instead.
 func (DeliverPolicy) EnumDescriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{1}
+	return file_gwiot_proto_rawDescGZIP(), []int{1}
 }
 
 type Ping struct {
@@ -133,7 +133,7 @@ type Ping struct {
 func (x *Ping) Reset() {
 	*x = Ping{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[0]
+		mi := &file_gwiot_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -146,7 +146,7 @@ func (x *Ping) String() string {
 func (*Ping) ProtoMessage() {}
 
 func (x *Ping) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[0]
+	mi := &file_gwiot_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -159,7 +159,7 @@ func (x *Ping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ping.ProtoReflect.Descriptor instead.
 func (*Ping) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{0}
+	return file_gwiot_proto_rawDescGZIP(), []int{0}
 }
 
 type Pong struct {
@@ -171,7 +171,7 @@ type Pong struct {
 func (x *Pong) Reset() {
 	*x = Pong{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[1]
+		mi := &file_gwiot_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -184,7 +184,7 @@ func (x *Pong) String() string {
 func (*Pong) ProtoMessage() {}
 
 func (x *Pong) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[1]
+	mi := &file_gwiot_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,7 +197,7 @@ func (x *Pong) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Pong.ProtoReflect.Descriptor instead.
 func (*Pong) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{1}
+	return file_gwiot_proto_rawDescGZIP(), []int{1}
 }
 
 type EventPubSub struct {
@@ -214,7 +214,7 @@ type EventPubSub struct {
 func (x *EventPubSub) Reset() {
 	*x = EventPubSub{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[2]
+		mi := &file_gwiot_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -227,7 +227,7 @@ func (x *EventPubSub) String() string {
 func (*EventPubSub) ProtoMessage() {}
 
 func (x *EventPubSub) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[2]
+	mi := &file_gwiot_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -240,7 +240,7 @@ func (x *EventPubSub) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EventPubSub.ProtoReflect.Descriptor instead.
 func (*EventPubSub) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{2}
+	return file_gwiot_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EventPubSub) GetId() string {
@@ -285,7 +285,7 @@ type Event struct {
 func (x *Event) Reset() {
 	*x = Event{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[3]
+		mi := &file_gwiot_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -298,7 +298,7 @@ func (x *Event) String() string {
 func (*Event) ProtoMessage() {}
 
 func (x *Event) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[3]
+	mi := &file_gwiot_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,7 +311,7 @@ func (x *Event) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Event.ProtoReflect.Descriptor instead.
 func (*Event) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{3}
+	return file_gwiot_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Event) GetId() string {
@@ -353,7 +353,7 @@ type Ack struct {
 func (x *Ack) Reset() {
 	*x = Ack{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[4]
+		mi := &file_gwiot_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -366,7 +366,7 @@ func (x *Ack) String() string {
 func (*Ack) ProtoMessage() {}
 
 func (x *Ack) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[4]
+	mi := &file_gwiot_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -379,7 +379,7 @@ func (x *Ack) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ack.ProtoReflect.Descriptor instead.
 func (*Ack) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{4}
+	return file_gwiot_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Ack) GetIds() string {
@@ -401,7 +401,7 @@ type Error struct {
 func (x *Error) Reset() {
 	*x = Error{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[5]
+		mi := &file_gwiot_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -414,7 +414,7 @@ func (x *Error) String() string {
 func (*Error) ProtoMessage() {}
 
 func (x *Error) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[5]
+	mi := &file_gwiot_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -427,7 +427,7 @@ func (x *Error) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Error.ProtoReflect.Descriptor instead.
 func (*Error) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{5}
+	return file_gwiot_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Error) GetIds() string {
@@ -444,6 +444,91 @@ func (x *Error) GetError() string {
 	return ""
 }
 
+type Disconnected struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Error string `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
+}
+
+func (x *Disconnected) Reset() {
+	*x = Disconnected{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gwiot_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Disconnected) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Disconnected) ProtoMessage() {}
+
+func (x *Disconnected) ProtoReflect() protoreflect.Message {
+	mi := &file_gwiot_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Disconnected.ProtoReflect.Descriptor instead.
+func (*Disconnected) Descriptor() ([]byte, []int) {
+	return file_gwiot_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Disconnected) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type Connected struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Connected) Reset() {
+	*x = Connected{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gwiot_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Connected) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Connected) ProtoMessage() {}
+
+func (x *Connected) ProtoReflect() protoreflect.Message {
+	mi := &file_gwiot_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Connected.ProtoReflect.Descriptor instead.
+func (*Connected) Descriptor() ([]byte, []int) {
+	return file_gwiot_proto_rawDescGZIP(), []int{7}
+}
+
 type RequestPubSub struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -457,7 +542,7 @@ type RequestPubSub struct {
 func (x *RequestPubSub) Reset() {
 	*x = RequestPubSub{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[6]
+		mi := &file_gwiot_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -470,7 +555,7 @@ func (x *RequestPubSub) String() string {
 func (*RequestPubSub) ProtoMessage() {}
 
 func (x *RequestPubSub) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[6]
+	mi := &file_gwiot_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -483,7 +568,7 @@ func (x *RequestPubSub) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestPubSub.ProtoReflect.Descriptor instead.
 func (*RequestPubSub) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{6}
+	return file_gwiot_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RequestPubSub) GetId() string {
@@ -523,7 +608,7 @@ type Request struct {
 func (x *Request) Reset() {
 	*x = Request{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[7]
+		mi := &file_gwiot_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -536,7 +621,7 @@ func (x *Request) String() string {
 func (*Request) ProtoMessage() {}
 
 func (x *Request) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[7]
+	mi := &file_gwiot_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -549,7 +634,7 @@ func (x *Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Request.ProtoReflect.Descriptor instead.
 func (*Request) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{7}
+	return file_gwiot_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Request) GetId() string {
@@ -606,7 +691,7 @@ type Response struct {
 func (x *Response) Reset() {
 	*x = Response{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[8]
+		mi := &file_gwiot_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -619,7 +704,7 @@ func (x *Response) String() string {
 func (*Response) ProtoMessage() {}
 
 func (x *Response) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[8]
+	mi := &file_gwiot_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -632,7 +717,7 @@ func (x *Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Response.ProtoReflect.Descriptor instead.
 func (*Response) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{8}
+	return file_gwiot_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Response) GetId() string {
@@ -667,7 +752,7 @@ type SubcriptionSubject struct {
 func (x *SubcriptionSubject) Reset() {
 	*x = SubcriptionSubject{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[9]
+		mi := &file_gwiot_proto_msgTypes[11]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -680,7 +765,7 @@ func (x *SubcriptionSubject) String() string {
 func (*SubcriptionSubject) ProtoMessage() {}
 
 func (x *SubcriptionSubject) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[9]
+	mi := &file_gwiot_proto_msgTypes[11]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -693,7 +778,7 @@ func (x *SubcriptionSubject) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubcriptionSubject.ProtoReflect.Descriptor instead.
 func (*SubcriptionSubject) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{9}
+	return file_gwiot_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *SubcriptionSubject) GetStream() string {
@@ -767,7 +852,7 @@ type SubscriptionMessage struct {
 func (x *SubscriptionMessage) Reset() {
 	*x = SubscriptionMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[10]
+		mi := &file_gwiot_proto_msgTypes[12]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -780,7 +865,7 @@ func (x *SubscriptionMessage) String() string {
 func (*SubscriptionMessage) ProtoMessage() {}
 
 func (x *SubscriptionMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[10]
+	mi := &file_gwiot_proto_msgTypes[12]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -793,7 +878,7 @@ func (x *SubscriptionMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubscriptionMessage.ProtoReflect.Descriptor instead.
 func (*SubscriptionMessage) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{10}
+	return file_gwiot_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SubscriptionMessage) GetId() string {
@@ -836,14 +921,15 @@ type WatchKeyValue struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Bucket string `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
-	Key    string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Bucket         string `protobuf:"bytes,1,opt,name=bucket,proto3" json:"bucket,omitempty"`
+	Key            string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	IncludeHistory bool   `protobuf:"varint,3,opt,name=includeHistory,proto3" json:"includeHistory,omitempty"`
 }
 
 func (x *WatchKeyValue) Reset() {
 	*x = WatchKeyValue{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[11]
+		mi := &file_gwiot_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -856,7 +942,7 @@ func (x *WatchKeyValue) String() string {
 func (*WatchKeyValue) ProtoMessage() {}
 
 func (x *WatchKeyValue) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[11]
+	mi := &file_gwiot_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -869,7 +955,7 @@ func (x *WatchKeyValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchKeyValue.ProtoReflect.Descriptor instead.
 func (*WatchKeyValue) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{11}
+	return file_gwiot_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *WatchKeyValue) GetBucket() string {
@@ -886,6 +972,13 @@ func (x *WatchKeyValue) GetKey() string {
 	return ""
 }
 
+func (x *WatchKeyValue) GetIncludeHistory() bool {
+	if x != nil {
+		return x.IncludeHistory
+	}
+	return false
+}
+
 type WatchMessage struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -897,7 +990,7 @@ type WatchMessage struct {
 func (x *WatchMessage) Reset() {
 	*x = WatchMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[12]
+		mi := &file_gwiot_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -910,7 +1003,7 @@ func (x *WatchMessage) String() string {
 func (*WatchMessage) ProtoMessage() {}
 
 func (x *WatchMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[12]
+	mi := &file_gwiot_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -923,7 +1016,7 @@ func (x *WatchMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WatchMessage.ProtoReflect.Descriptor instead.
 func (*WatchMessage) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{12}
+	return file_gwiot_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *WatchMessage) GetKvEntryMessage() *KvEntryMessage {
@@ -950,7 +1043,7 @@ type KvEntryMessage struct {
 func (x *KvEntryMessage) Reset() {
 	*x = KvEntryMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_messages_proto_msgTypes[13]
+		mi := &file_gwiot_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -963,7 +1056,7 @@ func (x *KvEntryMessage) String() string {
 func (*KvEntryMessage) ProtoMessage() {}
 
 func (x *KvEntryMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_messages_proto_msgTypes[13]
+	mi := &file_gwiot_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -976,7 +1069,7 @@ func (x *KvEntryMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KvEntryMessage.ProtoReflect.Descriptor instead.
 func (*KvEntryMessage) Descriptor() ([]byte, []int) {
-	return file_messages_proto_rawDescGZIP(), []int{13}
+	return file_gwiot_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *KvEntryMessage) GetId() string {
@@ -1028,41 +1121,82 @@ func (x *KvEntryMessage) GetData() []byte {
 	return nil
 }
 
-var File_messages_proto protoreflect.FileDescriptor
+type StatusConnRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
 
-var file_messages_proto_rawDesc = []byte{
-	0x0a, 0x0e, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x12, 0x08, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67, 0x22, 0x06, 0x0a, 0x04, 0x70, 0x69,
-	0x6e, 0x67, 0x22, 0x06, 0x0a, 0x04, 0x70, 0x6f, 0x6e, 0x67, 0x22, 0xc5, 0x01, 0x0a, 0x0b, 0x65,
-	0x76, 0x65, 0x6e, 0x74, 0x50, 0x75, 0x62, 0x53, 0x75, 0x62, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75,
-	0x62, 0x6a, 0x65, 0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x75, 0x62,
-	0x6a, 0x65, 0x63, 0x74, 0x12, 0x3c, 0x0a, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18,
-	0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67,
-	0x2e, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x50, 0x75, 0x62, 0x53, 0x75, 0x62, 0x2e, 0x48, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65,
-	0x72, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0c,
-	0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a, 0x3a, 0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
-	0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02,
-	0x38, 0x01, 0x22, 0xb9, 0x01, 0x0a, 0x05, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x0e, 0x0a, 0x02,
-	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07,
-	0x73, 0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73,
-	0x75, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x12, 0x36, 0x0a, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72,
-	0x73, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d,
-	0x73, 0x67, 0x2e, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73,
-	0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x12, 0x12,
-	0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x64, 0x61,
-	0x74, 0x61, 0x1a, 0x3a, 0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74,
-	0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x17,
-	0x0a, 0x03, 0x61, 0x63, 0x6b, 0x12, 0x10, 0x0a, 0x03, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x03, 0x69, 0x64, 0x73, 0x22, 0x2f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72,
-	0x12, 0x10, 0x0a, 0x03, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x69,
-	0x64, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x4d, 0x0a, 0x0d, 0x72, 0x65, 0x71, 0x75,
+func (x *StatusConnRequest) Reset() {
+	*x = StatusConnRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_gwiot_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StatusConnRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StatusConnRequest) ProtoMessage() {}
+
+func (x *StatusConnRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gwiot_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StatusConnRequest.ProtoReflect.Descriptor instead.
+func (*StatusConnRequest) Descriptor() ([]byte, []int) {
+	return file_gwiot_proto_rawDescGZIP(), []int{16}
+}
+
+var File_gwiot_proto protoreflect.FileDescriptor
+
+var file_gwiot_proto_rawDesc = []byte{
+	0x0a, 0x0b, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x67,
+	0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67, 0x22, 0x06, 0x0a, 0x04, 0x70, 0x69, 0x6e, 0x67, 0x22,
+	0x06, 0x0a, 0x04, 0x70, 0x6f, 0x6e, 0x67, 0x22, 0xc5, 0x01, 0x0a, 0x0b, 0x65, 0x76, 0x65, 0x6e,
+	0x74, 0x50, 0x75, 0x62, 0x53, 0x75, 0x62, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x62, 0x6a, 0x65,
+	0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x75, 0x62, 0x6a, 0x65, 0x63,
+	0x74, 0x12, 0x3c, 0x0a, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18, 0x03, 0x20, 0x03,
+	0x28, 0x0b, 0x32, 0x22, 0x2e, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67, 0x2e, 0x65, 0x76,
+	0x65, 0x6e, 0x74, 0x50, 0x75, 0x62, 0x53, 0x75, 0x62, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72,
+	0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x12,
+	0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x64,
+	0x61, 0x74, 0x61, 0x1a, 0x3a, 0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x45, 0x6e,
+	0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22,
+	0xb9, 0x01, 0x0a, 0x05, 0x65, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x62,
+	0x6a, 0x65, 0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x75, 0x62, 0x6a,
+	0x65, 0x63, 0x74, 0x12, 0x36, 0x0a, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x18, 0x03,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67, 0x2e,
+	0x65, 0x76, 0x65, 0x6e, 0x74, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74,
+	0x72, 0x79, 0x52, 0x07, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x64,
+	0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x1a,
+	0x3a, 0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12,
+	0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65,
+	0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x17, 0x0a, 0x03, 0x61,
+	0x63, 0x6b, 0x12, 0x10, 0x0a, 0x03, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x03, 0x69, 0x64, 0x73, 0x22, 0x2f, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x12, 0x10, 0x0a,
+	0x03, 0x69, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x69, 0x64, 0x73, 0x12,
+	0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05,
+	0x65, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x24, 0x0a, 0x0c, 0x44, 0x69, 0x73, 0x63, 0x6f, 0x6e, 0x6e,
+	0x65, 0x63, 0x74, 0x65, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x65, 0x72, 0x72, 0x6f, 0x72, 0x22, 0x0b, 0x0a, 0x09, 0x43,
+	0x6f, 0x6e, 0x6e, 0x65, 0x63, 0x74, 0x65, 0x64, 0x22, 0x4d, 0x0a, 0x0d, 0x72, 0x65, 0x71, 0x75,
 	0x65, 0x73, 0x74, 0x50, 0x75, 0x62, 0x53, 0x75, 0x62, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x73, 0x75, 0x62,
 	0x6a, 0x65, 0x63, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x73, 0x75, 0x62, 0x6a,
@@ -1119,56 +1253,60 @@ var file_messages_proto_rawDesc = []byte{
 	0x0a, 0x0c, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
 	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
 	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x39, 0x0a, 0x0d, 0x77, 0x61,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x61, 0x0a, 0x0d, 0x77, 0x61,
 	0x74, 0x63, 0x68, 0x4b, 0x65, 0x79, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x62,
 	0x75, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x62, 0x75, 0x63,
 	0x6b, 0x65, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x50, 0x0a, 0x0c, 0x77, 0x61, 0x74, 0x63, 0x68, 0x4d, 0x65,
-	0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x40, 0x0a, 0x0e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e,
-	0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67, 0x2e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52, 0x0e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79,
-	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22, 0x96, 0x01, 0x0a, 0x0e, 0x6b, 0x76, 0x45, 0x6e,
-	0x74, 0x72, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x62, 0x75,
-	0x63, 0x6b, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x62, 0x75, 0x63, 0x6b,
-	0x65, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x03, 0x6b, 0x65, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x72, 0x65, 0x76, 0x18, 0x04, 0x20, 0x01, 0x28,
-	0x04, 0x52, 0x03, 0x72, 0x65, 0x76, 0x12, 0x14, 0x0a, 0x05, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x18,
-	0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x05, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02,
-	0x6f, 0x70, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x02, 0x6f, 0x70, 0x12, 0x12, 0x0a, 0x04,
-	0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61,
-	0x2a, 0x33, 0x0a, 0x07, 0x61, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x41,
-	0x63, 0x6b, 0x4e, 0x6f, 0x6e, 0x65, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x41, 0x63, 0x6b, 0x41,
-	0x6c, 0x6c, 0x10, 0x01, 0x12, 0x0f, 0x0a, 0x0b, 0x41, 0x63, 0x6b, 0x45, 0x78, 0x70, 0x6c, 0x69,
-	0x63, 0x69, 0x74, 0x10, 0x02, 0x2a, 0x6f, 0x0a, 0x0d, 0x64, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72,
-	0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x12, 0x0e, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65,
-	0x72, 0x41, 0x6c, 0x6c, 0x10, 0x00, 0x12, 0x0f, 0x0a, 0x0b, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65,
-	0x72, 0x4c, 0x61, 0x73, 0x74, 0x10, 0x01, 0x12, 0x0e, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x69, 0x76,
-	0x65, 0x72, 0x4e, 0x65, 0x77, 0x10, 0x02, 0x12, 0x15, 0x0a, 0x11, 0x44, 0x65, 0x6c, 0x69, 0x76,
-	0x65, 0x72, 0x42, 0x79, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x65, 0x71, 0x10, 0x03, 0x12, 0x16,
-	0x0a, 0x12, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x42, 0x79, 0x53, 0x74, 0x61, 0x72, 0x74,
-	0x54, 0x69, 0x6d, 0x65, 0x10, 0x04, 0x42, 0x29, 0x5a, 0x27, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x64, 0x75, 0x6d, 0x61, 0x63, 0x70, 0x2f, 0x67, 0x6f, 0x2d, 0x67,
-	0x77, 0x69, 0x6f, 0x74, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73,
-	0x67, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x26, 0x0a, 0x0e, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65,
+	0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0e, 0x69,
+	0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65, 0x48, 0x69, 0x73, 0x74, 0x6f, 0x72, 0x79, 0x22, 0x50, 0x0a,
+	0x0c, 0x77, 0x61, 0x74, 0x63, 0x68, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x40, 0x0a,
+	0x0e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67,
+	0x2e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x52,
+	0x0e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x22,
+	0x96, 0x01, 0x0a, 0x0e, 0x6b, 0x76, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x4d, 0x65, 0x73, 0x73, 0x61,
+	0x67, 0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02,
+	0x69, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x06, 0x62, 0x75, 0x63, 0x6b, 0x65, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x10, 0x0a, 0x03,
+	0x72, 0x65, 0x76, 0x18, 0x04, 0x20, 0x01, 0x28, 0x04, 0x52, 0x03, 0x72, 0x65, 0x76, 0x12, 0x14,
+	0x0a, 0x05, 0x64, 0x65, 0x6c, 0x74, 0x61, 0x18, 0x05, 0x20, 0x01, 0x28, 0x04, 0x52, 0x05, 0x64,
+	0x65, 0x6c, 0x74, 0x61, 0x12, 0x0e, 0x0a, 0x02, 0x6f, 0x70, 0x18, 0x06, 0x20, 0x01, 0x28, 0x0d,
+	0x52, 0x02, 0x6f, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x61, 0x74, 0x61, 0x18, 0x0b, 0x20, 0x01,
+	0x28, 0x0c, 0x52, 0x04, 0x64, 0x61, 0x74, 0x61, 0x22, 0x13, 0x0a, 0x11, 0x73, 0x74, 0x61, 0x74,
+	0x75, 0x73, 0x43, 0x6f, 0x6e, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2a, 0x33, 0x0a,
+	0x07, 0x61, 0x63, 0x6b, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x41, 0x63, 0x6b, 0x4e,
+	0x6f, 0x6e, 0x65, 0x10, 0x00, 0x12, 0x0a, 0x0a, 0x06, 0x41, 0x63, 0x6b, 0x41, 0x6c, 0x6c, 0x10,
+	0x01, 0x12, 0x0f, 0x0a, 0x0b, 0x41, 0x63, 0x6b, 0x45, 0x78, 0x70, 0x6c, 0x69, 0x63, 0x69, 0x74,
+	0x10, 0x02, 0x2a, 0x6f, 0x0a, 0x0d, 0x64, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x50, 0x6f, 0x6c,
+	0x69, 0x63, 0x79, 0x12, 0x0e, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x41, 0x6c,
+	0x6c, 0x10, 0x00, 0x12, 0x0f, 0x0a, 0x0b, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x4c, 0x61,
+	0x73, 0x74, 0x10, 0x01, 0x12, 0x0e, 0x0a, 0x0a, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x4e,
+	0x65, 0x77, 0x10, 0x02, 0x12, 0x15, 0x0a, 0x11, 0x44, 0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x42,
+	0x79, 0x53, 0x74, 0x61, 0x72, 0x74, 0x53, 0x65, 0x71, 0x10, 0x03, 0x12, 0x16, 0x0a, 0x12, 0x44,
+	0x65, 0x6c, 0x69, 0x76, 0x65, 0x72, 0x42, 0x79, 0x53, 0x74, 0x61, 0x72, 0x74, 0x54, 0x69, 0x6d,
+	0x65, 0x10, 0x04, 0x42, 0x29, 0x5a, 0x27, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
+	0x6d, 0x2f, 0x64, 0x75, 0x6d, 0x61, 0x63, 0x70, 0x2f, 0x67, 0x6f, 0x2d, 0x67, 0x77, 0x69, 0x6f,
+	0x74, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x67, 0x77, 0x69, 0x6f, 0x74, 0x6d, 0x73, 0x67, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_messages_proto_rawDescOnce sync.Once
-	file_messages_proto_rawDescData = file_messages_proto_rawDesc
+	file_gwiot_proto_rawDescOnce sync.Once
+	file_gwiot_proto_rawDescData = file_gwiot_proto_rawDesc
 )
 
-func file_messages_proto_rawDescGZIP() []byte {
-	file_messages_proto_rawDescOnce.Do(func() {
-		file_messages_proto_rawDescData = protoimpl.X.CompressGZIP(file_messages_proto_rawDescData)
+func file_gwiot_proto_rawDescGZIP() []byte {
+	file_gwiot_proto_rawDescOnce.Do(func() {
+		file_gwiot_proto_rawDescData = protoimpl.X.CompressGZIP(file_gwiot_proto_rawDescData)
 	})
-	return file_messages_proto_rawDescData
+	return file_gwiot_proto_rawDescData
 }
 
-var file_messages_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_messages_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
-var file_messages_proto_goTypes = []interface{}{
+var file_gwiot_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_gwiot_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
+var file_gwiot_proto_goTypes = []interface{}{
 	(AckType)(0),                // 0: gwiotmsg.ackType
 	(DeliverPolicy)(0),          // 1: gwiotmsg.deliverPolicy
 	(*Ping)(nil),                // 2: gwiotmsg.ping
@@ -1177,27 +1315,30 @@ var file_messages_proto_goTypes = []interface{}{
 	(*Event)(nil),               // 5: gwiotmsg.event
 	(*Ack)(nil),                 // 6: gwiotmsg.ack
 	(*Error)(nil),               // 7: gwiotmsg.error
-	(*RequestPubSub)(nil),       // 8: gwiotmsg.requestPubSub
-	(*Request)(nil),             // 9: gwiotmsg.request
-	(*Response)(nil),            // 10: gwiotmsg.response
-	(*SubcriptionSubject)(nil),  // 11: gwiotmsg.subcriptionSubject
-	(*SubscriptionMessage)(nil), // 12: gwiotmsg.subscriptionMessage
-	(*WatchKeyValue)(nil),       // 13: gwiotmsg.watchKeyValue
-	(*WatchMessage)(nil),        // 14: gwiotmsg.watchMessage
-	(*KvEntryMessage)(nil),      // 15: gwiotmsg.kvEntryMessage
-	nil,                         // 16: gwiotmsg.eventPubSub.HeadersEntry
-	nil,                         // 17: gwiotmsg.event.HeadersEntry
-	nil,                         // 18: gwiotmsg.request.HeadersEntry
-	nil,                         // 19: gwiotmsg.subscriptionMessage.HeadersEntry
+	(*Disconnected)(nil),        // 8: gwiotmsg.Disconnected
+	(*Connected)(nil),           // 9: gwiotmsg.Connected
+	(*RequestPubSub)(nil),       // 10: gwiotmsg.requestPubSub
+	(*Request)(nil),             // 11: gwiotmsg.request
+	(*Response)(nil),            // 12: gwiotmsg.response
+	(*SubcriptionSubject)(nil),  // 13: gwiotmsg.subcriptionSubject
+	(*SubscriptionMessage)(nil), // 14: gwiotmsg.subscriptionMessage
+	(*WatchKeyValue)(nil),       // 15: gwiotmsg.watchKeyValue
+	(*WatchMessage)(nil),        // 16: gwiotmsg.watchMessage
+	(*KvEntryMessage)(nil),      // 17: gwiotmsg.kvEntryMessage
+	(*StatusConnRequest)(nil),   // 18: gwiotmsg.statusConnRequest
+	nil,                         // 19: gwiotmsg.eventPubSub.HeadersEntry
+	nil,                         // 20: gwiotmsg.event.HeadersEntry
+	nil,                         // 21: gwiotmsg.request.HeadersEntry
+	nil,                         // 22: gwiotmsg.subscriptionMessage.HeadersEntry
 }
-var file_messages_proto_depIdxs = []int32{
-	16, // 0: gwiotmsg.eventPubSub.headers:type_name -> gwiotmsg.eventPubSub.HeadersEntry
-	17, // 1: gwiotmsg.event.headers:type_name -> gwiotmsg.event.HeadersEntry
-	18, // 2: gwiotmsg.request.headers:type_name -> gwiotmsg.request.HeadersEntry
+var file_gwiot_proto_depIdxs = []int32{
+	19, // 0: gwiotmsg.eventPubSub.headers:type_name -> gwiotmsg.eventPubSub.HeadersEntry
+	20, // 1: gwiotmsg.event.headers:type_name -> gwiotmsg.event.HeadersEntry
+	21, // 2: gwiotmsg.request.headers:type_name -> gwiotmsg.request.HeadersEntry
 	0,  // 3: gwiotmsg.subcriptionSubject.ackType:type_name -> gwiotmsg.ackType
 	1,  // 4: gwiotmsg.subcriptionSubject.deliverPolicy:type_name -> gwiotmsg.deliverPolicy
-	19, // 5: gwiotmsg.subscriptionMessage.headers:type_name -> gwiotmsg.subscriptionMessage.HeadersEntry
-	15, // 6: gwiotmsg.watchMessage.kvEntryMessage:type_name -> gwiotmsg.kvEntryMessage
+	22, // 5: gwiotmsg.subscriptionMessage.headers:type_name -> gwiotmsg.subscriptionMessage.HeadersEntry
+	17, // 6: gwiotmsg.watchMessage.kvEntryMessage:type_name -> gwiotmsg.kvEntryMessage
 	7,  // [7:7] is the sub-list for method output_type
 	7,  // [7:7] is the sub-list for method input_type
 	7,  // [7:7] is the sub-list for extension type_name
@@ -1205,13 +1346,13 @@ var file_messages_proto_depIdxs = []int32{
 	0,  // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_messages_proto_init() }
-func file_messages_proto_init() {
-	if File_messages_proto != nil {
+func init() { file_gwiot_proto_init() }
+func file_gwiot_proto_init() {
+	if File_gwiot_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_messages_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Ping); i {
 			case 0:
 				return &v.state
@@ -1223,7 +1364,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Pong); i {
 			case 0:
 				return &v.state
@@ -1235,7 +1376,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EventPubSub); i {
 			case 0:
 				return &v.state
@@ -1247,7 +1388,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Event); i {
 			case 0:
 				return &v.state
@@ -1259,7 +1400,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Ack); i {
 			case 0:
 				return &v.state
@@ -1271,7 +1412,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Error); i {
 			case 0:
 				return &v.state
@@ -1283,7 +1424,31 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Disconnected); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gwiot_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Connected); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gwiot_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RequestPubSub); i {
 			case 0:
 				return &v.state
@@ -1295,7 +1460,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Request); i {
 			case 0:
 				return &v.state
@@ -1307,7 +1472,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Response); i {
 			case 0:
 				return &v.state
@@ -1319,7 +1484,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SubcriptionSubject); i {
 			case 0:
 				return &v.state
@@ -1331,7 +1496,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SubscriptionMessage); i {
 			case 0:
 				return &v.state
@@ -1343,7 +1508,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WatchKeyValue); i {
 			case 0:
 				return &v.state
@@ -1355,7 +1520,7 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*WatchMessage); i {
 			case 0:
 				return &v.state
@@ -1367,8 +1532,20 @@ func file_messages_proto_init() {
 				return nil
 			}
 		}
-		file_messages_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+		file_gwiot_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*KvEntryMessage); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_gwiot_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StatusConnRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -1384,19 +1561,19 @@ func file_messages_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_messages_proto_rawDesc,
+			RawDescriptor: file_gwiot_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   18,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_messages_proto_goTypes,
-		DependencyIndexes: file_messages_proto_depIdxs,
-		EnumInfos:         file_messages_proto_enumTypes,
-		MessageInfos:      file_messages_proto_msgTypes,
+		GoTypes:           file_gwiot_proto_goTypes,
+		DependencyIndexes: file_gwiot_proto_depIdxs,
+		EnumInfos:         file_gwiot_proto_enumTypes,
+		MessageInfos:      file_gwiot_proto_msgTypes,
 	}.Build()
-	File_messages_proto = out.File
-	file_messages_proto_rawDesc = nil
-	file_messages_proto_goTypes = nil
-	file_messages_proto_depIdxs = nil
+	File_gwiot_proto = out.File
+	file_gwiot_proto_rawDesc = nil
+	file_gwiot_proto_goTypes = nil
+	file_gwiot_proto_depIdxs = nil
 }

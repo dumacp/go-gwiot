@@ -9,14 +9,14 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-func subscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subject string, options ...nats.SubOpt) (*nats.Subscription, error) {
+func subscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject string, options ...nats.SubOpt) (*nats.Subscription, error) {
 
-	if conn == nil || !conn.IsConnected() {
+	if conn == nil || !conn.IsConnected() || js == nil {
 		return nil, fmt.Errorf("connection is not open")
 	}
 
-	ctxroot := ctx.ActorSystem().Root
-	sender := ctx.Sender()
+	// ctxroot := ctx.ActorSystem().Root
+	// sender := ctx.Sender()
 
 	subs, err := js.Subscribe(subject, func(msg *nats.Msg) {
 
@@ -26,12 +26,12 @@ func subscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, 
 				headers[k] = v[0]
 			}
 		}
-		if err := ctxroot.RequestFuture(sender, &gwiotmsg.SubscriptionMessage{
+		if err := ctx.RequestFuture(sender, &gwiotmsg.SubscriptionMessage{
 			Subject: msg.Subject,
 			Reply:   msg.Reply,
 			Headers: headers,
 			Data:    msg.Data,
-		}, 1*time.Second).Wait(); err != nil {
+		}, 1*time.Second).Wait(); err == nil {
 			if err := msg.Ack(); err != nil {
 				fmt.Println(err)
 			}
@@ -40,7 +40,7 @@ func subscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, 
 	return subs, err
 }
 
-func Subscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subject string,
+func Subscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject string,
 	startSeq uint64, startTime time.Time, maxDeliver, maxAckPending uint, deliverPolicy gwiotmsg.DeliverPolicy) (*nats.Subscription, error) {
 
 	policy := func() nats.SubOpt {
@@ -60,14 +60,14 @@ func Subscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, 
 		}
 	}()
 
-	return subscription(ctx, conn, js, subject,
+	return subscription(ctx, sender, conn, js, subject,
 		nats.MaxAckPending(int(maxAckPending)),
 		nats.MaxDeliver(int(maxDeliver)),
 		policy,
 	)
 }
 
-func DurableSubscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subject, durableName string,
+func DurableSubscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject, durableName string,
 	startSeq uint64, startTime time.Time, maxDeliver, maxAckPending uint, deliverPolicy gwiotmsg.DeliverPolicy) (*nats.Subscription, error) {
 
 	policy := func() nats.SubOpt {
@@ -87,7 +87,7 @@ func DurableSubscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamCo
 		}
 	}()
 
-	return subscription(ctx, conn, js, subject,
+	return subscription(ctx, sender, conn, js, subject,
 		nats.MaxAckPending(int(maxAckPending)),
 		nats.MaxDeliver(int(maxDeliver)),
 		policy,
@@ -96,15 +96,15 @@ func DurableSubscription(ctx actor.Context, conn *nats.Conn, js nats.JetStreamCo
 }
 
 // func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (*nats.Subscription, error) {
-func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (nats.KeyWatcher, error) {
+func wathcKV(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, bucket, key string, history bool) (nats.KeyWatcher, error) {
 
-	if conn == nil || !conn.IsConnected() {
-		return nil, fmt.Errorf("connection is not open")
+	if conn == nil || !conn.IsConnected() || js == nil {
+		return nil, fmt.Errorf("connection is not open (%v) (%v) (%v)", conn, js, func() bool { return conn != nil && conn.IsConnected() }())
 	}
 
-	ctxroot := ctx.ActorSystem().Root
-	self := ctx.Self()
-	sender := ctx.Sender()
+	// ctxroot := ctx.ActorSystem().Root
+	// self := ctx.Self()
+	// sender := ctx.Sender()
 
 	kv, err := js.KeyValue(bucket)
 	if err != nil {
@@ -142,10 +142,15 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 	// }
 	// return sub, nil
 
-	watcher, err := kv.Watch(key,
-		nats.AddIdleHeartbeat(30*time.Second),
-		nats.MetaOnly(),
-	)
+	opts := make([]nats.WatchOpt, 0)
+
+	opts = append(opts, nats.AddIdleHeartbeat(30*time.Second))
+	opts = append(opts, nats.MetaOnly())
+	if history {
+		opts = append(opts, nats.IncludeHistory())
+	}
+
+	watcher, err := kv.Watch(key, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,9 +164,10 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 			update, err := kv.GetRevision(v.Key(), v.Revision())
 			if err != nil {
 				fmt.Printf("update (key=%s,rev=%d) error: %s\n", v.Key(), v.Revision(), err)
+				continue
 			}
 
-			ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
+			ctx.Request(sender, &gwiotmsg.WatchMessage{
 				KvEntryMessage: &gwiotmsg.KvEntryMessage{
 					Bucket: update.Bucket(),
 					Key:    update.Key(),
@@ -170,7 +176,7 @@ func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucke
 					Op:     uint32(update.Operation()),
 					Data:   update.Value(),
 				},
-			}, self)
+			})
 		}
 	}()
 	return watcher, err

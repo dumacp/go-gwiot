@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
+	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/nats-io/nats.go"
@@ -18,12 +20,12 @@ const (
 )
 
 func connect(url string, tk *oauth2.Token) (*nats.Conn, error) {
-	// tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
+	tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
 
 	opts := make([]nats.Option, 0)
-	// if strings.Contains(url, "https") || strings.Contains(url, "wss") {
-	// 	opts = append(opts, nats.Secure(tlsconfig))
-	// }
+	if strings.Contains(url, "https") || strings.Contains(url, "wss") {
+		opts = append(opts, nats.Secure(tlsconfig))
+	}
 	if tk != nil {
 
 		opts = append(opts, nats.SetJwtBearer(func() string { return tk.AccessToken }))
@@ -80,7 +82,7 @@ func kv(conn *nats.Conn, js nats.JetStreamContext, bucket string) (nats.KeyValue
 // publish return (response?, error)
 func publish(conn *nats.Conn, js nats.JetStreamContext, topic string, data []byte, headers map[string]string) error {
 
-	if conn == nil || !conn.IsConnected() {
+	if conn == nil || !conn.IsConnected() || js == nil {
 		return fmt.Errorf("connection is not open")
 	}
 
@@ -172,7 +174,7 @@ func requestPubSub(conn *nats.Conn, topic string, data []byte, headers map[strin
 // request return (response?, error)
 func request(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subject, reply string, data []byte, headers map[string]string, timeout time.Duration) error {
 
-	if conn == nil || !conn.IsConnected() {
+	if conn == nil || !conn.IsConnected() || js == nil {
 		return fmt.Errorf("connection is not open")
 	}
 
