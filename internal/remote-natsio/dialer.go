@@ -36,7 +36,7 @@ func (c *customConn) Read(b []byte) (int, error) {
 		return n, err
 	}
 
-	log.Println("/////////////// data\n")
+	log.Println("/////////////// data")
 	// time.Sleep(c.delay)
 
 	return n, err

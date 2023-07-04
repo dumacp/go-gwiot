@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
+	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/nats-io/nats.go"
 )
@@ -13,9 +14,10 @@ import (
 func TestNatsActor_Receive(t *testing.T) {
 
 	type fields struct {
-		ctxroot *actor.RootContext
-		url     string
-		jwtConf *JwtConf
+		ctxroot  *actor.RootContext
+		hostname string
+		url      string
+		jwtConf  *JwtConf
 	}
 	type args struct {
 		messages []interface{}
@@ -29,8 +31,9 @@ func TestNatsActor_Receive(t *testing.T) {
 		{
 			name: "test1",
 			fields: fields{
-				ctxroot: actor.NewActorSystem().Root,
-				url:     nats.DefaultURL,
+				ctxroot:  actor.NewActorSystem().Root,
+				url:      nats.DefaultURL,
+				hostname: "test1",
 				// url:     "nats://fleet-nats.nebulae.com.co:443",
 				jwtConf: nil,
 				// jwtConf: &JwtConf{
@@ -58,12 +61,16 @@ func TestNatsActor_Receive(t *testing.T) {
 						Data:    []byte("hola mundo"),
 						Timeout: 5,
 					},
+					&gwiotmsg.ListKeysBucket{
+						Bucket: "AFC-PAYMENT-MEDIUM-TYPE",
+					},
 				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			utils.SetHostname(tt.fields.hostname)
 			a := NewClientNatsio(tt.fields.url, tt.fields.jwtConf, true)
 			props := actor.PropsFromFunc(a.Receive)
 			_, err := tt.fields.ctxroot.SpawnNamed(props, tt.name)
@@ -85,6 +92,8 @@ func TestNatsActor_Receive(t *testing.T) {
 				}
 				t.Logf("response: %T, %s", response, response)
 			}
+
+			time.Sleep(10 * time.Second)
 
 		})
 	}

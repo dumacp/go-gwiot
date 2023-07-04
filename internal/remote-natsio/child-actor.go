@@ -47,7 +47,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		success := false
 		var pid *actor.PID
 		for range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10} {
-			pid = actor.NewPID(ctx.Self().GetAddress(), fmt.Sprintf("%s/%s", a.parentId, INSTANCE_ID))
+			pid = actor.NewPID(ctx.Self().GetAddress(), a.parentId)
 			fmt.Printf("////////////////// pid: %s\n", pid)
 			if err := ctx.RequestFuture(pid, &gwiotmsg.Ping{}, 500*time.Millisecond).Wait(); err != nil {
 				logs.LogWarn.Printf("actor %q is not ready (error: %s)", pid.GetId(), err)
@@ -217,6 +217,22 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				logs.LogWarn.Println(err)
 			}
 		}()
+	case *gwiotmsg.ListKeysBucket:
+		if ctx.Sender() == nil {
+			break
+		}
+		a.pidRemoteParent = ctx.Sender()
+
+		keys, err := listKV(a.conn, a.js, msg.GetBucket())
+		ctx.Respond(&gwiotmsg.KeysBucket{
+			Keys: keys,
+			Error: func() string {
+				if err != nil {
+					return err.Error()
+				}
+				return ""
+			}(),
+		})
 	case *gwiotmsg.WatchKeyValue:
 		if ctx.Sender() == nil {
 			break

@@ -127,7 +127,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			logs.LogWarn.Printf("connect nats error: %s", err)
 			// a.evs.Publish(&Disconnected{Error: err})
 		}
-		logs.LogInfo.Printf("Starting, actor, pid: %v\n", ctx.Self())
+		logs.LogInfo.Printf("Started, actor, pid: %v\n", ctx.Self())
 	case *Connection:
 		if ctx.Sender() == nil {
 			break

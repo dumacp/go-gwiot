@@ -196,7 +196,12 @@ func request(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subje
 	go func() {
 		defer cancel()
 		select {
-		case msg := <-ch:
+		case <-contxt.Done():
+		case msg, ok := <-ch:
+			if !ok {
+				fmt.Println("channel close in \"request\"")
+				break
+			}
 			headers := make(map[string]string)
 			if msg.Header != nil {
 				for k, v := range msg.Header {
@@ -219,7 +224,7 @@ func request(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subje
 			if err := msg.Ack(); err != nil {
 				fmt.Println(err)
 			}
-		case <-contxt.Done():
+
 		}
 	}()
 

@@ -114,6 +114,15 @@ message kvEntryMessage {
     bytes data = 11;
 }
 
+message listKeysBucket {
+    string bucket = 1;
+}
+
+message keysBucket {
+    repeated string keys = 1;
+    string error = 2;
+}
+
 message statusConnRequest {  
 }
 

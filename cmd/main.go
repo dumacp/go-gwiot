@@ -80,7 +80,7 @@ func main() {
 	portlocal := portlocal()
 	rconfig := remote.Configure("127.0.0.1", portlocal)
 	r := remote.NewRemote(sys, rconfig)
-	prposNatsioclient := actor.PropsFromFunc(renatsio.NewChildNatsio(ACTOR_INTSANCE_ID).Receive)
+	prposNatsioclient := actor.PropsFromFunc(renatsio.NewChildNatsio(fmt.Sprintf("%s/%s", ACTOR_INTSANCE_ID, renatsio.INSTANCE_ID)).Receive)
 	r.Register(gwiot.KIND_NAME, prposNatsioclient)
 	r.Start()
 

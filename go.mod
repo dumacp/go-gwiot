@@ -13,7 +13,7 @@ require (
 	github.com/dumacp/keycloak v0.0.0-20191212174805-9e9a5c3da24f
 	github.com/eclipse/paho.mqtt.golang v1.4.2
 	github.com/google/uuid v1.3.0
-	github.com/nats-io/nats.go v1.22.1
+	github.com/nats-io/nats.go v1.19.0
 	golang.org/x/oauth2 v0.3.0
 	google.golang.org/protobuf v1.28.1
 )
@@ -30,6 +30,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/lithammer/shortuuid/v4 v4.0.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/nats-io/nats-server/v2 v2.9.11 // indirect
