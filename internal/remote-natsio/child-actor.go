@@ -116,6 +116,45 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		ctx.Respond(&gwiotmsg.Pong{})
+	case *gwiotmsg.KvEntryMessage:
+		if err := func() error {
+			data := make([]byte, len(msg.Data))
+			copy(data, msg.Data)
+			topic := msg.GetBucket()
+			key := msg.GetKey()
+			kv, err := a.js.KeyValue(topic)
+			if err != nil {
+				return fmt.Errorf("update kv %q error: %s", topic, err)
+			}
+			var rev uint64
+			if msg.Rev > 0 {
+				rev, err = updateKeyValue(a.conn, kv, key, data, msg.Rev)
+				if err != nil {
+					return fmt.Errorf("update kv %q error: %s", topic, err)
+				}
+			} else {
+				rev, err = putKeyValue(a.conn, kv, key, data)
+				if err != nil {
+					return fmt.Errorf("update kv %q error: %s", topic, err)
+				}
+			}
+
+			if ctx.Sender() != nil {
+				ctx.Respond(&gwiotmsg.AckKv{
+					Rev: rev,
+					Ids: msg.Id,
+				})
+			}
+
+			return nil
+		}(); err != nil {
+			logs.LogError.Println(err)
+			if ctx.Sender() != nil {
+				ctx.Respond(&gwiotmsg.Error{
+					Error: err.Error(),
+				})
+			}
+		}
 	case *gwiotmsg.Event:
 		if err := func() error {
 			data := make([]byte, len(msg.Data))
@@ -224,6 +263,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		a.pidRemoteParent = ctx.Sender()
 
 		keys, err := listKV(a.conn, a.js, msg.GetBucket())
+		fmt.Printf("keys: %v, %T\n", keys, keys)
 		ctx.Respond(&gwiotmsg.KeysBucket{
 			Keys: keys,
 			Error: func() string {

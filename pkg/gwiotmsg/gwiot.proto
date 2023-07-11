@@ -26,6 +26,11 @@ message ack {
     string ids = 1; 
 }
 
+message ackKv {
+    string ids = 1;
+    uint64 rev = 2;    
+}
+
 message error {
     string ids = 1;
     string error = 2;
