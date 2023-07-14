@@ -133,7 +133,7 @@ func main() {
 				if pidNatsio == nil {
 					break
 				}
-				remote.GetRemote(ctx.ActorSystem())
+				// remote.GetRemote(ctx.ActorSystem())
 
 				host, port, err := ctx.ActorSystem().GetHostPort()
 				if err != nil {

@@ -145,7 +145,6 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 					Ids: msg.Id,
 				})
 			}
-
 			return nil
 		}(); err != nil {
 			logs.LogError.Println(err)
