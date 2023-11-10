@@ -32,6 +32,7 @@ func client(tk *oauth2.Token, user, pass string) mqtt.Client {
 	opt.SetClientID(fmt.Sprintf("%s-%d", utils.Hostname(), time.Now().Unix()))
 	opt.SetKeepAlive(30 * time.Second)
 	opt.SetConnectTimeout(10 * time.Second)
+	fmt.Printf("ops mqtt: %v\n", opt)
 	client := mqtt.NewClient(opt)
 	return client
 }

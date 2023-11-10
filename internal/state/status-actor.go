@@ -9,20 +9,20 @@ import (
 	"github.com/dumacp/go-logs/pkg/logs"
 )
 
-//StatusActor actor to listen events
+// StatusActor actor to listen events
 type StatusActor struct {
 	context       actor.Context
 	lastStatusMsg *StatusMsg
 	groupID       []byte
 }
 
-//NewStatus create listen actor
+// NewStatus create listen actor
 func NewStatus() *StatusActor {
 	act := &StatusActor{}
 	return act
 }
 
-//Receive func Receive in actor
+// Receive func Receive in actor
 func (act *StatusActor) Receive(ctx actor.Context) {
 	act.context = ctx
 	switch msg := ctx.Message().(type) {
@@ -42,8 +42,14 @@ func (act *StatusActor) Receive(ctx actor.Context) {
 			(*status)["t"] = (int64)(v * 1000)
 		}
 
-		if act.groupID = groupID(ctx, act.groupID); len(act.groupID) > 0 {
-			// log.Printf("groupId end -> %T, %v", act.groupID, act.groupID)
+		if len(act.groupID) <= 0 {
+			groupID := groupID(ctx)
+			if len(groupID) > 0 {
+				act.groupID = groupID
+			}
+		}
+		// log.Printf("groupId end -> %T, %v", act.groupID, act.groupID)
+		if len(act.groupID) > 0 {
 			(*status)["aD"] = map[string]interface{}{"gN": string(act.groupID)}
 		}
 
@@ -56,11 +62,8 @@ func (act *StatusActor) Receive(ctx actor.Context) {
 	}
 }
 
-func groupID(ctx actor.Context, groupID []byte) []byte {
-	if len(groupID) > 0 {
-		return groupID
-	}
-	req := ctx.RequestFuture(ctx.Parent(), &messages.GroupIDRequest{}, 3*time.Second)
+func groupID(ctx actor.Context) []byte {
+	req := ctx.RequestFuture(ctx.Parent(), &messages.GroupIDRequest{}, 6*time.Second)
 	if err := req.Wait(); err != nil {
 		return nil
 	}

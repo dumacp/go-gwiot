@@ -19,13 +19,13 @@ const (
 	messagesVersion = 3
 )
 
-//DeviceMSG device message
+// DeviceMSG device message
 type DeviceMSG struct {
 	State  *state.StatusMsg `json:"state"`
 	Events *events.Events   `json:"events"`
 }
 
-//DeviceStateMSG device message
+// DeviceStateMSG device message
 type DeviceStateMSG struct {
 	State *state.StatusMsg `json:"state"`
 }
@@ -48,12 +48,12 @@ func (b *DeviceStateMSG) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`{"state": %s}`, statejson)), nil
 }
 
-//DeviceEventsMSG device message
+// DeviceEventsMSG device message
 type DeviceEventsMSG struct {
 	Events *events.Events `json:"events"`
 }
 
-//App main app
+// App main app
 type App struct {
 	pidKeycloak *actor.PID
 	pidRemote   *actor.PID
@@ -61,7 +61,7 @@ type App struct {
 	snDev       string
 }
 
-//NewApp new actor
+// NewApp new actor
 func NewApp(propsRemote *actor.Props) *App {
 	app := &App{propsRemote: propsRemote}
 	return app
@@ -69,7 +69,7 @@ func NewApp(propsRemote *actor.Props) *App {
 
 type ErrorRemote struct{}
 
-//Receive function Receive
+// Receive function Receive
 func (app *App) Receive(ctx actor.Context) {
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
@@ -134,7 +134,7 @@ func (app *App) Receive(ctx actor.Context) {
 		if app.pidKeycloak == nil {
 			break
 		}
-		req := ctx.RequestFuture(app.pidKeycloak, &messages.GroupIDRequest{}, 3*time.Second)
+		req := ctx.RequestFuture(app.pidKeycloak, &messages.GroupIDRequest{}, 6*time.Second)
 		if err := req.Wait(); err != nil {
 			break
 		}
