@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	showVersion = "1.2.13"
+	showVersion = "1.2.14"
 )
 
 var debug bool
@@ -42,7 +42,7 @@ func init() {
 	flag.StringVar(&pathdb, "pathdb", "/SD/boltdbs/gwiotdb", "path to db")
 	flag.StringVar(&hostname, "hostname", "", "test hostname")
 	flag.BoolVar(&disableRetransmission, "disableRetransmission", false, "disable retransmission")
-	flag.IntVar(&retryDays, "retryDays", 0, "days to retransmission (0 for all days)")
+	flag.IntVar(&retryDays, "retryDays", 2, "days to retransmission (0 for all days)")
 	// flag.BoolVar(&isnats, "isNatsIO", false, "coonect to nats.io broker")
 	flag.StringVar(&utils.RemoteBrokerURL, "remoteBrokerURL", "", "example: \"wss://fleet-mqtt.nebulae.com.co/mqtt\", remote broker url")
 }
