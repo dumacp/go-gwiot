@@ -94,7 +94,7 @@ func ReplaceKeys(data map[string]interface{}) map[string]interface{} {
 	return res
 }
 
-var keysStatic = map[string]int{"gN": 0, "uTC": 0, "eTC": 0, "t": 0, "sDv": 0, "tsOB": 0, "tsBT": 0,
+var keysStatic = map[string]int{"v": 0, "gN": 0, "uTC": 0, "eTC": 0, "t": 0, "sDv": 0, "tsOB": 0, "tsBT": 0,
 	"tsUA": 0, "tsDA": 0, "tsAN": 0, "bDPUA": 0, "bDPDA": 0, "fDPUA": 0, "fDPDA": 0, "AVer": 0,
 	"pAFC": 0, "pARC": 0, "pTRC": 0, "pABC": 0, "pTBC": 0, "pTFC": 0, "pTFS": 0, "pTRS": 0}
 var keysRemove = map[string]int{"sM": 0, "sDs": 0, "sW": 0, "sn-cn": 0}
