@@ -104,7 +104,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		if ctx.Sender() == nil {
 			break
 		}
-		if a.conn != nil && a.js != nil {
+		if a.conn == nil || a.js == nil {
 			ctx.Respond(&gwiotmsg.Disconnected{
 				Error: "not connected",
 			})

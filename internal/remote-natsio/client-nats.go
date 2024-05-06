@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/url"
 	"strings"
 	"time"
 
@@ -19,11 +20,17 @@ const (
 // subEvent = "Events.Offline"
 )
 
-func connect(url string, tk *oauth2.Token) (*nats.Conn, error) {
+func connect(urli string, tk *oauth2.Token) (*nats.Conn, error) {
+
+	uri, err := url.Parse(urli)
+	if err != nil {
+		return nil, err
+	}
+
 	tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
 
 	opts := make([]nats.Option, 0)
-	if strings.Contains(url, "https") || strings.Contains(url, "wss") {
+	if strings.Contains(uri.Scheme, "https") || strings.Contains(uri.Scheme, "wss") {
 		opts = append(opts, nats.Secure(tlsconfig))
 	}
 	if tk != nil {
@@ -40,11 +47,18 @@ func connect(url string, tk *oauth2.Token) (*nats.Conn, error) {
 		skipTLS: false,
 	}
 
+	newURL := uri.Scheme + "://" + uri.Host
+
+	fmt.Printf("url: %s, path: %s\n", newURL, uri.Path)
+
 	opts = append(opts, nats.SetCustomDialer(dialer))
 	opts = append(opts, nats.Timeout(20*time.Second))
 	opts = append(opts, nats.Compression(true))
+	if len(uri.Path) > 0 {
+		opts = append(opts, nats.ProxyPath(uri.Path))
+	}
 
-	conn, err := nats.Connect(url, opts...)
+	conn, err := nats.Connect(newURL, opts...)
 	if err != nil {
 		fmt.Printf("%T, %s", err, err)
 		return nil, err
