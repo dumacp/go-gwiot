@@ -15,6 +15,8 @@ import (
 
 type ChildNats struct {
 	parentId        string
+	orgId           string
+	pidGwiot        *actor.PID
 	pidRemoteParent *actor.PID
 	conn            *nats.Conn
 	js              nats.JetStreamContext
@@ -28,16 +30,18 @@ type RemoteSubscription struct {
 	Message any
 }
 
-func NewChildNatsio(parentId string) *ChildNats {
-	a := &ChildNats{}
-	a.parentId = parentId
-	a.subscriptions = make(map[string]RemoteSubscription)
-	return a
+func NewChildNatsio(parentId string) func() actor.Actor {
+	return func() actor.Actor {
+		a := &ChildNats{}
+		a.parentId = parentId
+		a.subscriptions = make(map[string]RemoteSubscription)
+		return a
+	}
 }
 
 func (a *ChildNats) Receive(ctx actor.Context) {
 
-	logs.LogBuild.Printf("Message arrived in %s: %s, %T, %s",
+	fmt.Printf("Message arrived in %s: %s, %T, %s\n",
 		ctx.Self().GetId(), ctx.Message(), ctx.Message(), ctx.Sender())
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
@@ -60,6 +64,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		if !success {
 			logs.LogWarn.Panicf("actor %q is not ready", pid.GetId())
 		}
+		a.pidGwiot = pid
 		ctx.Request(pid, &Connection{})
 		contxt, cancel := context.WithCancel(context.TODO())
 		a.contxt = contxt
@@ -144,6 +149,27 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 					Rev: rev,
 					Ids: msg.Id,
 				})
+			}
+			return nil
+		}(); err != nil {
+			logs.LogError.Println(err)
+			if ctx.Sender() != nil {
+				ctx.Respond(&gwiotmsg.Error{
+					Error: err.Error(),
+				})
+			}
+		}
+	case *gwiotmsg.EventPubSub:
+		if err := func() error {
+			data := make([]byte, len(msg.Data))
+			copy(data, msg.Data)
+			topic := msg.Subject
+			headers := map[string]string{"id": utils.Hostname()}
+			if err := publishPubSub(a.conn, topic, data, headers); err != nil {
+				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.Data)
+			}
+			if ctx.Sender() != nil {
+				ctx.Respond(&gwiotmsg.Ack{})
 			}
 			return nil
 		}(); err != nil {
@@ -249,7 +275,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		// 	ctx.Respond(&gwiotmsg.Ack{})
 		// }
 		go func() {
-			subs := subs
+			// subs := subs
 			<-a.contxt.Done()
 			if err := subs.Unsubscribe(); err != nil {
 				logs.LogWarn.Println(err)
@@ -260,9 +286,10 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		a.pidRemoteParent = ctx.Sender()
+		bucket := a.addPrefix(ctx, msg.GetBucket())
 
-		keys, err := listKV(a.conn, a.js, msg.GetBucket())
-		fmt.Printf("keys: %v, %T\n", keys, keys)
+		keys, err := listKV(a.conn, a.js, bucket)
+		fmt.Printf("keys (%q): %v, %T\n", keys, bucket, keys)
 		ctx.Respond(&gwiotmsg.KeysBucket{
 			Keys: keys,
 			Error: func() string {
@@ -272,17 +299,46 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				return ""
 			}(),
 		})
-	case *gwiotmsg.WatchKeyValue:
+	case *gwiotmsg.GetKeyValue:
 		if ctx.Sender() == nil {
 			break
 		}
 		a.pidRemoteParent = ctx.Sender()
-		uids := fmt.Sprintf("%s-%s-%s", ctx.Sender().GetId(), msg.GetBucket(), msg.GetKey())
+		bucket := a.addPrefix(ctx, msg.GetBucket())
+
+		entry, err := getKV(a.conn, a.js, bucket, msg.Key, msg.Rev)
+		if err != nil {
+			logs.LogWarn.Printf("getKV key: %s (%s), err: %s", msg.Key, bucket, err)
+			if ctx.Sender() != nil {
+				ctx.Respond(&gwiotmsg.Error{
+					Error: err.Error(),
+				})
+			}
+			break
+		}
+		// fmt.Printf("keys (%q): %v, %T\n", keys, bucket, keys)
+		ctx.Respond(&gwiotmsg.KvEntryMessage{
+			Bucket: entry.Bucket(),
+			Key:    entry.Key(),
+			Rev:    entry.Revision(),
+			Delta:  entry.Delta(),
+			Op:     uint32(entry.Operation()),
+			Data:   entry.Value(),
+		})
+	case *gwiotmsg.WatchKeyValue:
+		// fmt.Println("///////////////////////////////////////////////////////////////////////////////")
+		// fmt.Printf("%T (%s): /////////////////////////////////////////////////////////////////////////// \n", msg, msg)
+		if ctx.Sender() == nil {
+			break
+		}
+		bucket := a.addPrefix(ctx, msg.GetBucket())
+		a.pidRemoteParent = ctx.Sender()
+		uids := fmt.Sprintf("%s-%s-%s", ctx.Sender().GetId(), bucket, msg.GetKey())
 		a.subscriptions[uids] = RemoteSubscription{
 			Sender:  ctx.Sender(),
 			Message: msg,
 		}
-		subs, err := wathcKV(ctx.ActorSystem().Root, ctx.Sender(), a.conn, a.js, msg.GetBucket(), msg.GetKey(), msg.GetIncludeHistory())
+		subs, err := wathcKV(ctx.ActorSystem().Root, ctx.Sender(), a.conn, a.js, bucket, msg.GetKey(), msg.GetRev(), msg.GetIncludeHistory())
 		if err != nil {
 			logs.LogWarn.Printf("watchKeyValue error: %s", err)
 			// if ctx.Sender() != nil {
@@ -297,7 +353,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		// 	ctx.Respond(&gwiotmsg.Ack{})
 		// }
 		go func() {
-			subs := subs
+			// subs := subs
 			<-a.contxt.Done()
 			fmt.Printf("stopping watch: %v\n", subs)
 			// if err := subs.Unsubscribe(); err != nil {

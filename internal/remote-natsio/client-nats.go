@@ -60,7 +60,7 @@ func connect(urli string, tk *oauth2.Token) (*nats.Conn, error) {
 
 	conn, err := nats.Connect(newURL, opts...)
 	if err != nil {
-		fmt.Printf("%T, %s", err, err)
+		fmt.Printf("%T, %s\n", err, err)
 		return nil, err
 	}
 
@@ -108,12 +108,14 @@ func publish(conn *nats.Conn, js nats.JetStreamContext, topic string, data []byt
 		msg.Header.Add(k, v)
 	}
 
+	fmt.Printf("msg: %v\n", msg.Subject)
+
 	var err error
 	for range []int{0, 1, 2} {
 		var ack *nats.PubAck
 		ack, err = js.PublishMsg(msg)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("error in publish jetstream: %s\n", err)
 			continue
 		}
 		fmt.Printf("msg ack: %v\n", ack)
@@ -195,6 +197,7 @@ func request(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, subje
 	logs.LogBuild.Printf("data to send: %s", data)
 	msg := nats.NewMsg(subject)
 	msg.Header = make(nats.Header)
+	msg.Reply = reply
 	msg.Data = data
 	for k, v := range headers {
 		msg.Header.Add(k, v)
@@ -327,32 +330,32 @@ func putKeyValue(conn *nats.Conn, kv nats.KeyValue, key string, data []byte) (ui
 	return rev, nil
 }
 
-func getKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64) error {
+func getKV(conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64) (nats.KeyValueEntry, error) {
 
 	if conn == nil || !conn.IsConnected() {
-		return fmt.Errorf("connection is not open")
+		return nil, fmt.Errorf("connection is not open")
 	}
 
 	kv, err := js.KeyValue(bucket)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	entry, err := kv.GetRevision(key, uint64(rev))
-	if err != nil {
-		return err
+	var entry nats.KeyValueEntry
+
+	if rev == 0 {
+		entry, err = kv.Get(key)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		entry, err = kv.GetRevision(key, uint64(rev))
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	ctx.Respond(&gwiotmsg.KvEntryMessage{
-		Bucket: entry.Bucket(),
-		Key:    entry.Key(),
-		Rev:    entry.Revision(),
-		Delta:  entry.Delta(),
-		Op:     uint32(entry.Operation()),
-		Data:   entry.Value(),
-	})
-
-	return nil
+	return entry, nil
 
 }
 

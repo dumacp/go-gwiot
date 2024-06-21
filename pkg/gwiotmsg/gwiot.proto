@@ -101,7 +101,15 @@ message subscriptionMessage {
 message watchKeyValue {
     string bucket = 1;
     string key = 2;
-    bool includeHistory = 3;
+    uint64 rev = 3;
+    bool includeHistory = 4;
+}
+
+message getKeyValue {
+    string bucket = 1;
+    string key = 2;
+    uint64 rev = 3;
+    bool includeHistory = 4;
 }
 
 message watchMessage {

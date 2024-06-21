@@ -78,7 +78,7 @@ func TestNatsActor_Receive(t *testing.T) {
 				t.Fatal(err)
 			}
 			time.Sleep(3 * time.Second)
-			propsChild := actor.PropsFromFunc(NewChildNatsio(tt.name).Receive)
+			propsChild := actor.PropsFromProducer(NewChildNatsio(tt.name))
 			pidChild, err := tt.fields.ctxroot.SpawnNamed(propsChild, fmt.Sprintf("%s-child", tt.name))
 			if err != nil {
 				t.Fatal(err)

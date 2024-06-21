@@ -29,6 +29,10 @@ type customConn struct {
 	delay time.Duration
 }
 
+var countbytes int64
+var t0 = time.Now()
+var t1 = time.Now()
+
 func (c *customConn) Read(b []byte) (int, error) {
 
 	n, err := c.Conn.Read(b)
@@ -36,8 +40,12 @@ func (c *customConn) Read(b []byte) (int, error) {
 		return n, err
 	}
 
-	log.Println("/////////////// data")
+	countbytes += int64(n)
+
+	log.Printf("/////////////// data, rate %.02f kB in %s\n", float64(countbytes)/1000, time.Since(t0))
+	log.Printf("/////////////// data, rate %.02f kB/s\n", float64(n)/(1000*time.Since(t1).Seconds()))
 	// time.Sleep(c.delay)
+	t1 = time.Now()
 
 	return n, err
 }

@@ -2,11 +2,17 @@ package renatsio
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/eventstream"
+	"github.com/coreos/go-oidc"
+	"github.com/dumacp/go-gwiot/internal/localevents"
+	"github.com/dumacp/go-gwiot/internal/utils"
+	"github.com/dumacp/go-gwiot/pkg/events"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/dumacp/go-logs/pkg/logs"
 	"github.com/nats-io/nats.go"
@@ -31,10 +37,13 @@ const (
 type NatsActor struct {
 	lastReconnect time.Time
 	url           string
+	orgID         string
+	groupName     string
 	jwtConf       *JwtConf
 	conn          *nats.Conn
 	js            nats.JetStreamContext
 	tokenSource   oauth2.TokenSource
+	userInfo      *oidc.UserInfo
 	contxt        context.Context
 	evs           *eventstream.EventStream
 	subs          map[string]*eventstream.Subscription
@@ -74,7 +83,7 @@ func subscribe(ctx actor.Context, evs *eventstream.EventStream) *eventstream.Sub
 // Receive function
 func (a *NatsActor) Receive(ctx actor.Context) {
 	fmt.Printf("message in actor: %s, msg type: %T, msg: %q\n", ctx.Self().GetId(), ctx.Message(), ctx.Message())
-	switch ctx.Message().(type) {
+	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
 		fmt.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
@@ -85,6 +94,13 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if a.subs == nil {
 			a.subs = make(map[string]*eventstream.Subscription, 0)
 		}
+
+		propsLocalEvents := actor.PropsFromFunc((&localevents.Actor{}).Receive)
+		if _, err := ctx.SpawnNamed(propsLocalEvents, "localevents-actor"); err != nil {
+			fmt.Printf("create local events actor error: %s", err)
+			logs.LogError.Printf("create local events actor error: %s", err)
+		}
+
 		if err := func() error {
 			contxt, cancel := context.WithCancel(context.TODO())
 			a.contxt = contxt
@@ -95,10 +111,11 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			var err error
 			if a.jwtConf != nil {
 				fmt.Printf("jwtConf: %s\n", a.jwtConf)
-				tks, err := TokenSource(a.jwtConf.User, a.jwtConf.Pass, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+				tks, userInfo, err := TokenSource(a.jwtConf.User, a.jwtConf.Pass, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
 				if err != nil {
 					return err
 				}
+				a.userInfo = userInfo
 				tk, err := tks.Token()
 				if err != nil {
 					return err
@@ -158,10 +175,11 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 				var err error
 				if a.jwtConf != nil {
 					fmt.Printf("jwtConf: %s\n", a.jwtConf)
-					tks, err := TokenSource(a.jwtConf.User, a.jwtConf.Pass, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+					tks, userInfo, err := TokenSource(a.jwtConf.User, a.jwtConf.Pass, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
 					if err != nil {
 						return err
 					}
+					a.userInfo = userInfo
 					tk, err := tks.Token()
 					if err != nil {
 						return err
@@ -194,6 +212,56 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			logs.LogWarn.Printf("connect nats error: %s", err)
 			a.evs.Publish(&Disconnected{Error: err})
 		}
+	case *localevents.GetGroupName:
+		ctx.Respond(&localevents.GetGroupNameResponse{GroupName: a.getGorupName()})
+	case *localevents.GetOrgID:
+		ctx.Respond(&localevents.GetOrgIDResponse{OrgID: a.getOrgID()})
+	case *GetGroupName:
+		ctx.Respond(&GetGroupNameResponse{GroupName: a.getGorupName()})
+	case *GetOrgID:
+		ctx.Respond(&GetOrgIDResponse{OrgID: a.getOrgID()})
+
+		// if len(a.orgID) > 0 {
+		// 	ctx.Respond(&GetOrgIDResponse{OrgID: a.orgID})
+		// } else if a.userInfo == nil {
+		// 	// orgId := ""
+		// 	ctx.Respond(&GetOrgIDResponse{OrgID: ""})
+		// } else {
+		// 	// fmt.Printf("claims: %v\n", a.userInfo.Claims)
+		// 	claims := make(map[string]interface{})
+		// 	if err := a.userInfo.Claims(&claims); err != nil {
+		// 		ctx.Respond(&GetOrgIDResponse{OrgID: ""})
+		// 	} else {
+		// 		fmt.Printf("claims: %v\n", claims)
+		// 		if v, ok := claims["group_name"]; ok {
+		// 			if v, ok := v.(string); ok {
+		// 				sp := strings.Split(v, "_")
+		// 				if len(sp) < 2 {
+		// 					ctx.Respond(&GetOrgIDResponse{OrgID: ""})
+		// 				} else {
+		// 					ctx.Respond(&GetOrgIDResponse{OrgID: sp[1]})
+		// 				}
+		// 			}
+		// 		} else {
+		// 			ctx.Respond(&GetOrgIDResponse{OrgID: ""})
+		// 		}
+		// 	}
+		// }
+	case *events.Message[string, int]:
+		if a.conn == nil || a.js == nil {
+			break
+		}
+		orgId := a.getOrgID()
+		groupName := strings.Split(a.getGorupName(), "_")[0]
+		hostname := utils.Hostname()
+		msg.GroupName(groupName).OrganizationId(orgId).DeviceSerial(hostname)
+		data, err := json.Marshal(msg)
+		if err != nil {
+			fmt.Printf("marshal error: %s\n", err)
+			break
+		}
+		fmt.Printf("message to send (topic: %q): %s\n", fmt.Sprintf("Events.%s.%s", hostname, msg.Type()), string(data))
+		publish(a.conn, a.js, fmt.Sprintf("Events.%s", msg.Type()), data, map[string]string{"org_id": orgId, "snDevice": hostname})
 	case *gwiotmsg.Ping:
 		if ctx.Sender() != nil {
 			ctx.Respond(&gwiotmsg.Pong{})

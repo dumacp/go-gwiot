@@ -80,7 +80,7 @@ func main() {
 	portlocal := portlocal()
 	rconfig := remote.Configure("127.0.0.1", portlocal)
 	r := remote.NewRemote(sys, rconfig)
-	prposNatsioclient := actor.PropsFromFunc(renatsio.NewChildNatsio(fmt.Sprintf("%s/%s", ACTOR_INTSANCE_ID, renatsio.INSTANCE_ID)).Receive)
+	prposNatsioclient := actor.PropsFromProducer(renatsio.NewChildNatsio(fmt.Sprintf("%s/%s", ACTOR_INTSANCE_ID, renatsio.INSTANCE_ID)))
 	r.Register(gwiot.KIND_NAME, prposNatsioclient)
 	r.Start()
 
@@ -94,7 +94,7 @@ func main() {
 
 	props := actor.PropsFromFunc(
 		func(ctx actor.Context) {
-			fmt.Printf("message in actor: %s, msg type: %T, msg: %q\n", ctx.Self().GetId(), ctx.Message(), ctx.Message())
+			fmt.Printf("message in actor main Actor: %s, msg type: %T, msg: %q\n", ctx.Self().GetId(), ctx.Message(), ctx.Message())
 			switch msg := ctx.Message().(type) {
 			case *actor.Started:
 				logs.LogInfo.Printf("started actor %q", ctx.Self().GetId())

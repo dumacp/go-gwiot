@@ -10,3 +10,12 @@ type Disconnected struct {
 type ConnectionResponse struct {
 	Conn *nats.Conn
 }
+
+type GetOrgID struct{}
+type GetGroupName struct{}
+type GetOrgIDResponse struct {
+	OrgID string
+}
+type GetGroupNameResponse struct {
+	GroupName string
+}

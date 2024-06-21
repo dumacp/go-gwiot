@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coreos/go-oidc"
 	"github.com/dumacp/go-gwiot/internal/keyc"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"golang.org/x/oauth2"
 )
 
-func TokenSource(user, pass, keycloakUrl, realm, clientid, clientsecret string) (oauth2.TokenSource, error) {
+func TokenSource(user, pass, keycloakUrl, realm, clientid, clientsecret string) (oauth2.TokenSource, *oidc.UserInfo, error) {
 
 	ctx_ := context.TODO()
 	dialer := &net.Dialer{

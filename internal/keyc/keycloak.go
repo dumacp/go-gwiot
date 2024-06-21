@@ -66,12 +66,12 @@ func tokenSorce(ctx context.Context, keyc keycloak.Keycloak, username, password 
 	return ts, nil
 }
 
-func TokenSource(ctx context.Context, username, password, url, realm, clientid, clientsecret string) (oauth2.TokenSource, error) {
+func TokenSource(ctx context.Context, username, password, url, realm, clientid, clientsecret string) (oauth2.TokenSource, *oidc.UserInfo, error) {
 
 	issuer := fmt.Sprintf("%s/realms/%s", url, realm)
 	provider, err := oidc.NewProvider(ctx, issuer)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	config := &oauth2.Config{
@@ -84,9 +84,20 @@ func TokenSource(ctx context.Context, username, password, url, realm, clientid, 
 
 	tk, err := config.PasswordCredentialsToken(ctx, username, password)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	ts := config.TokenSource(ctx, tk)
-	return ts, nil
+
+	userInfo, err := provider.UserInfo(ctx, ts)
+	if err != nil {
+		return nil, nil, err
+	}
+	fmt.Printf("userInfo: %s\n", userInfo)
+	return ts, userInfo, nil
+
+}
+
+func Info() {
 
 }
