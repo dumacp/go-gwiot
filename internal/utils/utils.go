@@ -24,8 +24,15 @@ const (
 )
 
 var (
-	RemoteBrokerURL string
-	hostname        string
+	RemoteBrokerURL           string
+	Url                       string
+	User                      string
+	PassCode                  string
+	ExternalRemoteBrokerURL   string
+	ExternalRemoteBrokerUser  string
+	ExternalRemoteBrokerPass  string
+	ExternalRemoteBrokerTopic string
+	hostname                  string
 )
 
 // SetHostname test name

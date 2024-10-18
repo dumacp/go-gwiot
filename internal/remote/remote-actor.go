@@ -9,6 +9,7 @@ import (
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/database"
+	"github.com/dumacp/go-gwiot/internal/parameters"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/messages"
 	"github.com/dumacp/go-logs/pkg/logs"
@@ -31,19 +32,20 @@ type JwtConf struct {
 
 // RemoteActor remote actor
 type RemoteActor struct {
-	ctx            actor.Context
-	lastReconnect  time.Time
-	lastSendedMsg  time.Time
-	lastRetry      time.Time
-	propsClient    *actor.Props
-	pidClient      *actor.PID
-	retryDays      int
-	retryFlag      bool
-	disableReplay  bool
-	isDatabaseOpen bool
-	isConnected    bool
-	db             database.DBservice
-	cancel         func()
+	ctx               actor.Context
+	lastReconnect     time.Time
+	lastSendedMsg     time.Time
+	lastRetry         time.Time
+	propsClient       *actor.Props
+	pidClient         *actor.PID
+	pidExternalClient *actor.PID
+	retryDays         int
+	retryFlag         bool
+	disableReplay     bool
+	isDatabaseOpen    bool
+	isConnected       bool
+	db                database.DBservice
+	cancel            func()
 }
 
 // NewRemote new remote actor
@@ -107,6 +109,11 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		if ps.cancel != nil {
 			ps.cancel()
 		}
+	case *parameters.GetPlatformParameters:
+		if ctx.Sender() == nil {
+			break
+		}
+		ctx.RequestWithCustomSender(ctx.Parent(), msg, ctx.Sender())
 	case *verifyRetry:
 		if !ps.retryFlag || time.Since(ps.lastRetry) < 6*time.Second {
 			break
@@ -219,6 +226,25 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 					logs.LogError.Printf("storage data (id: %s) %q error: %s", uid, data, err)
 				}
 			}
+		}
+	case *messages.ExternalEvent:
+		if err := func(data []byte) error {
+			if ps.pidClient == nil {
+				return fmt.Errorf("external client is nil")
+			}
+			fmt.Printf("new external data to send: %q\n", data)
+			res, err := ctx.RequestFuture(ps.pidExternalClient, &MsgExternalSendData{
+				Data: data,
+			}, 5*time.Second).Result()
+			if err != nil {
+				return fmt.Errorf("publish external error -> %s, message -> %s", err, data)
+			}
+			if err, ok := res.(*MsgError); ok {
+				return fmt.Errorf("publish external error -> %s, message -> %s", err, data)
+			}
+			return nil
+		}(msg.Data); err != nil {
+			logs.LogWarn.Printf("external send error: %s", err)
 		}
 	case *actor.Stopped:
 		logs.LogError.Println("Stopped, actor and its children are stopped")

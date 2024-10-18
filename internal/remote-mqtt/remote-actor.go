@@ -3,9 +3,11 @@ package remqtt
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
+	"github.com/dumacp/go-gwiot/internal/parameters"
 	"github.com/dumacp/go-gwiot/internal/remote"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-logs/pkg/logs"
@@ -33,15 +35,17 @@ type JwtConf struct {
 
 // RemoteActor remote actor
 type RemoteActor struct {
-	ctx           actor.Context
-	client        mqtt.Client
-	tokenSource   oauth2.TokenSource
-	lastSendedMsg time.Time
-	lastRetry     time.Time
-	jwtConf       *JwtConf
-	cancel        func()
-	test          bool
-	retryFlag     bool
+	ctx            actor.Context
+	client         mqtt.Client
+	clientExternal mqtt.Client
+	tokenSource    oauth2.TokenSource
+	lastSendedMsg  time.Time
+	lastRetry      time.Time
+	jwtConf        *JwtConf
+	placa          string
+	cancel         func()
+	test           bool
+	retryFlag      bool
 	// disableReplay bool
 }
 
@@ -61,6 +65,7 @@ func NewRemote(test bool, conf *JwtConf) *RemoteActor {
 // }
 
 type reconnectRemote struct{}
+type reconnectExternalRemote struct{}
 type verifyReplay struct{}
 type verifyRetry struct{}
 type MsgTick struct{}
@@ -92,9 +97,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				break
 			}
 			ps.tokenSource = tks
-			ps.client = clientWithJwt(tk)
+			ps.client = clientWithJwt(tk, utils.RemoteBrokerURL)
 		} else {
-			ps.client = clientWithoutAuth()
+			ps.client = clientWithoutAuth(utils.RemoteBrokerURL)
 		}
 
 		if err := connect(ps.client); err != nil {
@@ -115,6 +120,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	case *MsgTick:
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
 			ctx.Send(ctx.Self(), &reconnectRemote{})
+		}
+		if ps.clientExternal == nil || !ps.clientExternal.IsConnectionOpen() {
+			ctx.Send(ctx.Self(), &reconnectExternalRemote{})
 		}
 	case *verifyRetry:
 		if !ps.retryFlag || time.Since(ps.lastRetry) < 6*time.Second {
@@ -148,9 +156,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 					}
 					ps.tokenSource = tks
 				}
-				ps.client = clientWithJwt(tk)
+				ps.client = clientWithJwt(tk, utils.RemoteBrokerURL)
 			} else {
-				ps.client = clientWithoutAuth()
+				ps.client = clientWithoutAuth(utils.RemoteBrokerURL)
 			}
 			if err := connect(ps.client); err != nil {
 				return err
@@ -161,6 +169,29 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				if ctx.Parent() != nil {
 					ctx.Request(ctx.Parent(), &remote.MsgReconnect{})
 				}
+			}
+			return nil
+		}(); err != nil {
+			logs.LogWarn.Println(err)
+			if ps.client != nil {
+				ps.client.Disconnect(300)
+			}
+		}
+	case *reconnectExternalRemote:
+		if err := func() error {
+			if ps.clientExternal != nil && ps.client.IsConnectionOpen() {
+				return nil
+			}
+			fmt.Printf("external client  RECONNECT (%q)\n", utils.ExternalRemoteBrokerURL)
+			if len(utils.ExternalRemoteBrokerUser) > 0 {
+				ps.clientExternal = clientWithUserPass(utils.RemoteBrokerURL, utils.ExternalRemoteBrokerUser, utils.ExternalRemoteBrokerPass)
+			} else {
+				ps.clientExternal = clientWithoutAuth(utils.RemoteBrokerURL)
+			}
+			if err := connect(ps.clientExternal); err != nil {
+				return err
+			} else {
+				fmt.Printf("external client RECONNECT SUCESSFULL (%q)\n", utils.ExternalRemoteBrokerURL)
 			}
 			return nil
 		}(); err != nil {
@@ -186,6 +217,31 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 					Error: err,
 				})
 			}
+		}
+	case *parameters.PlatformParameters:
+		if msg.Props != nil && len(msg.Props.DEV_PID) > 0 {
+			ps.placa = msg.Props.DEV_PID
+		}
+	case *remote.MsgExternalSendData:
+		if err := func() error {
+			if len(utils.ExternalRemoteBrokerURL) <= 0 {
+				return fmt.Errorf("external broker url is empty")
+			}
+			if len(ps.placa) <= 0 {
+				ctx.Request(ctx.Parent(), &parameters.GetPlatformParameters{})
+				return fmt.Errorf("placa is empty")
+			}
+			topic := fmt.Sprintf("%s/%s", utils.ExternalRemoteBrokerTopic, strings.ToUpper(ps.placa))
+			if _, err := sendMSG(ps.clientExternal, topic, msg.Data, ps.test); err != nil {
+				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.Data)
+			}
+			if ctx.Sender() != nil {
+				ctx.Respond(&remote.MsgAck{})
+			}
+			return nil
+		}(); err != nil {
+			fmt.Printf("external send error: %s\n", err)
+			logs.LogError.Printf("external send error: %s", err)
 		}
 	case *actor.Stopped:
 		logs.LogError.Println("Stopped, actor and its children are stopped")

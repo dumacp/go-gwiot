@@ -4,6 +4,10 @@ type MsgSendData struct {
 	Data    []byte
 	Subject string
 }
+type MsgExternalSendData struct {
+	Data    []byte
+	Subject string
+}
 type MsgAck struct {
 }
 type MsgError struct {

@@ -10,11 +10,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func client(tk *oauth2.Token, user, pass string) mqtt.Client {
+func client(tk *oauth2.Token, url, user, pass string) mqtt.Client {
 	tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
 
 	opt := mqtt.NewClientOptions()
-	opt.AddBroker(utils.RemoteBrokerURL)
+	opt.AddBroker(url)
 	opt.SetConnectRetry(true)
 	opt.SetAutoReconnect(false)
 	opt.SetConnectRetryInterval(10 * time.Second)
@@ -37,16 +37,16 @@ func client(tk *oauth2.Token, user, pass string) mqtt.Client {
 	return client
 }
 
-func clientWithJwt(tk *oauth2.Token) mqtt.Client {
-	return client(tk, "", "")
+func clientWithJwt(tk *oauth2.Token, url string) mqtt.Client {
+	return client(tk, url, "", "")
 }
 
-func clientWithUserPass(user, pass string) mqtt.Client {
-	return client(nil, user, pass)
+func clientWithUserPass(url, user, pass string) mqtt.Client {
+	return client(nil, url, user, pass)
 }
 
-func clientWithoutAuth() mqtt.Client {
-	return client(nil, "", "")
+func clientWithoutAuth(url string) mqtt.Client {
+	return client(nil, url, "", "")
 }
 
 func connect(c mqtt.Client) error {
@@ -73,7 +73,7 @@ func sendMSG(client mqtt.Client, topic string, data []byte, test bool) (bool, er
 		topicSend = topic
 	}
 
-	logs.LogBuild.Printf("data to send in mqtt: %s", data)
+	logs.LogBuild.Printf("data to send in mqtt (%s): %s", topic, data)
 	tk := client.Publish(topicSend, 0, false, data)
 
 	for range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} {

@@ -3,11 +3,14 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/AsynkronIT/protoactor-go/actor"
 	"github.com/dumacp/go-gwiot/internal/events"
 	"github.com/dumacp/go-gwiot/internal/keyc"
+	"github.com/dumacp/go-gwiot/internal/parameters"
 	"github.com/dumacp/go-gwiot/internal/state"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/messages"
@@ -58,6 +61,7 @@ type App struct {
 	pidKeycloak *actor.PID
 	pidRemote   *actor.PID
 	propsRemote *actor.Props
+	httpClient  *http.Client
 	snDev       string
 }
 
@@ -130,6 +134,33 @@ func (app *App) Receive(ctx actor.Context) {
 				logs.LogError.Panic(err)
 			}
 		}
+	case *parameters.GetPlatformParameters:
+		if ctx.Sender() == nil {
+			break
+		}
+		if err := func() error {
+			url := fmt.Sprintf("%s/%s", utils.Url, utils.Hostname())
+			resp, err := utils.Get(app.httpClient, url, utils.User, utils.PassCode, nil)
+			if err != nil {
+				return err
+			}
+			logs.LogBuild.Printf("Get url: %s", url)
+			logs.LogBuild.Printf("Get response, GetParameters: %s", resp)
+			var result parameters.PlatformParameters
+			if err := json.Unmarshal(resp, &result); err != nil {
+				return err
+			}
+			if len(result.ID) <= 0 {
+				return fmt.Errorf("params error: null entity response -> %v", &result)
+			}
+			if result.Props == nil || len(result.Props.DEV_PID) <= 0 {
+				return fmt.Errorf("params error: null entity response -> %v", &result)
+			}
+			ctx.Respond(&result)
+			return nil
+		}(); err != nil {
+			logs.LogError.Printf("get params error: %s", err)
+		}
 	case *messages.GroupIDRequest:
 		if app.pidKeycloak == nil {
 			break
@@ -167,6 +198,20 @@ func (app *App) Receive(ctx actor.Context) {
 		}
 		ctx.Send(app.pidRemote, &messages.RemoteMSG2{State: dataState, Events: dataEvents, Serial: app.snDev, Retry: 0, TimeStamp: time.Now().Unix(), Version: 2, Data: nil})
 	case *events.Events:
+		for _, event := range *msg {
+			for k, v := range event {
+				if strings.EqualFold(k, "tp") {
+					if strings.EqualFold(v.(string), "GPRMC") ||
+						strings.EqualFold(v.(string), "GPGGA") {
+						data, err := json.Marshal(event)
+						if err != nil {
+							logs.LogWarn.Printf("external events messages error -> %q", err)
+						}
+						ctx.Send(app.pidRemote, &messages.ExternalEvent{Data: data})
+					}
+				}
+			}
+		}
 		if len(app.snDev) <= 0 {
 			app.snDev = utils.Hostname()
 		}
