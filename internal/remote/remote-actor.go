@@ -190,7 +190,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	case *messages.RemoteMSG2:
 		data := prepareMSG(msg)
 		if err := func(data []byte) error {
-			fmt.Printf("new data to send: %q\n", data)
+			fmt.Printf("new data to send: %s\n", data)
 			if !ps.isConnected {
 				return fmt.Errorf("client is not connected")
 			}
@@ -210,6 +210,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			ps.lastSendedMsg = time.Now()
 			return nil
 		}(data); err != nil {
+			fmt.Printf("send error: %s\n", err)
 			logs.LogWarn.Printf("send error: %s", err)
 			if ps.db != nil && !ps.isDatabaseOpen {
 				if err := ps.db.Open(); err != nil {
@@ -231,7 +232,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if ps.pidClient == nil {
 				return fmt.Errorf("external client is nil")
 			}
-			fmt.Printf("new external data to send: %q\n", data)
+			fmt.Printf("new external data to send: %s\n", data)
 			res, err := ctx.RequestFuture(ps.pidClient, &MsgExternalSendData{
 				Data: data,
 			}, 5*time.Second).Result()
@@ -243,6 +244,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			}
 			return nil
 		}(msg.Data); err != nil {
+			fmt.Printf("external send error: %s\n", err)
 			logs.LogWarn.Printf("external send error: %s", err)
 		}
 	case *actor.Stopped:

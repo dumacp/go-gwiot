@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/dumacp/go-gwiot/internal/utils"
+	"github.com/dumacp/go-logs/pkg/logs"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"golang.org/x/oauth2"
 )
@@ -72,7 +73,7 @@ func sendMSG(client mqtt.Client, topic string, data []byte, test bool) (bool, er
 		topicSend = topic
 	}
 
-	fmt.Printf("data to send in mqtt (%s): %s\n", topic, data)
+	logs.LogBuild.Printf("data to send in mqtt (%s): %s\n", topic, data)
 	tk := client.Publish(topicSend, 0, false, data)
 
 	for range []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9} {
