@@ -32,20 +32,19 @@ type JwtConf struct {
 
 // RemoteActor remote actor
 type RemoteActor struct {
-	ctx               actor.Context
-	lastReconnect     time.Time
-	lastSendedMsg     time.Time
-	lastRetry         time.Time
-	propsClient       *actor.Props
-	pidClient         *actor.PID
-	pidExternalClient *actor.PID
-	retryDays         int
-	retryFlag         bool
-	disableReplay     bool
-	isDatabaseOpen    bool
-	isConnected       bool
-	db                database.DBservice
-	cancel            func()
+	ctx            actor.Context
+	lastReconnect  time.Time
+	lastSendedMsg  time.Time
+	lastRetry      time.Time
+	propsClient    *actor.Props
+	pidClient      *actor.PID
+	retryDays      int
+	retryFlag      bool
+	disableReplay  bool
+	isDatabaseOpen bool
+	isConnected    bool
+	db             database.DBservice
+	cancel         func()
 }
 
 // NewRemote new remote actor
@@ -233,7 +232,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				return fmt.Errorf("external client is nil")
 			}
 			fmt.Printf("new external data to send: %q\n", data)
-			res, err := ctx.RequestFuture(ps.pidExternalClient, &MsgExternalSendData{
+			res, err := ctx.RequestFuture(ps.pidClient, &MsgExternalSendData{
 				Data: data,
 			}, 5*time.Second).Result()
 			if err != nil {
