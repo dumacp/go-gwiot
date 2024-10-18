@@ -221,6 +221,7 @@ func getENV() {
 	fmt.Printf("realm: %s\n", keyc.Realm)
 	fmt.Printf("clientSecret: %s\n", keyc.ClientSecret)
 	fmt.Printf("clientid: %s\n", keyc.Clientid)
+	fmt.Printf("url: %s\n", utils.Url)
 	// fmt.Printf("externalRemoteBrokerURL: %s\n", utils.ExternalRemoteBrokerURL)
 	// fmt.Printf("externalRemoteBrokerUser: %s\n", utils.ExternalRemoteBrokerUser)
 	// fmt.Printf("externalRemoteBrokerPass: %s\n", utils.ExternalRemoteBrokerPass)
