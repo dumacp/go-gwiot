@@ -71,6 +71,7 @@ func (a *Actor) Receive(ctx actor.Context) {
 				return fmt.Errorf("params error: null entity response -> %v", &result)
 			}
 			a.params = &result
+			fmt.Printf("Get response, GetParameters: %v\n", &result)
 			ctx.Send(ctx.Parent(), &result)
 			return nil
 		}(); err != nil {
