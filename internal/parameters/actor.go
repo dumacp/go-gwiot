@@ -53,13 +53,13 @@ func (a *Actor) Receive(ctx actor.Context) {
 			break
 		}
 		if err := func() error {
-			url := fmt.Sprintf("%s/%s", utils.Url, utils.Hostname())
+			url := fmt.Sprintf("%s/%s/%s", utils.Url, Uri, utils.Hostname())
 			resp, err := utils.Get(a.httpClient, url, utils.User, utils.PassCode, nil)
 			if err != nil {
 				return err
 			}
-			logs.LogBuild.Printf("Get url: %s", url)
-			logs.LogBuild.Printf("Get response, GetParameters: %s", resp)
+			fmt.Printf("Get url: %s\n", url)
+			fmt.Printf("Get response, GetParameters: %s\n", resp)
 			var result PlatformParameters
 			if err := json.Unmarshal(resp, &result); err != nil {
 				return err
@@ -75,6 +75,7 @@ func (a *Actor) Receive(ctx actor.Context) {
 			ctx.Send(ctx.Parent(), &result)
 			return nil
 		}(); err != nil {
+			fmt.Printf("get params error: %s\n", err)
 			logs.LogError.Printf("get params error: %s", err)
 		}
 
