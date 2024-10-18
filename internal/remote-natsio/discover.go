@@ -29,8 +29,9 @@ func Parse(m []byte) interface{} {
 }
 
 func (a *DiscoveryActor) Receive(ctx actor.Context) {
-	logs.LogBuild.Printf("Message arrived in %s: %s, %T, %s",
-		ctx.Self().GetId(), ctx.Message(), ctx.Message(), ctx.Sender())
+	logs.LogBuild.Printf("Message arrived in %s: %T, %s",
+		ctx.Self().GetId(), ctx.Message(), ctx.Sender())
+	fmt.Printf("Message arrived in %s: %T, %s\n", ctx.Self().GetId(), ctx.Message(), ctx.Sender())
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		if err := a.FuncSub(a.TopicReply, ctx.Self(), Parse); err != nil {

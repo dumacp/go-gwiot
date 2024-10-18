@@ -111,7 +111,7 @@ func listKV(conn *nats.Conn, js nats.JetStreamContext, bucket string) ([]string,
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("/////////////////////// streamInfo: %v\n", si)
+	fmt.Printf("/////////////// streamInfo: %v\n", si)
 
 	opts := make([]nats.WatchOpt, 0)
 
@@ -142,7 +142,7 @@ func wathcKV(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("/////////////////////// watch streamInfo: %v\n", si)
+	fmt.Printf("/////////////// watch streamInfo: %v\n", si)
 
 	// sub, err := js.Subscribe(fmt.Sprintf("$KV.FMS-DEV-ROUTES.%s", key), func(msg *nats.Msg) {
 	// 	fmt.Printf("PUB DATA: %s (%v)\n", msg.Data, msg.Header)

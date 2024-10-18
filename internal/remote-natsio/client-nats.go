@@ -27,7 +27,7 @@ func connect(urli string, tk *oauth2.Token) (*nats.Conn, error) {
 		return nil, err
 	}
 
-	tlsconfig := utils.LoadLocalCert(utils.LocalCertDir)
+	tlsconfig, _ := utils.LoadLocalCert()
 
 	opts := make([]nats.Option, 0)
 	if strings.Contains(uri.Scheme, "https") || strings.Contains(uri.Scheme, "wss") {
@@ -330,7 +330,7 @@ func putKeyValue(conn *nats.Conn, kv nats.KeyValue, key string, data []byte) (ui
 	return rev, nil
 }
 
-func getKV(conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64) (nats.KeyValueEntry, error) {
+func getKV(conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64, hist bool) ([]nats.KeyValueEntry, error) {
 
 	if conn == nil || !conn.IsConnected() {
 		return nil, fmt.Errorf("connection is not open")
@@ -341,21 +341,29 @@ func getKV(conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev ui
 		return nil, err
 	}
 
-	var entry nats.KeyValueEntry
+	entries := make([]nats.KeyValueEntry, 0)
 
-	if rev == 0 {
-		entry, err = kv.Get(key)
+	if hist {
+		ents, err := kv.History(key)
 		if err != nil {
 			return nil, err
 		}
+		entries = append(entries, ents...)
+	} else if rev == 0 {
+		entry, err := kv.Get(key)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, entry)
 	} else {
-		entry, err = kv.GetRevision(key, uint64(rev))
+		entry, err := kv.GetRevision(key, uint64(rev))
 		if err != nil {
 			return nil, err
 		}
+		entries = append(entries, entry)
 	}
 
-	return entry, nil
+	return entries, nil
 
 }
 

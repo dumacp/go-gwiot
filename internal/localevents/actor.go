@@ -42,8 +42,8 @@ func parseState(msg []byte) interface{} {
 
 // Receive func Receive in actor
 func (a *Actor) Receive(ctx actor.Context) {
-	logs.LogBuild.Printf("Message arrived in gpsActor: %T, %s",
-		ctx.Message(), ctx.Sender())
+	logs.LogBuild.Printf("Message arrived in %q: %T, %s",
+		ctx.Self().GetId(), ctx.Message(), ctx.Sender())
 	// logs.LogBuild.Printf("Message arrived in gpsActor: %s, %T, %s",
 	// 	ctx.Message(), ctx.Message(), ctx.Sender())
 

@@ -377,6 +377,28 @@ func MessageFromEvent(event *Event) *Message[string, int] {
 	case "tagValidation":
 		messageGroup.AddType("TAG_VALIDATION_EVT").AddTypeVersion(1)
 
+	case "READER_EVT":
+		/* SAMPLE
+		{
+			"t": 1619556274580,
+			"tp": "READER_EVT",
+			"vl": {
+				"error": "error description",
+				"state": false
+			}
+		}
+		*/
+
+		vl, _ := event.Value.(map[string]interface{})
+		errorDesc, _ := vl["error"].(string)
+		state, _ := vl["state"].(bool)
+
+		messageGroup.AddType("READER_EVT").AddTypeVersion(1).BodyContent(map[string]interface{}{
+			"t": event.Timestamp,
+			"e": errorDesc,
+			"s": state,
+		})
+
 	}
 
 	return messageGroup

@@ -35,7 +35,7 @@ func newKeyConfig() *keycloak.ServerConfig {
 
 func newHTTPContext(ctx context.Context, client *http.Client) context.Context {
 	if client == nil {
-		tlsConfig := utils.LoadLocalCert(utils.LocalCertDir)
+		tlsConfig, _ := utils.LoadLocalCert()
 		tr := &http.Transport{
 			TLSClientConfig: tlsConfig,
 		}
@@ -66,12 +66,12 @@ func tokenSorce(ctx context.Context, keyc keycloak.Keycloak, username, password 
 	return ts, nil
 }
 
-func TokenSource(ctx context.Context, username, password, url, realm, clientid, clientsecret string) (oauth2.TokenSource, *oidc.UserInfo, error) {
+func Oauth2Config(ctx context.Context, url, realm, clientid, clientsecret string) (*oauth2.Config, error) {
 
 	issuer := fmt.Sprintf("%s/realms/%s", url, realm)
 	provider, err := oidc.NewProvider(ctx, issuer)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	config := &oauth2.Config{
@@ -81,23 +81,39 @@ func TokenSource(ctx context.Context, username, password, url, realm, clientid, 
 		RedirectURL:  url,
 		Scopes:       []string{oidc.ScopeOpenID},
 	}
+	return config, nil
+}
+
+func TokenSource(ctx context.Context, config *oauth2.Config, url, realm, username, password string) (oauth2.TokenSource, error) {
+
+	// config := &oauth2.Config{
+	// 	ClientID:     clientid,
+	// 	ClientSecret: clientsecret,
+	// 	Endpoint:     provider.Endpoint(),
+	// 	RedirectURL:  url,
+	// 	Scopes:       []string{oidc.ScopeOpenID},
+	// }
 
 	tk, err := config.PasswordCredentialsToken(ctx, username, password)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	ts := config.TokenSource(ctx, tk)
 
-	userInfo, err := provider.UserInfo(ctx, ts)
-	if err != nil {
-		return nil, nil, err
-	}
-	fmt.Printf("userInfo: %s\n", userInfo)
-	return ts, userInfo, nil
+	return ts, nil
 
 }
 
-func Info() {
-
+func UserInfo(ctx context.Context, ts oauth2.TokenSource, url, realm string) (*oidc.UserInfo, error) {
+	issuer := fmt.Sprintf("%s/realms/%s", url, realm)
+	provider, err := oidc.NewProvider(ctx, issuer)
+	if err != nil {
+		return nil, err
+	}
+	userInfo, err := provider.UserInfo(ctx, ts)
+	if err != nil {
+		return nil, err
+	}
+	return userInfo, nil
 }

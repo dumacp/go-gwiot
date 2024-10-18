@@ -40,15 +40,18 @@ type NatsActor struct {
 	orgID         string
 	groupName     string
 	jwtConf       *JwtConf
-	conn          *nats.Conn
-	js            nats.JetStreamContext
-	tokenSource   oauth2.TokenSource
-	userInfo      *oidc.UserInfo
-	contxt        context.Context
-	evs           *eventstream.EventStream
-	subs          map[string]*eventstream.Subscription
-	cancel        func()
-	test          bool
+	// httpClient    *http.Client
+	conn        *nats.Conn
+	js          nats.JetStreamContext
+	contextHttp context.Context
+	tokenSource oauth2.TokenSource
+	userInfo    *oidc.UserInfo
+	config      *oauth2.Config
+	contxt      context.Context
+	evs         *eventstream.EventStream
+	subs        map[string]*eventstream.Subscription
+	cancel      func()
+	test        bool
 }
 
 // NewRemote new remote actor
@@ -102,7 +105,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}
 
 		if err := func() error {
-			contxt, cancel := context.WithCancel(context.TODO())
+			contxt, cancel := context.WithCancel(context.Background())
 			a.contxt = contxt
 			a.cancel = cancel
 
@@ -111,16 +114,30 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			var err error
 			if a.jwtConf != nil {
 				fmt.Printf("jwtConf: %s\n", a.jwtConf)
-				tks, userInfo, err := TokenSource(a.jwtConf.User, a.jwtConf.Pass, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+
+				contxtHttp := ContextWithHTTPClient(context.TODO())
+				a.contextHttp = contxtHttp
+				config, err := Oauth2Config(contxtHttp, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+				if err != nil {
+					return err
+				}
+				a.config = config
+				tks, err := TokenSource(contxtHttp, config, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.User, a.jwtConf.Pass)
+				if err != nil {
+					return err
+				}
+				userInfo, err := UserInfo(contxtHttp, tks, a.jwtConf.KeycloakURL, a.jwtConf.Realm)
 				if err != nil {
 					return err
 				}
 				a.userInfo = userInfo
+
 				tk, err := tks.Token()
 				if err != nil {
 					return err
 				}
 				a.tokenSource = tks
+				fmt.Printf("token: %s\n", tk.AccessToken)
 				a.conn, err = connectWithJwt(a.url, tk)
 				if err != nil {
 					return err
@@ -141,7 +158,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			}
 			return nil
 		}(); err != nil {
-			logs.LogWarn.Printf("connect nats error: %s", err)
+			logs.LogWarn.Printf("connect nats error (url: %s): %s", a.url, err)
 			// a.evs.Publish(&Disconnected{Error: err})
 		}
 		logs.LogInfo.Printf("Started, actor, pid: %v\n", ctx.Self())
@@ -175,16 +192,30 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 				var err error
 				if a.jwtConf != nil {
 					fmt.Printf("jwtConf: %s\n", a.jwtConf)
-					tks, userInfo, err := TokenSource(a.jwtConf.User, a.jwtConf.Pass, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+					contxtHttp := ContextWithHTTPClient(context.TODO())
+					a.contextHttp = contxtHttp
+					config, err := Oauth2Config(contxtHttp, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+					if err != nil {
+						return err
+					}
+					a.config = config
+					tks, err := TokenSource(contxtHttp, config, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.User, a.jwtConf.Pass)
+					if err != nil {
+						return err
+					}
+					userInfo, err := UserInfo(contxtHttp, tks, a.jwtConf.KeycloakURL, a.jwtConf.Realm)
 					if err != nil {
 						return err
 					}
 					a.userInfo = userInfo
+
 					tk, err := tks.Token()
 					if err != nil {
 						return err
 					}
+					fmt.Printf("token: %s\n", tk.AccessToken)
 					a.tokenSource = tks
+
 					a.conn, err = connectWithJwt(a.url, tk)
 					if err != nil {
 						return err
@@ -220,33 +251,6 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		ctx.Respond(&GetGroupNameResponse{GroupName: a.getGorupName()})
 	case *GetOrgID:
 		ctx.Respond(&GetOrgIDResponse{OrgID: a.getOrgID()})
-
-		// if len(a.orgID) > 0 {
-		// 	ctx.Respond(&GetOrgIDResponse{OrgID: a.orgID})
-		// } else if a.userInfo == nil {
-		// 	// orgId := ""
-		// 	ctx.Respond(&GetOrgIDResponse{OrgID: ""})
-		// } else {
-		// 	// fmt.Printf("claims: %v\n", a.userInfo.Claims)
-		// 	claims := make(map[string]interface{})
-		// 	if err := a.userInfo.Claims(&claims); err != nil {
-		// 		ctx.Respond(&GetOrgIDResponse{OrgID: ""})
-		// 	} else {
-		// 		fmt.Printf("claims: %v\n", claims)
-		// 		if v, ok := claims["group_name"]; ok {
-		// 			if v, ok := v.(string); ok {
-		// 				sp := strings.Split(v, "_")
-		// 				if len(sp) < 2 {
-		// 					ctx.Respond(&GetOrgIDResponse{OrgID: ""})
-		// 				} else {
-		// 					ctx.Respond(&GetOrgIDResponse{OrgID: sp[1]})
-		// 				}
-		// 			}
-		// 		} else {
-		// 			ctx.Respond(&GetOrgIDResponse{OrgID: ""})
-		// 		}
-		// 	}
-		// }
 	case *events.Message[string, int]:
 		if a.conn == nil || a.js == nil {
 			break
@@ -261,10 +265,56 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			break
 		}
 		fmt.Printf("message to send (topic: %q): %s\n", fmt.Sprintf("Events.%s.%s", hostname, msg.Type()), string(data))
-		publish(a.conn, a.js, fmt.Sprintf("Events.%s", msg.Type()), data, map[string]string{"org_id": orgId, "snDevice": hostname})
+		subj := calcSubject(hostname)
+		publish(a.conn, a.js, fmt.Sprintf("Events.%s.%s", subj, hostname), data, map[string]string{"org_id": orgId, "snDevice": hostname, "type": msg.Type()})
 	case *gwiotmsg.Ping:
 		if ctx.Sender() != nil {
 			ctx.Respond(&gwiotmsg.Pong{})
+		}
+	case *gwiotmsg.HttpPostRequest:
+		if err := func() error {
+			if a.tokenSource == nil {
+				return fmt.Errorf("not oauth2 token source")
+			}
+			if a.config == nil {
+				return fmt.Errorf("not oauth2 config")
+			}
+			tk, err := a.tokenSource.Token()
+			if err != nil {
+				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
+				return err
+			}
+			if a.contextHttp == nil {
+				return fmt.Errorf("not http context")
+			}
+
+			contxt, cancel := context.WithCancel(a.contextHttp)
+			defer cancel()
+			httpClient := a.config.Client(contxt, tk)
+
+			if httpClient == nil {
+				return fmt.Errorf("not http client")
+			}
+			if response, code, err := utils.Post(httpClient, msg.Url, "", "", msg.GetData()); err != nil {
+				// fmt.Printf("http error 33: %s\n", err)
+				fmt.Printf("http response: %s\n", response)
+				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
+				ctx.Respond(&gwiotmsg.HttpPostResponse{
+					Error: err.Error(),
+					Data:  response,
+					Code:  int32(code),
+				})
+			} else {
+
+				ctx.Respond(&gwiotmsg.HttpPostResponse{
+					Data:  response,
+					Code:  int32(code),
+					Error: "",
+				})
+			}
+			return nil
+		}(); err != nil {
+			ctx.Respond(&gwiotmsg.HttpPostResponse{Error: err.Error()})
 		}
 	case *actor.Stopping:
 		if a.cancel != nil {

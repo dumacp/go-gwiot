@@ -52,7 +52,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		var pid *actor.PID
 		for range []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10} {
 			pid = actor.NewPID(ctx.Self().GetAddress(), a.parentId)
-			fmt.Printf("////////////////// pid: %s\n", pid)
+			fmt.Printf("/////////////// pid: %s\n", pid)
 			if err := ctx.RequestFuture(pid, &gwiotmsg.Ping{}, 500*time.Millisecond).Wait(); err != nil {
 				logs.LogWarn.Printf("actor %q is not ready (error: %s)", pid.GetId(), err)
 				time.Sleep(500 * time.Millisecond)
@@ -121,6 +121,28 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		ctx.Respond(&gwiotmsg.Pong{})
+	case *gwiotmsg.HttpPostRequest:
+		if ctx.Sender() == nil {
+			break
+		}
+		if a.pidGwiot == nil {
+			ctx.Respond(&gwiotmsg.Error{
+				Error: "gwiot actor not found",
+			})
+			break
+		}
+		if res, err := ctx.RequestFuture(a.pidGwiot, msg, 10*time.Second).Result(); err != nil {
+			// fmt.Printf("error request http ___: %s\n", err)
+			ctx.Respond(&gwiotmsg.HttpPostResponse{
+				Error: err.Error(),
+			})
+		} else if jwtRes, ok := res.(*gwiotmsg.HttpPostResponse); ok {
+			ctx.Respond(jwtRes)
+		} else {
+			ctx.Respond(&gwiotmsg.HttpPostResponse{
+				Error: fmt.Sprintf("error response: %T", res),
+			})
+		}
 	case *gwiotmsg.KvEntryMessage:
 		if err := func() error {
 			data := make([]byte, len(msg.Data))
@@ -306,25 +328,37 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		a.pidRemoteParent = ctx.Sender()
 		bucket := a.addPrefix(ctx, msg.GetBucket())
 
-		entry, err := getKV(a.conn, a.js, bucket, msg.Key, msg.Rev)
+		entries, err := getKV(a.conn, a.js, bucket, msg.Key, msg.Rev, msg.GetIncludeHistory())
 		if err != nil {
 			logs.LogWarn.Printf("getKV key: %s (%s), err: %s", msg.Key, bucket, err)
-			if ctx.Sender() != nil {
-				ctx.Respond(&gwiotmsg.Error{
-					Error: err.Error(),
-				})
-			}
+			ctx.Respond(&gwiotmsg.Error{
+				Error: err.Error(),
+			})
 			break
 		}
 		// fmt.Printf("keys (%q): %v, %T\n", keys, bucket, keys)
-		ctx.Respond(&gwiotmsg.KvEntryMessage{
-			Bucket: entry.Bucket(),
-			Key:    entry.Key(),
-			Rev:    entry.Revision(),
-			Delta:  entry.Delta(),
-			Op:     uint32(entry.Operation()),
-			Data:   entry.Value(),
-		})
+		result := make([]*gwiotmsg.KvEntryMessage, 0)
+		for _, entry := range entries {
+			result = append(result, &gwiotmsg.KvEntryMessage{
+				Bucket: entry.Bucket(),
+				Key:    entry.Key(),
+				Rev:    entry.Revision(),
+				Delta:  entry.Delta(),
+				Op:     uint32(entry.Operation()),
+				Data:   entry.Value(),
+			})
+		}
+		if len(result) == 0 {
+			ctx.Respond(&gwiotmsg.Error{
+				Error: "without data",
+			})
+		} else if len(result) == 1 {
+			ctx.Respond(result[0])
+		} else {
+			ctx.Respond(&gwiotmsg.KvEntriesMessage{
+				Entries: result,
+			})
+		}
 	case *gwiotmsg.WatchKeyValue:
 		// fmt.Println("///////////////////////////////////////////////////////////////////////////////")
 		// fmt.Printf("%T (%s): /////////////////////////////////////////////////////////////////////////// \n", msg, msg)

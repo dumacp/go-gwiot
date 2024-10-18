@@ -23,7 +23,7 @@ import (
 
 const (
 	showVersion       = "1.2.13"
-	ACTOR_INTSANCE_ID = "gwiot"
+	ACTOR_INTSANCE_ID = "gwiotnatsio"
 )
 
 var (

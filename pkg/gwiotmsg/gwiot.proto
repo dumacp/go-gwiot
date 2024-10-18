@@ -127,6 +127,10 @@ message kvEntryMessage {
     bytes data = 11;
 }
 
+message kvEntriesMessage {
+    repeated kvEntryMessage entries = 1;
+}
+
 message listKeysBucket {
     string bucket = 1;
 }
@@ -138,6 +142,19 @@ message keysBucket {
 
 message statusConnRequest {  
 }
+
+message httpPostRequest {
+    string url = 1;
+    bytes data = 3;
+}
+
+message httpPostResponse {
+    bytes data = 1;
+    string error = 2;
+    int32 code = 3;
+}
+
+
 
 
 
