@@ -236,6 +236,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			ps.placa = msg.Props.DEV_PID
 		}
 		if msg.Props != nil && len(msg.Props.BROKER_URL_EXTERNAL) > 0 {
+			ctx.Send(ctx.Self(), &reconnectExternalRemote{})
 			ps.externalBroker = msg.Props.BROKER_URL_EXTERNAL
 		}
 		if msg.Props != nil && len(msg.Props.BROKER_USER_EXTERNAL) > 0 {
