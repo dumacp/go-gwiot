@@ -257,7 +257,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 				ctx.Request(ctx.Parent(), &parameters.GetPlatformParameters{})
 				return fmt.Errorf("placa is empty")
 			}
-			topic := fmt.Sprintf("%s/%s", utils.ExternalRemoteBrokerTopic, strings.ToUpper(ps.placa))
+			topic := fmt.Sprintf("%s/%s", ps.externalTopic, strings.ToUpper(ps.placa))
 			if _, err := sendMSG(ps.clientExternal, topic, msg.Data, ps.test); err != nil {
 				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.Data)
 			}
