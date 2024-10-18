@@ -45,10 +45,10 @@ func init() {
 	flag.IntVar(&retryDays, "retryDays", 2, "days to retransmission (0 for all days)")
 	// flag.BoolVar(&isnats, "isNatsIO", false, "coonect to nats.io broker")
 	flag.StringVar(&utils.RemoteBrokerURL, "remoteBrokerURL", "", "example: \"wss://fleet-mqtt.nebulae.com.co/mqtt\", remote broker url")
-	flag.StringVar(&utils.ExternalRemoteBrokerURL, "externalBrokerURL", "", "external remote broker url")
-	flag.StringVar(&utils.ExternalRemoteBrokerUser, "externalBrokerUser", "", "external remote broker user")
-	flag.StringVar(&utils.ExternalRemoteBrokerPass, "externalBrokerPass", "", "external remote broker pass")
-	flag.StringVar(&utils.ExternalRemoteBrokerTopic, "externalBrokerTopic", "", "external remote broker topic")
+	// flag.StringVar(&utils.ExternalRemoteBrokerURL, "externalBrokerURL", "", "external remote broker url")
+	// flag.StringVar(&utils.ExternalRemoteBrokerUser, "externalBrokerUser", "", "external remote broker user")
+	// flag.StringVar(&utils.ExternalRemoteBrokerPass, "externalBrokerPass", "", "external remote broker pass")
+	// flag.StringVar(&utils.ExternalRemoteBrokerTopic, "externalBrokerTopic", "", "external remote broker topic")
 
 }
 
@@ -168,30 +168,31 @@ func getENV() {
 		}
 	}
 
-	if len(utils.ExternalRemoteBrokerURL) <= 0 {
-		if len(os.Getenv("BROKER_URL_EXTERNAL")) > 0 {
-			utils.ExternalRemoteBrokerURL = os.Getenv("BROKER_URL_EXTERNAL")
-		} else {
-			utils.ExternalRemoteBrokerURL = env.ExternalRemoteBrokerURL_
-		}
-	}
-	if len(utils.ExternalRemoteBrokerUser) <= 0 {
-		if len(os.Getenv("BROKER_USER_EXTERNAL")) > 0 {
-			utils.ExternalRemoteBrokerUser = os.Getenv("BROKER_USER_EXTERNAL")
-		}
-	}
-	if len(utils.ExternalRemoteBrokerPass) <= 0 {
-		if len(os.Getenv("BROKER_PASS_EXTERNAL")) > 0 {
-			utils.ExternalRemoteBrokerPass = os.Getenv("BROKER_PASS_EXTERNAL")
-		}
-	}
-	if len(utils.ExternalRemoteBrokerTopic) <= 0 {
-		if len(os.Getenv("BROKER_TOPIC_EXTERNAL")) > 0 {
-			utils.ExternalRemoteBrokerTopic = os.Getenv("BROKER_TOPIC_EXTERNAL")
-		} else {
-			utils.ExternalRemoteBrokerTopic = env.ExternalRemoteBrokerTopic_
-		}
-	}
+	// if len(utils.ExternalRemoteBrokerURL) <= 0 {
+	// 	if len(os.Getenv("BROKER_URL_EXTERNAL")) > 0 {
+	// 		utils.ExternalRemoteBrokerURL = os.Getenv("BROKER_URL_EXTERNAL")
+	// 	} else {
+	// 		utils.ExternalRemoteBrokerURL = env.ExternalRemoteBrokerURL_
+	// 	}
+	// }
+	// if len(utils.ExternalRemoteBrokerUser) <= 0 {
+	// 	if len(os.Getenv("BROKER_USER_EXTERNAL")) > 0 {
+	// 		utils.ExternalRemoteBrokerUser = os.Getenv("BROKER_USER_EXTERNAL")
+	// 	}
+	// }
+	// if len(utils.ExternalRemoteBrokerPass) <= 0 {
+	// 	if len(os.Getenv("BROKER_PASS_EXTERNAL")) > 0 {
+	// 		utils.ExternalRemoteBrokerPass = os.Getenv("BROKER_PASS_EXTERNAL")
+	// 	}
+	// }
+	// if len(utils.ExternalRemoteBrokerTopic) <= 0 {
+	// 	if len(os.Getenv("BROKER_TOPIC_EXTERNAL")) > 0 {
+	// 		utils.ExternalRemoteBrokerTopic = os.Getenv("BROKER_TOPIC_EXTERNAL")
+	// 	} else {
+	// 		utils.ExternalRemoteBrokerTopic = env.ExternalRemoteBrokerTopic_
+	// 	}
+	// }
+
 	if len(utils.Url) <= 0 {
 		if len(os.Getenv("APPFARE_URL")) > 0 {
 			utils.Url = os.Getenv("APPFARE_URL")
@@ -210,7 +211,7 @@ func getENV() {
 		if len(os.Getenv("APPFARE_PASSCODE")) > 0 {
 			utils.PassCode = os.Getenv("APPFARE_PASSCODE")
 		} else {
-			utils.PassCode = env.PaccCode_
+			utils.PassCode = env.PassCode_
 		}
 	}
 
@@ -220,9 +221,9 @@ func getENV() {
 	fmt.Printf("realm: %s\n", keyc.Realm)
 	fmt.Printf("clientSecret: %s\n", keyc.ClientSecret)
 	fmt.Printf("clientid: %s\n", keyc.Clientid)
-	fmt.Printf("externalRemoteBrokerURL: %s\n", utils.ExternalRemoteBrokerURL)
-	fmt.Printf("externalRemoteBrokerUser: %s\n", utils.ExternalRemoteBrokerUser)
-	//fmt.Printf("externalRemoteBrokerPass: %s\n", utils.ExternalRemoteBrokerPass)
-	fmt.Printf("externalRemoteBrokerTopic: %s\n", utils.ExternalRemoteBrokerTopic)
+	// fmt.Printf("externalRemoteBrokerURL: %s\n", utils.ExternalRemoteBrokerURL)
+	// fmt.Printf("externalRemoteBrokerUser: %s\n", utils.ExternalRemoteBrokerUser)
+	// fmt.Printf("externalRemoteBrokerPass: %s\n", utils.ExternalRemoteBrokerPass)
+	// fmt.Printf("externalRemoteBrokerTopic: %s\n", utils.ExternalRemoteBrokerTopic)
 
 }

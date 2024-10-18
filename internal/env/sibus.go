@@ -8,7 +8,7 @@ const (
 	Realm_                     = "DEVICES"
 	Urlin_                     = "https://sibus.nebulae.com.co"
 	User_                      = "devices"
-	PaccCode_                  = "devices"
+	PassCode_                  = "devices"
 	RemoteBrokerURL_           = "wss://sibus.nebulae.com.co/mqtt"
 	ExternalRemoteBrokerURL_   = "ssl://logirastreo.com.co:8883"
 	ExternalRemoteBrokerTopic_ = "externalevents/gnss"

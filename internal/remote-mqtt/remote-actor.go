@@ -43,6 +43,10 @@ type RemoteActor struct {
 	lastRetry      time.Time
 	jwtConf        *JwtConf
 	placa          string
+	externalBroker string
+	externalUser   string
+	externalPass   string
+	externalTopic  string
 	cancel         func()
 	test           bool
 	retryFlag      bool
@@ -121,8 +125,10 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
 			ctx.Send(ctx.Self(), &reconnectRemote{})
 		}
-		if ps.clientExternal == nil || !ps.clientExternal.IsConnectionOpen() {
-			ctx.Send(ctx.Self(), &reconnectExternalRemote{})
+		if len(ps.externalBroker) > 0 {
+			if ps.clientExternal == nil || !ps.clientExternal.IsConnectionOpen() {
+				ctx.Send(ctx.Self(), &reconnectExternalRemote{})
+			}
 		}
 	case *verifyRetry:
 		if !ps.retryFlag || time.Since(ps.lastRetry) < 6*time.Second {
@@ -182,16 +188,19 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if ps.clientExternal != nil && ps.client.IsConnectionOpen() {
 				return nil
 			}
-			fmt.Printf("external client  RECONNECT (%q)\n", utils.ExternalRemoteBrokerURL)
-			if len(utils.ExternalRemoteBrokerUser) > 0 {
-				ps.clientExternal = clientWithUserPass(utils.RemoteBrokerURL, utils.ExternalRemoteBrokerUser, utils.ExternalRemoteBrokerPass)
+			if len(ps.externalBroker) <= 0 {
+				return fmt.Errorf("external broker url is empty")
+			}
+			fmt.Printf("external client  RECONNECT (%q)\n", ps.externalBroker)
+			if len(ps.externalUser) > 0 {
+				ps.clientExternal = clientWithUserPass(ps.externalBroker, ps.externalUser, ps.externalPass)
 			} else {
-				ps.clientExternal = clientWithoutAuth(utils.RemoteBrokerURL)
+				ps.clientExternal = clientWithoutAuth(ps.externalBroker)
 			}
 			if err := connect(ps.clientExternal); err != nil {
 				return err
 			} else {
-				fmt.Printf("external client RECONNECT SUCESSFULL (%q)\n", utils.ExternalRemoteBrokerURL)
+				fmt.Printf("external client RECONNECT SUCESSFULL (%q)\n", ps.externalBroker)
 			}
 			return nil
 		}(); err != nil {
@@ -222,9 +231,21 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		if msg.Props != nil && len(msg.Props.DEV_PID) > 0 {
 			ps.placa = msg.Props.DEV_PID
 		}
+		if msg.Props != nil && len(msg.Props.BROKER_URL_EXTERNAL) > 0 {
+			ps.externalBroker = msg.Props.BROKER_URL_EXTERNAL
+		}
+		if msg.Props != nil && len(msg.Props.BROKER_USER_EXTERNAL) > 0 {
+			ps.externalUser = msg.Props.BROKER_USER_EXTERNAL
+		}
+		if msg.Props != nil && len(msg.Props.BROKER_PASS_EXTERNAL) > 0 {
+			ps.externalPass = msg.Props.BROKER_PASS_EXTERNAL
+		}
+		if msg.Props != nil && len(msg.Props.BROKER_TOPIC_EXTERNAL) > 0 {
+			ps.externalTopic = msg.Props.BROKER_TOPIC_EXTERNAL
+		}
 	case *remote.MsgExternalSendData:
 		if err := func() error {
-			if len(utils.ExternalRemoteBrokerURL) <= 0 {
+			if len(ps.externalTopic) <= 0 {
 				return fmt.Errorf("external broker url is empty")
 			}
 			if len(ps.placa) <= 0 {

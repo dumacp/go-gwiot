@@ -13,5 +13,9 @@ type PlatformParameters struct {
 }
 
 type Props struct {
-	DEV_PID string `json:"DEV_PID"`
+	DEV_PID               string `json:"DEV_PID"`
+	BROKER_TOPIC_EXTERNAL string `json:"BROKER_TOPIC_EXTERNAL"`
+	BROKER_URL_EXTERNAL   string `json:"BROKER_URL_EXTERNAL"`
+	BROKER_USER_EXTERNAL  string `json:"BROKER_USER_EXTERNAL"`
+	BROKER_PASS_EXTERNAL  string `json:"BROKER_PASS_EXTERNAL"`
 }

@@ -7,6 +7,7 @@ type MsgSendData struct {
 type MsgExternalSendData struct {
 	Data    []byte
 	Subject string
+	Topic   string
 }
 type MsgAck struct {
 }
