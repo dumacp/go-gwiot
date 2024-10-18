@@ -282,6 +282,8 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 	}()
 	rootctx := ctx.ActorSystem().Root
 	self := ctx.Self()
+	t0 := time.NewTimer(10 * time.Second)
+	defer t0.Stop()
 	t1 := time.NewTicker(timeout)
 	defer t1.Stop()
 	t2 := time.NewTicker(90 * time.Second)
@@ -290,6 +292,8 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 	defer t3.Stop()
 	for {
 		select {
+		case <-t0.C:
+			rootctx.Send(self, &MsgTick{})
 		case <-t1.C:
 			rootctx.Send(self, &MsgTick{})
 		case <-t2.C:
