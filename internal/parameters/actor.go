@@ -53,7 +53,7 @@ func (a *Actor) Receive(ctx actor.Context) {
 			break
 		}
 		if err := func() error {
-			url := fmt.Sprintf("%s/%s/%s", utils.Url, Uri, utils.Hostname())
+			url := fmt.Sprintf("%s%s/%s", utils.Url, Uri, utils.Hostname())
 			resp, err := utils.Get(a.httpClient, url, utils.User, utils.PassCode, nil)
 			if err != nil {
 				return err
