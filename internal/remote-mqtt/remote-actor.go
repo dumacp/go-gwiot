@@ -36,6 +36,7 @@ type JwtConf struct {
 // RemoteActor remote actor
 type RemoteActor struct {
 	ctx            actor.Context
+	params         *parameters.PlatformParameters
 	client         mqtt.Client
 	clientExternal mqtt.Client
 	tokenSource    oauth2.TokenSource
@@ -122,6 +123,9 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			ps.cancel()
 		}
 	case *MsgTick:
+		if ps.params == nil {
+			ctx.Request(ctx.Parent(), &parameters.GetPlatformParameters{})
+		}
 		if ps.client == nil || !ps.client.IsConnectionOpen() {
 			ctx.Send(ctx.Self(), &reconnectRemote{})
 		}
@@ -282,8 +286,10 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 	}()
 	rootctx := ctx.ActorSystem().Root
 	self := ctx.Self()
-	t0 := time.NewTimer(10 * time.Second)
-	defer t0.Stop()
+	t0_1 := time.NewTimer(6 * time.Second)
+	defer t0_1.Stop()
+	t0_2 := time.NewTimer(10 * time.Second)
+	defer t0_2.Stop()
 	t1 := time.NewTicker(timeout)
 	defer t1.Stop()
 	t2 := time.NewTicker(90 * time.Second)
@@ -292,7 +298,9 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 	defer t3.Stop()
 	for {
 		select {
-		case <-t0.C:
+		case <-t0_1.C:
+			rootctx.Send(self, &MsgTick{})
+		case <-t0_2.C:
 			rootctx.Send(self, &MsgTick{})
 		case <-t1.C:
 			rootctx.Send(self, &MsgTick{})
