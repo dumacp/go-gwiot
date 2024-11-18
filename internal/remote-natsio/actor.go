@@ -137,24 +137,28 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 					return err
 				}
 				a.tokenSource = tks
-				fmt.Printf("token: %s\n", tk.AccessToken)
+				// fmt.Printf("token: %s\n", tk.AccessToken)
 				a.conn, err = connectWithJwt(a.url, tk)
 				if err != nil {
 					return err
 				}
+				fmt.Println("  *****************     CONNECTED   *********************")
 				a.js, err = a.conn.JetStream()
 				if err != nil {
 					return err
 				}
+				fmt.Println("  *****************     CONNECTED JS  *********************")
 			} else {
 				a.conn, err = clientWithoutAuth(a.url)
 				if err != nil {
 					return err
 				}
+				fmt.Println("  *****************     CONNECTED   *********************")
 				a.js, err = a.conn.JetStream()
 				if err != nil {
 					return err
 				}
+				fmt.Println("  *****************     CONNECTED JS  *********************")
 			}
 			return nil
 		}(); err != nil {
@@ -185,7 +189,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if err := func() error {
 			t1 := a.lastReconnect
 			logs.LogBuild.Printf("last connect at -> %s", t1)
-			if t1.Before(time.Now().Add(-30 * time.Second)) {
+			if time.Since(t1) > 30*time.Second {
 				logs.LogInfo.Printf("try RECONNECTING")
 				fmt.Println("  *****************     RECONNECT   *********************")
 				a.lastReconnect = time.Now()
@@ -213,17 +217,19 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 					if err != nil {
 						return err
 					}
-					fmt.Printf("token: %s\n", tk.AccessToken)
+					// fmt.Printf("token: %s\n", tk.AccessToken)
 					a.tokenSource = tks
 
 					a.conn, err = connectWithJwt(a.url, tk)
 					if err != nil {
 						return err
 					}
+					fmt.Println("  *****************     RECONNECTED   *********************")
 					a.js, err = a.conn.JetStream()
 					if err != nil {
 						return err
 					}
+					fmt.Println("  *****************     RECONNECTED JS  *********************")
 				} else {
 					a.conn, err = clientWithoutAuth(a.url)
 					if err != nil {
@@ -233,6 +239,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 					if err != nil {
 						return err
 					}
+					fmt.Println("  *****************     RECONNECTED   *********************")
 				}
 				a.evs.Publish(&ConnectionResponse{
 					Conn: a.conn,

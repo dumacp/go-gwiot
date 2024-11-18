@@ -41,6 +41,8 @@ func NewChildNatsio(parentId string) func() actor.Actor {
 
 func (a *ChildNats) Receive(ctx actor.Context) {
 
+	// fmt.Println("///////////////////////////////////////////////////////////////////////////////")
+
 	fmt.Printf("Message arrived in %s: %s, %T, %s\n",
 		ctx.Self().GetId(), ctx.Message(), ctx.Message(), ctx.Sender())
 	switch msg := ctx.Message().(type) {

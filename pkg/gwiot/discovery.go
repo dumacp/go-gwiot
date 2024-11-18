@@ -17,3 +17,7 @@ func NewDiscoveryActor(topicReply string,
 
 	return a
 }
+
+func Parse(m []byte) interface{} {
+	return renatsio.Parse(m)
+}
