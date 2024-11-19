@@ -35,22 +35,25 @@ type JwtConf struct {
 
 // RemoteActor remote actor
 type RemoteActor struct {
-	ctx            actor.Context
-	params         *parameters.PlatformParameters
-	client         mqtt.Client
-	clientExternal mqtt.Client
-	tokenSource    oauth2.TokenSource
-	lastSendedMsg  time.Time
-	lastRetry      time.Time
-	jwtConf        *JwtConf
-	placa          string
-	externalBroker string
-	externalUser   string
-	externalPass   string
-	externalTopic  string
-	cancel         func()
-	test           bool
-	retryFlag      bool
+	ctx                  actor.Context
+	params               *parameters.PlatformParameters
+	client               mqtt.Client
+	clientExternal       mqtt.Client
+	tokenSource          oauth2.TokenSource
+	lastSendedMsg        time.Time
+	lastRetry            time.Time
+	initialTime          time.Time
+	jwtConf              *JwtConf
+	placa                string
+	externalBroker       string
+	externalUser         string
+	externalPass         string
+	externalTopic        string
+	sizeExternalData     int
+	sizeExternalDataHour int
+	cancel               func()
+	test                 bool
+	retryFlag            bool
 	// disableReplay bool
 }
 
@@ -74,6 +77,9 @@ type reconnectExternalRemote struct{}
 type verifyReplay struct{}
 type verifyRetry struct{}
 type MsgTick struct{}
+type sizeExternalData struct{}
+type sizeExternalDataHour struct{}
+type sizeExternalData30Min struct{}
 
 // Receive function
 func (ps *RemoteActor) Receive(ctx actor.Context) {
@@ -84,6 +90,8 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
 		fmt.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
+
+		ps.initialTime = time.Now()
 
 		contxt, cancel := context.WithCancel(context.TODO())
 		ps.cancel = cancel
@@ -189,7 +197,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}
 	case *reconnectExternalRemote:
 		if err := func() error {
-			if ps.clientExternal != nil && ps.client.IsConnectionOpen() {
+			if ps.clientExternal != nil && ps.clientExternal.IsConnectionOpen() {
 				return nil
 			}
 			if len(ps.externalBroker) <= 0 {
@@ -206,11 +214,13 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			} else {
 				fmt.Printf("external client RECONNECT SUCESSFULL (%q)\n", ps.externalBroker)
 			}
+			ps.sizeExternalData += 10 * 1024
+			ps.sizeExternalDataHour += 10 * 1024
 			return nil
 		}(); err != nil {
 			logs.LogWarn.Println(err)
-			if ps.client != nil {
-				ps.client.Disconnect(300)
+			if ps.clientExternal != nil {
+				ps.clientExternal.Disconnect(300)
 			}
 		}
 	case *remote.MsgSendData:
@@ -261,6 +271,8 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			if _, err := sendMSG(ps.clientExternal, topic, msg.Data, ps.test); err != nil {
 				return fmt.Errorf("publish error -> %s, message -> %s", err, msg.Data)
 			}
+			ps.sizeExternalData += len(msg.Data) + 53
+			ps.sizeExternalDataHour += len(msg.Data) + 53
 			if ctx.Sender() != nil {
 				ctx.Respond(&remote.MsgAck{})
 			}
@@ -268,6 +280,20 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}(); err != nil {
 			fmt.Printf("external send error: %s\n", err)
 			logs.LogError.Printf("external send error: %s", err)
+		}
+	case *sizeExternalData:
+		if ps.sizeExternalData > 0 {
+			fmt.Printf("size external data: %.3f Kb in %q\n", float64(ps.sizeExternalData)/1024, time.Since(ps.initialTime))
+		}
+	case *sizeExternalData30Min:
+		if ps.sizeExternalData > 0 {
+			logs.LogInfo.Printf("size external data: %.3f in %q", float64(ps.sizeExternalData)/1024, time.Since(ps.initialTime))
+		}
+	case *sizeExternalDataHour:
+		if ps.sizeExternalDataHour > 0 {
+			fmt.Printf("size external data: %.3f Kb/h\n", float64(ps.sizeExternalDataHour)/1024)
+			logs.LogInfo.Printf("size external data: %.3f Kb/h", float64(ps.sizeExternalDataHour)/1024)
+			ps.sizeExternalDataHour = 0
 		}
 	case *actor.Stopped:
 		logs.LogError.Println("Stopped, actor and its children are stopped")
@@ -297,6 +323,12 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 	defer t2.Stop()
 	t3 := time.NewTicker(3 * time.Second)
 	defer t3.Stop()
+	t4 := time.NewTicker(60 * time.Second)
+	defer t4.Stop()
+	t5 := time.NewTicker(60 * time.Minute)
+	defer t5.Stop()
+	t6 := time.NewTicker(30 * time.Minute)
+	defer t6.Stop()
 	for {
 		select {
 		case <-t0_1.C:
@@ -309,6 +341,12 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 			rootctx.Send(self, &verifyReplay{})
 		case <-t3.C:
 			rootctx.Send(self, &verifyRetry{})
+		case <-t4.C:
+			rootctx.Send(self, &sizeExternalData{})
+		case <-t5.C:
+			rootctx.Send(self, &sizeExternalDataHour{})
+		case <-t6.C:
+			rootctx.Send(self, &sizeExternalData30Min{})
 		case <-contxt.Done():
 			return
 		}
