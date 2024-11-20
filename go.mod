@@ -4,7 +4,7 @@ go 1.18
 
 replace github.com/nats-io/nats.go => ../../nats-io/nats.go
 
-replace github.com/dumacp/go-schservices => ../go-schservices
+//replace github.com/dumacp/go-schservices => ../go-schservices
 
 require (
 	github.com/asynkron/protoactor-go v0.0.0-20230221072731-614ae1da9757
