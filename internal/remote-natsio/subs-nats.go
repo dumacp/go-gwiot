@@ -122,6 +122,43 @@ func listKV(conn *nats.Conn, js nats.JetStreamContext, bucket string) ([]string,
 
 }
 
+func listHistoryKv(conn *nats.Conn, js nats.JetStreamContext, bucket, key string) ([]uint64, error) {
+
+	if conn == nil || !conn.IsConnected() || js == nil {
+		return nil, fmt.Errorf("connection is not open (%v) (%v) (%v)", conn, js, func() bool { return conn != nil && conn.IsConnected() }())
+	}
+
+	kv, err := js.KeyValue(bucket)
+	if err != nil {
+		return nil, err
+	}
+
+	si, err := js.StreamInfo(fmt.Sprintf("KV_%s", bucket))
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("/////////////// streamInfo: %v\n", si)
+
+	opts := make([]nats.WatchOpt, 0)
+
+	opts = append(opts, nats.AddIdleHeartbeat(30*time.Second))
+	opts = append(opts, nats.MetaOnly())
+
+	entries, err := kv.History(key, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	revisions := make([]uint64, 0)
+
+	for _, entry := range entries {
+		revisions = append(revisions, entry.Revision())
+	}
+
+	return revisions, nil
+
+}
+
 // func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (*nats.Subscription, error) {
 func wathcKV(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64, history bool) (nats.KeyWatcher, error) {
 

@@ -154,6 +154,15 @@ message httpPostResponse {
     int32 code = 3;
 }
 
+message listHistoryRevKv {
+    string bucket = 1;
+    string key = 2;
+}
+
+message historyRevKv {
+    repeated uint64 revisions = 1;
+}
+
 
 
 

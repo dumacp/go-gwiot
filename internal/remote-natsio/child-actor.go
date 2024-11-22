@@ -305,6 +305,25 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				logs.LogWarn.Println(err)
 			}
 		}()
+	case *gwiotmsg.ListHistoryRevKv:
+		if ctx.Sender() == nil {
+			break
+		}
+		a.pidRemoteParent = ctx.Sender()
+		bucket := a.addPrefix(ctx, msg.GetBucket())
+
+		revs, err := listHistoryKv(a.conn, a.js, bucket, msg.Key)
+		if err != nil {
+			logs.LogWarn.Printf("listHistoryKV key: %s (%s), err: %s", msg.Key, bucket, err)
+			ctx.Respond(&gwiotmsg.Error{
+				Error: err.Error(),
+			})
+			break
+		}
+		ctx.Respond(&gwiotmsg.HistoryRevKv{
+			Revisions: revs,
+		})
+
 	case *gwiotmsg.ListKeysBucket:
 		if ctx.Sender() == nil {
 			break
