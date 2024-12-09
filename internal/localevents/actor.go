@@ -37,6 +37,10 @@ func parseState(msg []byte) interface{} {
 
 	event := new(events.DeviceState)
 	if err := json.Unmarshal(msg, event); err != nil {
+
+		if (event.TimeStamp*1000 - 10) < float64(time.Now().UnixMilli()) {
+			event.TimeStamp = event.TimeStamp * 1000
+		}
 		fmt.Printf("parse error in state -> %s", err)
 		logs.LogWarn.Printf("parse error in state -> %s", err)
 		return nil
