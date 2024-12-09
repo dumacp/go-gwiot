@@ -20,6 +20,11 @@ func parseEvents(msg []byte) interface{} {
 
 	event := new(events.Event)
 	if err := json.Unmarshal(msg, event); err != nil {
+
+		if (event.Timestamp*1000 - 10) < float64(time.Now().UnixMilli()) {
+			event.Timestamp = event.Timestamp * 1000
+		}
+
 		fmt.Printf("parse error in events -> %s", err)
 		logs.LogWarn.Printf("parse error in events -> %s", err)
 		return nil

@@ -9,6 +9,7 @@ import (
 
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/eventstream"
+	"github.com/asynkron/protoactor-go/remote"
 	"github.com/coreos/go-oidc"
 	"github.com/dumacp/go-gwiot/internal/localevents"
 	"github.com/dumacp/go-gwiot/internal/utils"
@@ -85,7 +86,7 @@ func subscribe(ctx actor.Context, evs *eventstream.EventStream) *eventstream.Sub
 
 // Receive function
 func (a *NatsActor) Receive(ctx actor.Context) {
-	fmt.Printf("message in actor: %s, msg type: %T, msg: %q\n", ctx.Self().GetId(), ctx.Message(), ctx.Message())
+	fmt.Printf("message in actor: %s, msg type: %T\n", ctx.Self().GetId(), ctx.Message())
 	switch msg := ctx.Message().(type) {
 	case *actor.Started:
 		logs.LogInfo.Printf("Starting, actor, pid: %s\n", ctx.Self().GetId())
@@ -170,6 +171,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if ctx.Sender() == nil {
 			break
 		}
+		ctx.Watch(ctx.Sender())
 		if sub, ok := a.subs[ctx.Sender().GetId()]; ok {
 			a.evs.Unsubscribe(sub)
 			delete(a.subs, ctx.Sender().GetId())
@@ -323,6 +325,10 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}(); err != nil {
 			ctx.Respond(&gwiotmsg.HttpPostResponse{Error: err.Error()})
 		}
+	case *remote.EndpointTerminatedEvent:
+		fmt.Printf("endpoint terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
+	case *actor.Terminated:
+		fmt.Printf("actor terminated: %s\n", msg.Who.GetId())
 	case *actor.Stopping:
 		if a.cancel != nil {
 			a.cancel()

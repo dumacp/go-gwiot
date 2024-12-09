@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/asynkron/protoactor-go/actor"
+	"github.com/asynkron/protoactor-go/remote"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/dumacp/go-logs/pkg/logs"
@@ -272,7 +273,13 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			}
 		}
 	case *gwiotmsg.SubcriptionSubject:
-		a.pidRemoteParent = ctx.Sender()
+		if ctx.Sender() == nil {
+			break
+		}
+		if a.pidRemoteParent == nil || len(a.pidRemoteParent.GetId()) <= 0 || a.pidRemoteParent.GetId() != ctx.Sender().GetId() {
+			a.pidRemoteParent = ctx.Sender()
+			ctx.Watch(ctx.Sender())
+		}
 		var uids string
 		uid, err := uuid.NewRandom()
 		if err != nil {
@@ -386,8 +393,12 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		if ctx.Sender() == nil {
 			break
 		}
+		if a.pidRemoteParent == nil || len(a.pidRemoteParent.GetId()) <= 0 || a.pidRemoteParent.GetId() != ctx.Sender().GetId() {
+			a.pidRemoteParent = ctx.Sender()
+			ctx.Watch(ctx.Sender())
+		}
 		bucket := a.addPrefix(ctx, msg.GetBucket())
-		a.pidRemoteParent = ctx.Sender()
+
 		uids := fmt.Sprintf("%s-%s-%s", ctx.Sender().GetId(), bucket, msg.GetKey())
 		a.subscriptions[uids] = RemoteSubscription{
 			Sender:  ctx.Sender(),
@@ -417,6 +428,14 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			}
 			fmt.Printf("stopped watch: %v\n", subs)
 		}()
+	case *remote.EndpointTerminatedEvent:
+		fmt.Printf("endpoint terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
+	case *actor.Terminated:
+		fmt.Printf("terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
+		if a.pidRemoteParent != nil && a.pidRemoteParent.GetId() == msg.GetWho().GetId() {
+			a.pidRemoteParent = nil
+			ctx.PoisonFuture(ctx.Self()).Wait()
+		}
 	case *actor.Stopping:
 		if a.cancel != nil {
 			a.cancel()

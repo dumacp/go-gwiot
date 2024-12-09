@@ -112,6 +112,12 @@ message getKeyValue {
     bool includeHistory = 4;
 }
 
+message getHistoryKv {
+    string bucket = 1;
+    string key = 2;
+    uint64 maxHistory = 3;
+}
+
 message watchMessage {
     kvEntryMessage kvEntryMessage = 1;
 }
@@ -160,7 +166,9 @@ message listHistoryRevKv {
 }
 
 message historyRevKv {
-    repeated uint64 revisions = 1;
+    string bucket = 1;
+    string key = 2;
+    repeated uint64 revisions = 3;
 }
 
 

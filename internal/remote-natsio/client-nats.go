@@ -367,6 +367,29 @@ func getKV(conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev ui
 
 }
 
+func history(conn *nats.Conn, js nats.JetStreamContext, bucket, key string) ([]nats.KeyValueEntry, error) {
+
+	if conn == nil || !conn.IsConnected() {
+		return nil, fmt.Errorf("connection is not open")
+	}
+
+	kv, err := js.KeyValue(bucket)
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]nats.KeyValueEntry, 0)
+
+	ents, err := kv.History(key)
+	if err != nil {
+		return nil, err
+	}
+	entries = append(entries, ents...)
+
+	return entries, nil
+
+}
+
 func ack(conn *nats.Conn, js nats.JetStreamContext, subject, reply string, data []byte, headers map[string]string, timeout time.Duration) error {
 
 	if conn == nil || !conn.IsConnected() {

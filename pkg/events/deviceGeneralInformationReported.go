@@ -227,7 +227,7 @@ type DiskDetail struct {
 }
 
 type Event struct {
-	Timestamp int64       `json:"timestamp,omitempty"`
+	Timestamp float64     `json:"timestamp,omitempty"`
 	Type      string      `json:"type,omitempty"`
 	Value     interface{} `json:"value,omitempty"`
 	// Dependiendo de la variabilidad de VL, podrías necesitar definir estructuras adicionales.

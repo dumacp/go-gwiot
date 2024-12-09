@@ -33,8 +33,8 @@ func MessageFromEvent(event *Event) *Message[string, int] {
 		messageGroup.AddType("LOC_EVT").AddTypeVersion(1).BodyContent(body)
 		// Añadir casos para otros tipos de eventos según sea necesario
 	case "GPSERROR":
-		gpsErrorTimeStamp := func() int64 {
-			if event.Timestamp*1000 > time.Now().UnixMilli() {
+		gpsErrorTimeStamp := func() float64 {
+			if event.Timestamp*1000 > float64(time.Now().UnixMilli()) {
 				return event.Timestamp
 			}
 			return event.Timestamp * 1000
