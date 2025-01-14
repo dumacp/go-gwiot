@@ -325,6 +325,52 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}(); err != nil {
 			ctx.Respond(&gwiotmsg.HttpPostResponse{Error: err.Error()})
 		}
+
+	case *gwiotmsg.HttpGetRequest:
+		if err := func() error {
+			if a.tokenSource == nil {
+				return fmt.Errorf("not oauth2 token source")
+			}
+			if a.config == nil {
+				return fmt.Errorf("not oauth2 config")
+			}
+			tk, err := a.tokenSource.Token()
+			if err != nil {
+				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
+				return err
+			}
+			if a.contextHttp == nil {
+				return fmt.Errorf("not http context")
+			}
+
+			contxt, cancel := context.WithCancel(a.contextHttp)
+			defer cancel()
+			httpClient := a.config.Client(contxt, tk)
+
+			if httpClient == nil {
+				return fmt.Errorf("not http client")
+			}
+			if response, code, err := utils.Get(httpClient, msg.Url, "", "", nil); err != nil {
+				// fmt.Printf("http error 33: %s\n", err)
+				fmt.Printf("http response: %s\n", response)
+				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
+				ctx.Respond(&gwiotmsg.HttpPostResponse{
+					Error: err.Error(),
+					Data:  response,
+					Code:  int32(code),
+				})
+			} else {
+
+				ctx.Respond(&gwiotmsg.HttpGetResponse{
+					Data:  response,
+					Code:  int32(code),
+					Error: "",
+				})
+			}
+			return nil
+		}(); err != nil {
+			ctx.Respond(&gwiotmsg.HttpGetResponse{Error: err.Error()})
+		}
 	case *remote.EndpointTerminatedEvent:
 		fmt.Printf("endpoint terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
 	case *actor.Terminated:

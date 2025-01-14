@@ -160,6 +160,16 @@ message httpPostResponse {
     int32 code = 3;
 }
 
+message httpGetRequest {
+    string url = 1;
+}
+
+message httpGetResponse {
+    bytes data = 1;
+    string error = 2;
+    int32 code = 3;
+}
+
 message listHistoryRevKv {
     string bucket = 1;
     string key = 2;
