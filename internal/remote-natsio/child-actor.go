@@ -146,6 +146,29 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				Error: fmt.Sprintf("error response: %T", res),
 			})
 		}
+	case *gwiotmsg.HttpGetRequest:
+		fmt.Printf("child http get request: %v\n", msg)
+		if ctx.Sender() == nil {
+			break
+		}
+		if a.pidGwiot == nil {
+			ctx.Respond(&gwiotmsg.Error{
+				Error: "gwiot actor not found",
+			})
+			break
+		}
+		if res, err := ctx.RequestFuture(a.pidGwiot, msg, 10*time.Second).Result(); err != nil {
+			// fmt.Printf("error request http ___: %s\n", err)
+			ctx.Respond(&gwiotmsg.HttpGetResponse{
+				Error: err.Error(),
+			})
+		} else if jwtRes, ok := res.(*gwiotmsg.HttpGetResponse); ok {
+			ctx.Respond(jwtRes)
+		} else {
+			ctx.Respond(&gwiotmsg.HttpGetResponse{
+				Error: fmt.Sprintf("error response: %T", res),
+			})
+		}
 	case *gwiotmsg.KvEntryMessage:
 		if err := func() error {
 			data := make([]byte, len(msg.Data))

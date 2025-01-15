@@ -327,6 +327,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}
 
 	case *gwiotmsg.HttpGetRequest:
+		fmt.Printf("http get request: %s\n", msg.Url)
 		if err := func() error {
 			if a.tokenSource == nil {
 				return fmt.Errorf("not oauth2 token source")
@@ -354,7 +355,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 				// fmt.Printf("http error 33: %s\n", err)
 				fmt.Printf("http response: %s\n", response)
 				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
-				ctx.Respond(&gwiotmsg.HttpPostResponse{
+				ctx.Respond(&gwiotmsg.HttpGetResponse{
 					Error: err.Error(),
 					Data:  response,
 					Code:  int32(code),
