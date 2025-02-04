@@ -62,10 +62,12 @@ func Post(client *http.Client,
 			return nil, resp.StatusCode, err
 		}
 		if resp.StatusCode == 400 {
-			return nil, resp.StatusCode, fmt.Errorf("%w, StatusCode: %d, resp: %s, req: %+v",
-				ErrorBadRequest, resp.StatusCode, body, req)
+			// return nil, resp.StatusCode, fmt.Errorf("%w, StatusCode: %d, resp: %s, req: %+v",
+			// 	ErrorBadRequest, resp.StatusCode, body, req)
+			return nil, resp.StatusCode, fmt.Errorf(string(body))
 		}
-		return nil, resp.StatusCode, fmt.Errorf("StatusCode: %d, resp: %s, req: %+v", resp.StatusCode, body, req)
+		// return nil, resp.StatusCode, fmt.Errorf("StatusCode: %d, resp: %s, req: %+v", resp.StatusCode, body, req)
+		return nil, resp.StatusCode, fmt.Errorf(string(body))
 	}
 	return body, resp.StatusCode, nil
 }
@@ -108,7 +110,7 @@ func Get(client *http.Client,
 		if err != nil {
 			return nil, resp.StatusCode, err
 		}
-		return nil, resp.StatusCode, fmt.Errorf("StatusCode: %d, resp: %s, req: %s", resp.StatusCode, body, req.URL)
+		return nil, resp.StatusCode, fmt.Errorf(string(body))
 	}
 	return body, resp.StatusCode, nil
 }
