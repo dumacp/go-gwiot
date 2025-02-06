@@ -78,13 +78,15 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		if len(a.subscriptions) > 0 {
-			for _, v := range a.subscriptions {
+			for k, v := range a.subscriptions {
+				fmt.Printf("re subscription: %s, %T\n", k, v.Message)
 				switch msg := v.Message.(type) {
 				case *gwiotmsg.SubcriptionSubject:
 					ctx.RequestWithCustomSender(ctx.Self(), msg, v.Sender)
 				case *gwiotmsg.WatchKeyValue:
 					ctx.RequestWithCustomSender(ctx.Self(), msg, v.Sender)
 				}
+				delete(a.subscriptions, k)
 			}
 		}
 	case *ConnectionResponse:
