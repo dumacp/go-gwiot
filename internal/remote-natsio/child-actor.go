@@ -354,12 +354,21 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		}
 		ctx.Respond(&gwiotmsg.HistoryRevKv{
 			Revisions: revs,
+			Bucket:    bucket,
+			Key:       msg.Key,
 		})
 
 	case *gwiotmsg.ListKeysBucket:
 		if ctx.Sender() == nil {
 			break
 		}
+		if len(msg.GetBucket()) <= 0 {
+			ctx.Respond(&gwiotmsg.Error{
+				Error: "bucket is empty",
+			})
+			break
+		}
+
 		a.pidRemoteParent = ctx.Sender()
 		bucket := a.addPrefix(ctx, msg.GetBucket())
 
@@ -376,6 +385,12 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		})
 	case *gwiotmsg.GetKeyValue:
 		if ctx.Sender() == nil {
+			break
+		}
+		if len(msg.Key) <= 0 || len(msg.Bucket) <= 0 {
+			ctx.Respond(&gwiotmsg.Error{
+				Error: "key or bucket is empty",
+			})
 			break
 		}
 		a.pidRemoteParent = ctx.Sender()
