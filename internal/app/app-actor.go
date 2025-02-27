@@ -194,7 +194,8 @@ func (app *App) Receive(ctx actor.Context) {
 				for k, v := range event {
 					if strings.EqualFold(k, "tp") {
 						if strings.EqualFold(v.(string), "GPRMC") ||
-							strings.EqualFold(v.(string), "GPGGA") {
+							strings.EqualFold(v.(string), "GPGGA") ||
+							strings.EqualFold(v.(string), "IgnitionEvent") {
 							data, err := json.Marshal(event)
 							if err != nil {
 								logs.LogWarn.Printf("external events messages error -> %q", err)
