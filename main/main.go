@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	showVersion = "1.3.3_testSODIS"
+	showVersion = "1.3.3"
 )
 
 var debug bool
