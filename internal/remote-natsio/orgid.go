@@ -7,6 +7,7 @@ import (
 
 func (a *NatsActor) getOrgID() string {
 	if len(a.orgID) > 0 {
+		fmt.Printf("orgID: %s\n", a.orgID)
 		return a.orgID
 	} else if a.userInfo == nil {
 		return ""
@@ -21,9 +22,12 @@ func (a *NatsActor) getOrgID() string {
 				if v, ok := v.(string); ok {
 					sp := strings.Split(v, "_")
 					if len(sp) < 2 {
-						return ""
+						a.orgID = sp[0]
+						fmt.Printf("orgID: %s\n", a.orgID)
+						return sp[0]
 					} else {
 						a.orgID = sp[1]
+						fmt.Printf("orgID: %s\n", a.orgID)
 						return sp[1]
 					}
 				}

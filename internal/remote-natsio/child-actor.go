@@ -29,6 +29,7 @@ type ChildNats struct {
 type RemoteSubscription struct {
 	Sender  *actor.PID
 	Message any
+	Retry   int
 }
 
 func NewChildNatsio(parentId string) func() actor.Actor {
@@ -72,7 +73,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		contxt, cancel := context.WithCancel(context.TODO())
 		a.contxt = contxt
 		a.cancel = cancel
-		go tick(contxt, ctx, 30*time.Second)
+		go tick(contxt, ctx, 60*time.Second)
 	case *tickMsg:
 		if a.conn == nil || a.js == nil {
 			break
@@ -496,7 +497,7 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 	ctxroot := ctx.ActorSystem().Root
 	self := ctx.Self()
 
-	t_0 := time.NewTimer(1 * time.Second)
+	t_0 := time.NewTimer(3 * time.Second)
 	defer t_0.Stop()
 	t_1 := time.NewTicker(timeout)
 	defer t_1.Stop()
