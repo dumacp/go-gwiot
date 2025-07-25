@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -36,11 +37,12 @@ const (
 
 // RemoteActor remote actor
 type NatsActor struct {
-	lastReconnect time.Time
-	url           string
-	orgID         string
-	groupName     string
-	jwtConf       *JwtConf
+	lastReconnect      time.Time
+	lastReconnectToken time.Time
+	url                string
+	orgID              string
+	groupName          string
+	jwtConf            *JwtConf
 	// httpClient    *http.Client
 	conn        *nats.Conn
 	js          nats.JetStreamContext
@@ -171,19 +173,64 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if ctx.Sender() == nil {
 			break
 		}
+		if a.conn == nil || !a.conn.IsConnected() {
+			ctx.Respond(&Disconnected{Error: fmt.Errorf("not connection")})
+			break
+		}
 		ctx.Watch(ctx.Sender())
 		if sub, ok := a.subs[ctx.Sender().GetId()]; ok {
 			a.evs.Unsubscribe(sub)
 			delete(a.subs, ctx.Sender().GetId())
 		}
 		a.subs[ctx.Sender().GetId()] = subscribe(ctx, a.evs)
-		if a.conn == nil || !a.conn.IsConnected() {
-			ctx.Respond(&Disconnected{Error: fmt.Errorf("not connection")})
-			break
-		}
 		ctx.Respond(&ConnectionResponse{
 			Conn: a.conn,
 		})
+	case *ReconnectToken:
+		if err := func() error {
+			t1 := a.lastReconnectToken
+			logs.LogBuild.Printf("last renew token at -> %s", t1)
+			if time.Since(t1) > 30*time.Second {
+				logs.LogInfo.Printf("try Renew Token")
+				fmt.Println("  *****************     Renew TOKEN   *********************")
+				a.lastReconnectToken = time.Now()
+				if a.jwtConf != nil {
+					fmt.Printf("jwtConf: %s\n", a.jwtConf)
+					contxtHttp := ContextWithHTTPClient(context.TODO())
+					a.contextHttp = contxtHttp
+					config, err := Oauth2Config(contxtHttp, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+					if err != nil {
+						return err
+					}
+					a.config = config
+					tks, err := TokenSource(contxtHttp, config, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.User, a.jwtConf.Pass)
+					if err != nil {
+						return err
+					}
+					userInfo, err := UserInfo(contxtHttp, tks, a.jwtConf.KeycloakURL, a.jwtConf.Realm)
+					if err != nil {
+						return err
+					}
+					a.userInfo = userInfo
+
+					tk, err := tks.Token()
+					if err != nil {
+						return err
+					}
+					// fmt.Printf("token: %s\n", tk.AccessToken)
+					a.tokenSource = tks
+
+					a.conn, err = connectWithJwt(a.url, tk)
+					if err != nil {
+						return err
+					}
+					fmt.Println("  *****************     Renewed TOKEN   *********************")
+				}
+			}
+			return nil
+		}(); err != nil {
+			logs.LogWarn.Printf("renew token nats error: %s", err)
+		}
 	case *Reconnect:
 		if a.conn != nil && (a.conn.IsConnected() || a.conn.IsReconnecting()) {
 			break
@@ -264,6 +311,10 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if a.conn == nil || a.js == nil {
 			break
 		}
+		if msg == nil {
+			fmt.Println("message is nil")
+			break
+		}
 		orgId := a.getOrgID()
 		groupName := strings.Split(a.getGorupName(), "_")[0]
 		hostname := utils.Hostname()
@@ -292,6 +343,7 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			tk, err := a.tokenSource.Token()
 			if err != nil {
 				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
+				ctx.Send(ctx.Self(), &ReconnectToken{})
 				return err
 			}
 			if a.contextHttp == nil {
@@ -341,7 +393,8 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 			}
 			tk, err := a.tokenSource.Token()
 			if err != nil {
-				fmt.Printf("token in error: %s, %v\n", tk.AccessToken, tk)
+				fmt.Printf("token in error: %s\n", err)
+				ctx.Send(ctx.Self(), &ReconnectToken{})
 				return err
 			}
 			if a.contextHttp == nil {
@@ -376,6 +429,8 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}(); err != nil {
 			ctx.Respond(&gwiotmsg.HttpGetResponse{Error: err.Error()})
 		}
+	case *VerifyTest:
+		log.Panic("VerifyTest message received, this is a test message")
 	case *remote.EndpointTerminatedEvent:
 		fmt.Printf("endpoint terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
 	case *actor.Terminated:
@@ -387,10 +442,22 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		if a.conn != nil {
 			a.conn.Close()
 		}
+		if a.evs != nil {
+			a.evs.Publish(&Resting{})
+		}
 		logs.LogError.Println("Stopping, actor is about to shut down")
 	case *actor.Stopped:
 		logs.LogError.Println("Stopped, actor and its children are stopped")
 	case *actor.Restarting:
+		if a.cancel != nil {
+			a.cancel()
+		}
+		if a.conn != nil {
+			a.conn.Close()
+		}
+		if a.evs != nil {
+			a.evs.Publish(&Resting{})
+		}
 		logs.LogError.Println("Restarting, actor is about to restart")
 	}
 }
@@ -409,7 +476,7 @@ func tickrReconnect(contxt context.Context, ctx actor.Context) {
 
 	tick := time.NewTicker(30 * time.Second)
 	defer tick.Stop()
-	tickVerify := time.NewTicker(90 * time.Second)
+	tickVerify := time.NewTimer(90 * time.Second)
 	defer tickVerify.Stop()
 
 	for {
@@ -417,6 +484,8 @@ func tickrReconnect(contxt context.Context, ctx actor.Context) {
 		case <-tick.C:
 			ctxroot.Send(self, &Reconnect{})
 		case <-tickVerify.C:
+			// TODO: only send verify test message
+			// ctxroot.Send(self, &VerifyTest{})
 		case <-contxt.Done():
 			return
 		}

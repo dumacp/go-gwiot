@@ -7,23 +7,26 @@ import (
 
 	"github.com/asynkron/protoactor-go/actor"
 	"github.com/asynkron/protoactor-go/remote"
+	"github.com/asynkron/protoactor-go/router"
 	"github.com/dumacp/go-gwiot/internal/utils"
 	"github.com/dumacp/go-gwiot/pkg/gwiotmsg"
 	"github.com/dumacp/go-logs/pkg/logs"
-	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 )
 
 type ChildNats struct {
-	parentId        string
-	orgId           string
-	pidGwiot        *actor.PID
-	pidRemoteParent *actor.PID
-	conn            *nats.Conn
-	js              nats.JetStreamContext
-	contxt          context.Context
-	subscriptions   map[string]RemoteSubscription
-	cancel          func()
+	parentId           string
+	orgId              string
+	pidGwiot           *actor.PID
+	pidRemoteParent    *actor.PID
+	conn               *nats.Conn
+	js                 nats.JetStreamContext
+	contxt             context.Context
+	subscriptions      map[string]*RemoteSubscription
+	subWatchers        map[string]nats.KeyWatcher
+	subSubcripters     map[string]*nats.Subscription
+	subsGroupBroadcast map[string]*actor.PID
+	cancel             func()
 }
 
 type RemoteSubscription struct {
@@ -36,7 +39,10 @@ func NewChildNatsio(parentId string) func() actor.Actor {
 	return func() actor.Actor {
 		a := &ChildNats{}
 		a.parentId = parentId
-		a.subscriptions = make(map[string]RemoteSubscription)
+		a.subscriptions = make(map[string]*RemoteSubscription)
+		a.subWatchers = make(map[string]nats.KeyWatcher)
+		a.subSubcripters = make(map[string]*nats.Subscription)
+		a.subsGroupBroadcast = make(map[string]*actor.PID)
 		return a
 	}
 }
@@ -66,16 +72,21 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			break
 		}
 		if !success {
+			time.Sleep(3 * time.Second)
 			logs.LogWarn.Panicf("actor %q is not ready", pid.GetId())
 		}
 		a.pidGwiot = pid
+		ctx.Watch(a.pidGwiot)
 		ctx.Request(pid, &Connection{})
 		contxt, cancel := context.WithCancel(context.TODO())
 		a.contxt = contxt
 		a.cancel = cancel
-		go tick(contxt, ctx, 60*time.Second)
+		go tick(contxt, ctx, 180*time.Second)
 	case *tickMsg:
 		if a.conn == nil || a.js == nil {
+			if a.pidGwiot != nil {
+				ctx.Request(a.pidGwiot, &Connection{})
+			}
 			break
 		}
 		if len(a.subscriptions) > 0 {
@@ -87,12 +98,16 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				case *gwiotmsg.WatchKeyValue:
 					ctx.RequestWithCustomSender(ctx.Self(), msg, v.Sender)
 				}
-				delete(a.subscriptions, k)
+				// delete(a.subscriptions, k)
 			}
 		}
 	case *ConnectionResponse:
 		a.conn = msg.Conn
-		js, err := a.conn.JetStream()
+		opts := make([]nats.JSOpt, 0)
+		if a.contxt != nil {
+			opts = append(opts, nats.Context(a.contxt))
+		}
+		js, err := a.conn.JetStream(opts...)
 		if err != nil {
 			time.Sleep(3 * time.Second)
 			ctx.Poison(ctx.Self())
@@ -306,18 +321,59 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			a.pidRemoteParent = ctx.Sender()
 			ctx.Watch(ctx.Sender())
 		}
-		var uids string
-		uid, err := uuid.NewRandom()
-		if err != nil {
-			uids = fmt.Sprintf("%d", time.Now().UnixNano())
+		// var uids string
+		// uid, err := uuid.NewRandom()
+		// if err != nil {
+		// 	uids = fmt.Sprintf("%d", time.Now().UnixNano())
+		// } else {
+		// 	uids = uid.String()
+		// }
+		// a.subscriptions[uids] = RemoteSubscription{
+		// 	Sender:  ctx.Sender(),
+		// 	Message: msg,
+		// }
+		uids := msg.GetSubject()
+		vRouter, ok := a.subscriptions[uids]
+		if !ok {
+			// Check if we already have a broadcast group for this subject
+			subers, exists := a.subsGroupBroadcast[uids]
+			if !exists {
+				propsWriteChannel := router.NewBroadcastGroup()
+				var err error
+				subers, err = ctx.SpawnNamed(propsWriteChannel, fmt.Sprintf("subsGroup_%s", uids))
+				if err != nil {
+					logs.LogError.Printf("error spawn watcher (%q): %s", uids, err)
+					if ctx.Sender() != nil {
+						ctx.Respond(&gwiotmsg.Error{
+							Error: err.Error(),
+						})
+					}
+					break
+				}
+				a.subsGroupBroadcast[uids] = subers
+			}
+			vRouter = &RemoteSubscription{
+				Sender:  subers,
+				Message: msg,
+			}
+			a.subscriptions[uids] = vRouter
+			ctx.Send(subers, &router.AddRoutee{
+				PID: ctx.Sender(),
+			})
 		} else {
-			uids = uid.String()
+			ctx.Send(vRouter.Sender, &router.AddRoutee{
+				PID: ctx.Sender(),
+			})
 		}
-		a.subscriptions[uids] = RemoteSubscription{
-			Sender:  ctx.Sender(),
-			Message: msg,
+		if _, ok := a.subSubcripters[uids]; ok {
+			// if err := w.Unsubscribe(); err != nil {
+			// 	logs.LogWarn.Printf("subscripter %q error: %s", uids, err)
+			// }
+			// delete(a.subSubcripters, uids)
+			delete(a.subscriptions, uids)
+			break
 		}
-		subs, err := subscription(ctx.ActorSystem().Root, ctx.Sender(), a.conn, a.js, msg.GetSubject())
+		subs, err := subscription(ctx, vRouter.Sender, a.conn, a.js, msg.GetSubject())
 		if err != nil {
 			logs.LogWarn.Println(err)
 			// if ctx.Sender() != nil {
@@ -327,6 +383,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			// }
 			break
 		}
+		a.subSubcripters[uids] = subs
 		delete(a.subscriptions, uids)
 		// if ctx.Sender() != nil {
 		// 	ctx.Respond(&gwiotmsg.Ack{})
@@ -440,12 +497,61 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		}
 		bucket := a.addPrefix(ctx, msg.GetBucket())
 
-		uids := fmt.Sprintf("%s-%s-%s", ctx.Sender().GetId(), bucket, msg.GetKey())
-		a.subscriptions[uids] = RemoteSubscription{
-			Sender:  ctx.Sender(),
-			Message: msg,
+		// uids := fmt.Sprintf("%s-%s-%s", ctx.Sender().GetId(), bucket, msg.GetKey())
+		// a.subscriptions[uids] = RemoteSubscription{
+		// 	Sender:  ctx.Sender(),
+		// 	Message: msg,
+		// }
+		uids := fmt.Sprintf("%s-%s", bucket, msg.GetKey())
+		vRouter, ok := a.subscriptions[uids]
+		if !ok {
+			watchers, exists := a.subsGroupBroadcast[uids]
+			if !exists {
+				propsWriteChannel := router.NewBroadcastGroup()
+				var err error
+				watchers, err = ctx.SpawnNamed(propsWriteChannel, fmt.Sprintf("watcherGroup_%s", uids))
+				if err != nil {
+					logs.LogError.Printf("error spawn watcher (%q): %s", uids, err)
+					if ctx.Sender() != nil {
+						ctx.Respond(&gwiotmsg.Error{
+							Error: err.Error(),
+						})
+					}
+					break
+				}
+				a.subsGroupBroadcast[uids] = watchers
+			}
+			vRouter = &RemoteSubscription{
+				Sender:  watchers,
+				Message: msg,
+			}
+			a.subscriptions[uids] = vRouter
+			ctx.Send(watchers, &router.AddRoutee{
+				PID: ctx.Sender(),
+			})
+		} else {
+			ctx.Send(vRouter.Sender, &router.AddRoutee{
+				PID: ctx.Sender(),
+			})
 		}
-		subs, err := wathcKV(ctx.ActorSystem().Root, ctx.Sender(), a.conn, a.js, bucket, msg.GetKey(), msg.GetRev(), msg.GetIncludeHistory())
+		if _, ok := a.subWatchers[uids]; ok {
+			// if err := w.Stop(); err != nil {
+			// 	logs.LogWarn.Printf("watcher %q error: %s", uids, err)
+			// }
+			// // Wait for the watcher context to be done to ensure proper cleanup
+			// if w.Context() != nil {
+			// 	select {
+			// 	case <-w.Context().Done():
+			// 		logs.LogInfo.Printf("watcher %q context properly closed", uids)
+			// 	case <-time.After(5 * time.Second):
+			// 		logs.LogWarn.Printf("watcher %q context close timeout", uids)
+			// 	}
+			// }
+			// delete(a.subWatchers, uids)
+			delete(a.subscriptions, uids)
+			break
+		}
+		subs, err := wathcKV(a.contxt, ctx, vRouter.Sender, a.conn, a.js, bucket, msg.GetKey(), msg.GetRev(), msg.GetIncludeHistory())
 		if err != nil {
 			logs.LogWarn.Printf("watchKeyValue error: %s", err)
 			// if ctx.Sender() != nil {
@@ -455,6 +561,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			// }
 			break
 		}
+		a.subWatchers[uids] = subs
 		delete(a.subscriptions, uids)
 		// if ctx.Sender() != nil {
 		// 	ctx.Respond(&gwiotmsg.Ack{})
@@ -467,14 +574,27 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			if err := subs.Stop(); err != nil {
 				logs.LogWarn.Println(err)
 			}
+			// Wait for the watcher context to be done to ensure proper cleanup
+			if subs.Context() != nil {
+				select {
+				case <-subs.Context().Done():
+					logs.LogInfo.Printf("watcher %q context properly closed", uids)
+				case <-time.After(5 * time.Second):
+					logs.LogWarn.Printf("watcher %q context close timeout", uids)
+				}
+			}
 			fmt.Printf("stopped watch: %v\n", subs)
 		}()
 	case *remote.EndpointTerminatedEvent:
 		fmt.Printf("endpoint terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
 	case *actor.Terminated:
-		fmt.Printf("terminated \"%s\" (%s)\n", ctx.Self().GetId(), ctx.Parent())
+		fmt.Printf("terminated  who: %q (self: %q) (parent: %q)\n", msg.GetWho().GetId(), ctx.Self().GetId(), ctx.Parent())
 		if a.pidRemoteParent != nil && a.pidRemoteParent.GetId() == msg.GetWho().GetId() {
 			a.pidRemoteParent = nil
+			ctx.PoisonFuture(ctx.Self()).Wait()
+		}
+		if a.pidGwiot != nil && a.pidGwiot.GetId() == msg.GetWho().GetId() {
+			a.pidGwiot = nil
 			ctx.PoisonFuture(ctx.Self()).Wait()
 		}
 	case *actor.Stopping:
@@ -486,6 +606,17 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		logs.LogError.Println("Stopped, actor and its children are stopped")
 	case *actor.Restarting:
 		logs.LogError.Println("Restarting, actor is about to restart")
+	case *Resting:
+		logs.LogError.Println("pidGwiot Resting, actor is about to rest")
+		if a.cancel != nil {
+			a.cancel()
+		}
+		ctx.PoisonFuture(ctx.Self()).Wait()
+	default:
+		fmt.Printf("unknown message in child natsio actor: %T, %s\n", msg, msg)
+		if ctx.Sender() != nil {
+			fmt.Printf("unknown message in child natsio actor: %T, %s, sender: %s\n", msg, msg, ctx.Sender().GetId())
+		}
 	}
 
 }

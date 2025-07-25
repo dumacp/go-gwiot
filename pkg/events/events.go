@@ -1,12 +1,66 @@
 package events
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 )
 
+// EventCache mantiene el estado de los eventos anteriores para evitar duplicados
+type EventCache struct {
+	mu    sync.RWMutex
+	cache map[string]string // map[eventType]lastValueHash
+}
+
+// Global cache instance
+var eventCache = &EventCache{
+	cache: make(map[string]string),
+}
+
+// hashValue genera un hash del valor del evento para comparación
+func hashValue(value interface{}) string {
+	data, _ := json.Marshal(value)
+	hash := sha256.Sum256(data)
+	return fmt.Sprintf("%x", hash)
+}
+
+// isDuplicate verifica si el evento es duplicado comparando con el anterior
+func (ec *EventCache) isDuplicate(eventType string, value interface{}) bool {
+	ec.mu.RLock()
+	defer ec.mu.RUnlock()
+
+	currentHash := hashValue(value)
+	lastHash, exists := ec.cache[eventType]
+
+	return exists && lastHash == currentHash
+}
+
+// updateCache actualiza el cache con el nuevo valor del evento
+func (ec *EventCache) updateCache(eventType string, value interface{}) {
+	ec.mu.Lock()
+	defer ec.mu.Unlock()
+
+	currentHash := hashValue(value)
+	ec.cache[eventType] = currentHash
+}
+
 func MessageFromEvent(event *Event) *Message[string, int] {
+	// Verificar si el evento es duplicado
+	if eventCache.isDuplicate(event.Type, event.Value) {
+		return nil // No enviar evento duplicado
+	}
+
+	if event.Value == nil {
+		fmt.Printf("Event %s with nil value, skipping\n", event.Type)
+		return nil // No enviar eventos sin valor
+	}
+
+	// Actualizar cache con el nuevo valor
+	eventCache.updateCache(event.Type, event.Value)
 
 	sendTime := time.Now().UnixMilli()
 
@@ -369,6 +423,27 @@ func MessageFromEvent(event *Event) *Message[string, int] {
 		state, _ := vl["state"].(float64)
 
 		messageGroup.AddType("IGNITION_EVT").AddTypeVersion(1).BodyContent(map[string]interface{}{
+			"t": event.Timestamp,
+			"c": coord,
+			"o": state,
+		})
+	case "SUSPEND_EVT":
+		/* SAMPLE
+		   {
+		       "t": 1619556279305,
+		       "tp": "SUSPEND_EVT",
+		       "vl": {
+		           "coord": "$GPRMC,204431.0,A,0617.003175,N,07537.521110,W,0.0,322.8,270421,4.7,W,A*0F",
+		           "state": 1
+		       }
+		   }
+		*/
+
+		vl, _ := event.Value.(map[string]interface{})
+		coord, _ := vl["coord"].(string)
+		state, _ := vl["state"].(float64)
+
+		messageGroup.AddType("SUSPEND_EVT").AddTypeVersion(1).BodyContent(map[string]interface{}{
 			"t": event.Timestamp,
 			"c": coord,
 			"o": state,

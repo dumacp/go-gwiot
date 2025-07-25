@@ -1,6 +1,7 @@
 package renatsio
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-func subscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject string, options ...nats.SubOpt) (*nats.Subscription, error) {
+func subscription(ctx actor.Context, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject string, options ...nats.SubOpt) (*nats.Subscription, error) {
 
 	if conn == nil || !conn.IsConnected() || js == nil {
 		return nil, fmt.Errorf("connection is not open")
@@ -40,7 +41,7 @@ func subscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js
 	return subs, err
 }
 
-func Subscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject string,
+func Subscription(ctx actor.Context, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject string,
 	startSeq uint64, startTime time.Time, maxDeliver, maxAckPending uint, deliverPolicy gwiotmsg.DeliverPolicy) (*nats.Subscription, error) {
 
 	policy := func() nats.SubOpt {
@@ -67,7 +68,7 @@ func Subscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js
 	)
 }
 
-func DurableSubscription(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject, durableName string,
+func DurableSubscription(ctx actor.Context, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, subject, durableName string,
 	startSeq uint64, startTime time.Time, maxDeliver, maxAckPending uint, deliverPolicy gwiotmsg.DeliverPolicy) (*nats.Subscription, error) {
 
 	policy := func() nats.SubOpt {
@@ -160,7 +161,7 @@ func listHistoryKv(conn *nats.Conn, js nats.JetStreamContext, bucket, key string
 }
 
 // func wathcKV(ctx actor.Context, conn *nats.Conn, js nats.JetStreamContext, bucket, key string) (*nats.Subscription, error) {
-func wathcKV(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64, history bool) (nats.KeyWatcher, error) {
+func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn *nats.Conn, js nats.JetStreamContext, bucket, key string, rev uint64, history bool) (nats.KeyWatcher, error) {
 
 	if conn == nil || !conn.IsConnected() || js == nil {
 		return nil, fmt.Errorf("connection is not open (%v) (%v) (%v)", conn, js, func() bool { return conn != nil && conn.IsConnected() }())
@@ -208,6 +209,11 @@ func wathcKV(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats
 
 	opts = append(opts, nats.AddIdleHeartbeat(60*time.Second))
 	opts = append(opts, nats.MetaOnly())
+	if contxt != nil {
+		opts = append(opts, nats.Context(contxt))
+	} else {
+		opts = append(opts, nats.Context(context.Background()))
+	}
 	if history {
 		opts = append(opts, nats.IncludeHistory())
 	}
@@ -222,31 +228,42 @@ func wathcKV(ctx *actor.RootContext, sender *actor.PID, conn *nats.Conn, js nats
 	}
 
 	go func() {
-		for v := range watcher.Updates() {
-			if v == nil {
-				fmt.Println("update nil!!!!!!!!!!!!!!!")
-				continue
-			}
-			fmt.Printf("update: %v\n", v)
-			if rev > 0 && v.Revision() <= rev {
-				continue
-			}
-			update, err := kv.GetRevision(v.Key(), v.Revision())
-			if err != nil {
-				fmt.Printf("update (key=%s,rev=%d) error: %s\n", v.Key(), v.Revision(), err)
-				continue
-			}
+		// for v := range watcher.Updates() {
+		for {
+			select {
+			case <-watcher.Context().Done():
+				fmt.Println("watcher context done")
+				return
+			case v, ok := <-watcher.Updates():
+				if !ok {
+					fmt.Println("watcher updates channel closed")
+					return
+				}
+				if v == nil {
+					fmt.Println("update nil!!!!!!!!!!!!!!!")
+					continue
+				}
+				fmt.Printf("update: %v\n", v)
+				if rev > 0 && v.Revision() <= rev {
+					continue
+				}
+				update, err := kv.GetRevision(v.Key(), v.Revision())
+				if err != nil {
+					fmt.Printf("update (key=%s,rev=%d) error: %s\n", v.Key(), v.Revision(), err)
+					continue
+				}
 
-			ctx.Request(sender, &gwiotmsg.WatchMessage{
-				KvEntryMessage: &gwiotmsg.KvEntryMessage{
-					Bucket: update.Bucket(),
-					Key:    update.Key(),
-					Rev:    update.Revision(),
-					Delta:  update.Delta(),
-					Op:     uint32(update.Operation()),
-					Data:   update.Value(),
-				},
-			})
+				ctx.Request(sender, &gwiotmsg.WatchMessage{
+					KvEntryMessage: &gwiotmsg.KvEntryMessage{
+						Bucket: update.Bucket(),
+						Key:    update.Key(),
+						Rev:    update.Revision(),
+						Delta:  update.Delta(),
+						Op:     uint32(update.Operation()),
+						Data:   update.Value(),
+					},
+				})
+			}
 		}
 	}()
 	return watcher, err

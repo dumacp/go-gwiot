@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,7 +24,7 @@ import (
 )
 
 const (
-	showVersion       = "1.2.20"
+	showVersion       = "1.2.22"
 	ACTOR_INTSANCE_ID = "gwiotnatsio"
 )
 
@@ -71,6 +73,11 @@ func main() {
 	initLogs(debug, logStd)
 
 	getENV()
+
+	// TODO profile cpu test
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	uuid.SetNodeID([]byte(utils.Hostname()))
 
