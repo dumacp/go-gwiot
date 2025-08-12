@@ -167,10 +167,6 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 		return nil, fmt.Errorf("connection is not open (%v) (%v) (%v)", conn, js, func() bool { return conn != nil && conn.IsConnected() }())
 	}
 
-	// ctxroot := ctx.ActorSystem().Root
-	// self := ctx.Self()
-	// sender := ctx.Sender()
-
 	kv, err := js.KeyValue(bucket)
 	if err != nil {
 		return nil, err
@@ -181,29 +177,6 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 		return nil, err
 	}
 	fmt.Printf("/////////////// watch streamInfo: %v\n", si)
-
-	// sub, err := js.Subscribe(fmt.Sprintf("$KV.FMS-DEV-ROUTES.%s", key), func(msg *nats.Msg) {
-	// 	fmt.Printf("PUB DATA: %s (%v)\n", msg.Data, msg.Header)
-	// 	ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
-	// 		KvEntryMessage: &gwiotmsg.KvEntryMessage{
-	// 			Bucket: bucket,
-	// 			Key:    key,
-	// 			Rev:    0,
-	// 			Delta:  0,
-	// 			Op:     0,
-	// 			Data:   msg.Data,
-	// 		},
-	// 	}, self)
-	// 	msg.Ack()
-	// },
-	// 	nats.DeliverLastPerSubject(),
-	// 	nats.OrderedConsumer(),
-	// 	nats.IdleHeartbeat(30*time.Second),
-	// )
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return sub, nil
 
 	opts := make([]nats.WatchOpt, 0)
 
@@ -229,6 +202,7 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 
 	go func() {
 		// for v := range watcher.Updates() {
+		revfor := rev
 		for {
 			select {
 			case <-watcher.Context().Done():
@@ -244,9 +218,10 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 					continue
 				}
 				fmt.Printf("update: %v\n", v)
-				if rev > 0 && v.Revision() <= rev {
+				if revfor > 0 && v.Revision() <= revfor {
 					continue
 				}
+				revfor = v.Revision()
 				update, err := kv.GetRevision(v.Key(), v.Revision())
 				if err != nil {
 					fmt.Printf("update (key=%s,rev=%d) error: %s\n", v.Key(), v.Revision(), err)

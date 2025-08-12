@@ -548,6 +548,28 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 			// 	}
 			// }
 			// delete(a.subWatchers, uids)
+			if a.conn == nil || !a.conn.IsConnected() || a.js == nil {
+				logs.LogWarn.Printf("connection is not open (%v) (%v) (%v)", a.conn, a.js, func() bool { return a.conn != nil && a.conn.IsConnected() }())
+				break
+			}
+			kv, err := a.js.KeyValue(bucket)
+			if err != nil {
+				logs.LogWarn.Printf("get key value (%q) error: %s", bucket, err)
+			}
+			if update, err := kv.Get(msg.GetKey()); err != nil {
+				logs.LogWarn.Printf("get key value (key = %q) error: %s", msg.GetKey(), err)
+			} else {
+				ctx.Request(ctx.Sender(), &gwiotmsg.WatchMessage{
+					KvEntryMessage: &gwiotmsg.KvEntryMessage{
+						Bucket: update.Bucket(),
+						Key:    update.Key(),
+						Rev:    update.Revision(),
+						Delta:  update.Delta(),
+						Op:     uint32(update.Operation()),
+						Data:   update.Value(),
+					},
+				})
+			}
 			delete(a.subscriptions, uids)
 			break
 		}
@@ -579,7 +601,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				select {
 				case <-subs.Context().Done():
 					logs.LogInfo.Printf("watcher %q context properly closed", uids)
-				case <-time.After(5 * time.Second):
+				case <-time.After(3 * time.Second):
 					logs.LogWarn.Printf("watcher %q context close timeout", uids)
 				}
 			}

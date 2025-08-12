@@ -42,7 +42,7 @@ func initLogs(debug, logStd bool) {
 		return
 	}
 	newMultiLog(logs.LogWarn, "[ warn ] ", 0, 4)
-	newLog(logs.LogInfo, "[ info ] ", 0, 6)
+	newMultiLog(logs.LogInfo, "[ info ] ", 0, 6)
 	newLog(logs.LogBuild, "[ build ] ", 0, 7)
 	newMultiLog(logs.LogError, "[ error ] ", 0, 3)
 	if !debug {
