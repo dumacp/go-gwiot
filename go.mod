@@ -1,8 +1,6 @@
 module github.com/dumacp/go-gwiot
 
-go 1.21
-
-toolchain go1.22.0
+go 1.23.0
 
 replace github.com/nats-io/nats.go => ../../nats-io/nats.go
 
@@ -28,22 +26,22 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dumacp/utils v0.0.0-20200426192206-fa29fc36dbb2 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/klauspost/compress v1.17.2 // indirect
-	github.com/nats-io/nkeys v0.4.7 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/nats-io/nkeys v0.4.11 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/orcaman/concurrent-map v1.0.0 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/pquerna/cachecontrol v0.1.0 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/yanatan16/itertools v0.0.0-20160513161737-afd1891e0c4f // indirect
-	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/sys v0.19.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/protobuf v1.36.8 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 )

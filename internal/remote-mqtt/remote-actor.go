@@ -35,25 +35,27 @@ type JwtConf struct {
 
 // RemoteActor remote actor
 type RemoteActor struct {
-	ctx                  actor.Context
-	params               *parameters.PlatformParameters
-	client               mqtt.Client
-	clientExternal       mqtt.Client
-	tokenSource          oauth2.TokenSource
-	lastSendedMsg        time.Time
-	lastRetry            time.Time
-	initialTime          time.Time
-	jwtConf              *JwtConf
-	placa                string
-	externalBroker       string
-	externalUser         string
-	externalPass         string
-	externalTopic        string
-	sizeExternalData     int
-	sizeExternalDataHour int
-	cancel               func()
-	test                 bool
-	retryFlag            bool
+	ctx                   actor.Context
+	params                *parameters.PlatformParameters
+	client                mqtt.Client
+	clientExternal        mqtt.Client
+	tokenSource           oauth2.TokenSource
+	lastSendedMsg         time.Time
+	lastRetry             time.Time
+	initialTime           time.Time
+	jwtConf               *JwtConf
+	placa                 string
+	externalBroker        string
+	externalUser          string
+	externalPass          string
+	externalTopic         string
+	sizeExternalData      int
+	sizeExternalDataHour  int
+	nextDelayReconnectExt time.Duration
+	lastReconnectExternal time.Time
+	cancel                func()
+	test                  bool
+	retryFlag             bool
 	// disableReplay bool
 }
 
@@ -95,7 +97,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 		contxt, cancel := context.WithCancel(context.TODO())
 		ps.cancel = cancel
-		go tick(contxt, ctx, 30*time.Second)
+		go tick(contxt, ctx, 90*time.Second)
 
 		if ps.jwtConf != nil {
 			fmt.Printf("jwtConf: %s\n", ps.jwtConf)
@@ -139,7 +141,16 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}
 		if len(ps.externalBroker) > 0 {
 			if ps.clientExternal == nil || !ps.clientExternal.IsConnectionOpen() {
-				ctx.Send(ctx.Self(), &reconnectExternalRemote{})
+				nextDelay, ok := calculateNextReconnectDelay(ps.lastReconnectExternal.Add(ps.nextDelayReconnectExt),
+					30*time.Second,
+					ps.nextDelayReconnectExt,
+					10*time.Minute)
+				ps.nextDelayReconnectExt += nextDelay
+				if ok {
+					ctx.Send(ctx.Self(), &reconnectExternalRemote{})
+				}
+			} else {
+				ps.nextDelayReconnectExt = 30 * time.Second
 			}
 		}
 	case *verifyRetry:
@@ -197,6 +208,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 		}
 	case *reconnectExternalRemote:
 		if err := func() error {
+			ps.lastReconnectExternal = time.Now()
 			if ps.clientExternal != nil && ps.clientExternal.IsConnectionOpen() {
 				return nil
 			}
@@ -351,4 +363,14 @@ func tick(contxt context.Context, ctx actor.Context, timeout time.Duration) {
 			return
 		}
 	}
+}
+
+func calculateNextReconnectDelay(nextTry time.Time, step, nextDelay, maxDelay time.Duration) (time.Duration, bool) {
+	if time.Since(nextTry) > 0 {
+		if nextDelay >= maxDelay {
+			return 0, true
+		}
+		return nextDelay + step, true
+	}
+	return 0, false
 }
