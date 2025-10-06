@@ -353,7 +353,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				a.subsGroupBroadcast[uids] = subers
 			}
 			vRouter = &RemoteSubscription{
-				Sender:  subers,
+				Sender:  ctx.Sender(), // ✅ Guardar el sender original, no el BroadcastGroup
 				Message: msg,
 			}
 			a.subscriptions[uids] = vRouter
@@ -522,7 +522,7 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 				a.subsGroupBroadcast[uids] = watchers
 			}
 			vRouter = &RemoteSubscription{
-				Sender:  watchers,
+				Sender:  ctx.Sender(), // ✅ Guardar el sender original, no el BroadcastGroup
 				Message: msg,
 			}
 			a.subscriptions[uids] = vRouter

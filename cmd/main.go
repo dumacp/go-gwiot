@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	showVersion       = "1.2.24_test"
+	showVersion       = "1.2.25"
 	ACTOR_INTSANCE_ID = "gwiotnatsio"
 )
 

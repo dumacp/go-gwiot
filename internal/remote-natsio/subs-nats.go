@@ -167,6 +167,9 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 		return nil, fmt.Errorf("connection is not open (%v) (%v) (%v)", conn, js, func() bool { return conn != nil && conn.IsConnected() }())
 	}
 
+	ctxroot := ctx.ActorSystem().Root
+	self := ctx.Self()
+
 	kv, err := js.KeyValue(bucket)
 	if err != nil {
 		return nil, err
@@ -228,7 +231,7 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 					continue
 				}
 
-				ctx.Request(sender, &gwiotmsg.WatchMessage{
+				ctxroot.RequestWithCustomSender(sender, &gwiotmsg.WatchMessage{
 					KvEntryMessage: &gwiotmsg.KvEntryMessage{
 						Bucket: update.Bucket(),
 						Key:    update.Key(),
@@ -237,7 +240,7 @@ func wathcKV(contxt context.Context, ctx actor.Context, sender *actor.PID, conn 
 						Op:     uint32(update.Operation()),
 						Data:   update.Value(),
 					},
-				})
+				}, self)
 			}
 		}
 	}()
