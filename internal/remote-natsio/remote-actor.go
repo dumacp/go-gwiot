@@ -180,7 +180,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			logs.LogError.Printf("send error: %s", err)
 			if ps.db != nil && !ps.isDatabaseOpen {
 				if err := ps.db.Open(); err != nil {
-					logs.LogError.Println("database is closed")
+					logs.LogError.Printf("database is closed, %s", err)
 				} else {
 					ps.isDatabaseOpen = true
 				}

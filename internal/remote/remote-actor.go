@@ -86,7 +86,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 
 			if ps.db != nil && !ps.isDatabaseOpen {
 				if err := ps.db.Open(); err != nil {
-					logs.LogError.Println("database is closed")
+					logs.LogError.Printf("database is closed, %s", err)
 				} else {
 					ps.isDatabaseOpen = true
 				}
@@ -128,7 +128,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			}
 			if ps.db != nil && !ps.isDatabaseOpen {
 				if err := ps.db.Open(); err != nil {
-					logs.LogError.Println("database is closed")
+					logs.LogError.Printf("database is closed, %s", err)
 				} else {
 					ps.isDatabaseOpen = true
 				}
@@ -214,7 +214,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			logs.LogWarn.Printf("send error: %s", err)
 			if ps.db != nil && !ps.isDatabaseOpen {
 				if err := ps.db.Open(); err != nil {
-					logs.LogError.Println("database is closed")
+					logs.LogError.Printf("database is closed, %s", err)
 				} else {
 					ps.isDatabaseOpen = true
 				}
