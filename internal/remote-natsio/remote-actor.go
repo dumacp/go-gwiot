@@ -187,7 +187,7 @@ func (ps *RemoteActor) Receive(ctx actor.Context) {
 			}
 
 			if !ps.disableReplay && ps.db != nil && ps.isDatabaseOpen {
-				logs.LogBuild.Printf("backup event: %s", data)
+				fmt.Printf("backup event: %s\n", data)
 				uid := fmt.Sprintf("%d", time.Now().UnixNano())
 				if _, err := ps.db.Update(uid, data, databaseName, collectionUsosData); err != nil {
 					logs.LogError.Printf("storage data (id: %s) %q error: %s", uid, data, err)
