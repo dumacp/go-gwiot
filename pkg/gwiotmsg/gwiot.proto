@@ -131,6 +131,7 @@ message kvEntryMessage {
     uint32 op = 6;
 
     bytes data = 11;
+    string error = 12;
 }
 
 message kvEntriesMessage {

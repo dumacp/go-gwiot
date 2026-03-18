@@ -1,8 +1,8 @@
 module github.com/dumacp/go-gwiot
 
-go 1.23.0
+go 1.25.0
 
-toolchain go1.24.6
+//toolchain go1.24.6
 
 replace github.com/nats-io/nats.go => ../../nats-io/nats.go
 

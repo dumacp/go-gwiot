@@ -576,11 +576,11 @@ func (a *ChildNats) Receive(ctx actor.Context) {
 		subs, err := wathcKV(a.contxt, ctx, vRouter.Sender, a.conn, a.js, bucket, msg.GetKey(), msg.GetRev(), msg.GetIncludeHistory())
 		if err != nil {
 			logs.LogWarn.Printf("watchKeyValue error: %s", err)
-			// if ctx.Sender() != nil {
-			// 	ctx.Respond(&gwiotmsg.Error{
-			// 		Error: err.Error(),
-			// 	})
-			// }
+			if ctx.Sender() != nil {
+				ctx.Respond(&gwiotmsg.Error{
+					Error: fmt.Errorf("watchKeyValue error (key: %s, bucket: %s): %w", msg.GetKey(), bucket, err).Error(),
+				})
+			}
 			break
 		}
 		a.subWatchers[uids] = subs
