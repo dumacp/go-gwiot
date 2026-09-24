@@ -474,6 +474,31 @@ func MessageFromEvent(event *Event) *Message[string, int] {
 			"s": state,
 		})
 
+	case "DRIVERCONSOLE_EVT":
+		/* SAMPLE
+		{
+			"timestamp": 1727200000.123,
+			"type": "DRIVERCONSOLE_EVT",
+			"value": {
+				"dev": "HMI",
+				"code": "DISCONNECTED",
+				"state": false,
+				"error": "error description",
+				"since": 1727199990.101,
+				"count": 1
+			}
+		}
+		*/
+
+		vl, _ := event.Value.(map[string]interface{})
+		body := make(map[string]interface{}, len(vl)+1)
+		for k, v := range vl {
+			body[k] = v
+		}
+		body["t"] = event.Timestamp
+
+		messageGroup.AddType("DRIVERCONSOLE_EVT").AddTypeVersion(1).BodyContent(body)
+
 	}
 
 	return messageGroup
