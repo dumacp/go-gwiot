@@ -20,7 +20,7 @@ const (
 // subEvent = "Events.Offline"
 )
 
-func connect(urli string, tk *oauth2.Token) (*nats.Conn, error) {
+func connect(urli string, ts oauth2.TokenSource) (*nats.Conn, error) {
 
 	uri, err := url.Parse(urli)
 	if err != nil {
@@ -33,9 +33,19 @@ func connect(urli string, tk *oauth2.Token) (*nats.Conn, error) {
 	if strings.Contains(uri.Scheme, "https") || strings.Contains(uri.Scheme, "wss") {
 		opts = append(opts, nats.Secure(tlsconfig))
 	}
-	if tk != nil {
-
-		opts = append(opts, nats.SetJwtBearer(func() string { return tk.AccessToken }))
+	if ts != nil {
+		// Token dinámico: nats.go invoca este callback en cada (re)conexión,
+		// incluidos sus auto-reconnects internos. Tomamos un token fresco del
+		// tokenSource (que auto-refresca si expiró) para no quedar atascados
+		// reconectando con un JWT vencido tras un corte largo.
+		opts = append(opts, nats.SetJwtBearer(func() string {
+			tk, err := ts.Token()
+			if err != nil {
+				logs.LogWarn.Printf("jwt bearer token error: %s", err)
+				return ""
+			}
+			return tk.AccessToken
+		}))
 	}
 
 	dialer := &CustomDialer{
@@ -67,8 +77,8 @@ func connect(urli string, tk *oauth2.Token) (*nats.Conn, error) {
 	return conn, nil
 }
 
-func connectWithJwt(url string, tk *oauth2.Token) (*nats.Conn, error) {
-	return connect(url, tk)
+func connectWithJwt(url string, ts oauth2.TokenSource) (*nats.Conn, error) {
+	return connect(url, ts)
 }
 
 func clientWithoutAuth(url string) (*nats.Conn, error) {

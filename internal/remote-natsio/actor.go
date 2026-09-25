@@ -33,12 +33,17 @@ const (
 	// collectionUsosData = "events"
 
 	INSTANCE_ID = "natsio-actor"
+
+	// backoff de reconexión: base 30s, duplicando hasta un tope de 3 min.
+	reconnectBaseInterval = 30 * time.Second
+	reconnectMaxInterval  = 3 * time.Minute
 )
 
 // RemoteActor remote actor
 type NatsActor struct {
 	lastReconnect      time.Time
 	lastReconnectToken time.Time
+	reconnectInterval  time.Duration // backoff progresivo entre reintentos de reconexión
 	url                string
 	orgID              string
 	groupName          string
@@ -73,6 +78,49 @@ type JwtConf struct {
 	ClientID     string
 	ClientSecret string
 	KeycloakURL  string
+}
+
+// authenticate obtiene un token OAuth2 válido. Si ya existe un tokenSource, lo
+// reusa: oauth2.TokenSource devuelve el token cacheado si sigue vigente (0
+// requests) y solo refresca vía refresh_token si expiró (1 request). Solo cuando
+// no hay tokenSource o su reuso falla se ejecuta el flujo completo de Keycloak
+// (discovery + password grant + userinfo). Esto evita rehacer las ~4 llamadas
+// HTTPS a Keycloak en cada intento de reconexión.
+func (a *NatsActor) authenticate() (*oauth2.Token, error) {
+	if a.jwtConf == nil {
+		return nil, fmt.Errorf("jwtConf is nil")
+	}
+	if a.tokenSource != nil {
+		if tk, err := a.tokenSource.Token(); err == nil {
+			logs.LogBuild.Printf("reuse cached token source (sin flujo keycloak completo)")
+			return tk, nil
+		} else {
+			logs.LogWarn.Printf("cached token source failed (%s), full keycloak flow", err)
+		}
+	}
+	fmt.Printf("jwtConf: %s\n", a.jwtConf)
+	contxtHttp := ContextWithHTTPClient(context.TODO())
+	a.contextHttp = contxtHttp
+	config, err := Oauth2Config(contxtHttp, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+	if err != nil {
+		return nil, err
+	}
+	a.config = config
+	tks, err := TokenSource(contxtHttp, config, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.User, a.jwtConf.Pass)
+	if err != nil {
+		return nil, err
+	}
+	userInfo, err := UserInfo(contxtHttp, tks, a.jwtConf.KeycloakURL, a.jwtConf.Realm)
+	if err != nil {
+		return nil, err
+	}
+	a.userInfo = userInfo
+	a.tokenSource = tks
+	tk, err := tks.Token()
+	if err != nil {
+		return nil, err
+	}
+	return tk, nil
 }
 
 func subscribe(ctx actor.Context, evs *eventstream.EventStream) *eventstream.Subscription {
@@ -135,13 +183,11 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 				}
 				a.userInfo = userInfo
 
-				tk, err := tks.Token()
-				if err != nil {
+				if _, err := tks.Token(); err != nil {
 					return err
 				}
 				a.tokenSource = tks
-				// fmt.Printf("token: %s\n", tk.AccessToken)
-				a.conn, err = connectWithJwt(a.url, tk)
+				a.conn, err = connectWithJwt(a.url, tks)
 				if err != nil {
 					return err
 				}
@@ -195,35 +241,14 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 				fmt.Println("  *****************     Renew TOKEN   *********************")
 				a.lastReconnectToken = time.Now()
 				if a.jwtConf != nil {
-					fmt.Printf("jwtConf: %s\n", a.jwtConf)
-					contxtHttp := ContextWithHTTPClient(context.TODO())
-					a.contextHttp = contxtHttp
-					config, err := Oauth2Config(contxtHttp, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
+					if _, err := a.authenticate(); err != nil {
+						return err
+					}
+					conn, err := connectWithJwt(a.url, a.tokenSource)
 					if err != nil {
 						return err
 					}
-					a.config = config
-					tks, err := TokenSource(contxtHttp, config, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.User, a.jwtConf.Pass)
-					if err != nil {
-						return err
-					}
-					userInfo, err := UserInfo(contxtHttp, tks, a.jwtConf.KeycloakURL, a.jwtConf.Realm)
-					if err != nil {
-						return err
-					}
-					a.userInfo = userInfo
-
-					tk, err := tks.Token()
-					if err != nil {
-						return err
-					}
-					// fmt.Printf("token: %s\n", tk.AccessToken)
-					a.tokenSource = tks
-
-					a.conn, err = connectWithJwt(a.url, tk)
-					if err != nil {
-						return err
-					}
+					a.conn = conn
 					fmt.Println("  *****************     Renewed TOKEN   *********************")
 				}
 			}
@@ -233,71 +258,71 @@ func (a *NatsActor) Receive(ctx actor.Context) {
 		}
 	case *Reconnect:
 		if a.conn != nil && (a.conn.IsConnected() || a.conn.IsReconnecting()) {
+			// conexión sana: reinicia el backoff
+			a.reconnectInterval = reconnectBaseInterval
+			break
+		}
+		interval := a.reconnectInterval
+		if interval < reconnectBaseInterval {
+			interval = reconnectBaseInterval
+		}
+		if time.Since(a.lastReconnect) <= interval {
+			// aún no toca reintentar (backoff en curso): no gasta red
 			break
 		}
 		if err := func() error {
-			t1 := a.lastReconnect
-			logs.LogBuild.Printf("last connect at -> %s", t1)
-			if time.Since(t1) > 30*time.Second {
-				logs.LogInfo.Printf("try RECONNECTING")
-				fmt.Println("  *****************     RECONNECT   *********************")
-				a.lastReconnect = time.Now()
-				var err error
-				if a.jwtConf != nil {
-					fmt.Printf("jwtConf: %s\n", a.jwtConf)
-					contxtHttp := ContextWithHTTPClient(context.TODO())
-					a.contextHttp = contxtHttp
-					config, err := Oauth2Config(contxtHttp, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.ClientID, a.jwtConf.ClientSecret)
-					if err != nil {
-						return err
-					}
-					a.config = config
-					tks, err := TokenSource(contxtHttp, config, a.jwtConf.KeycloakURL, a.jwtConf.Realm, a.jwtConf.User, a.jwtConf.Pass)
-					if err != nil {
-						return err
-					}
-					userInfo, err := UserInfo(contxtHttp, tks, a.jwtConf.KeycloakURL, a.jwtConf.Realm)
-					if err != nil {
-						return err
-					}
-					a.userInfo = userInfo
-
-					tk, err := tks.Token()
-					if err != nil {
-						return err
-					}
-					// fmt.Printf("token: %s\n", tk.AccessToken)
-					a.tokenSource = tks
-
-					a.conn, err = connectWithJwt(a.url, tk)
-					if err != nil {
-						return err
-					}
-					fmt.Println("  *****************     RECONNECTED   *********************")
-					a.js, err = a.conn.JetStream()
-					if err != nil {
-						return err
-					}
-					fmt.Println("  *****************     RECONNECTED JS  *********************")
-				} else {
-					a.conn, err = clientWithoutAuth(a.url)
-					if err != nil {
-						return err
-					}
-					a.js, err = a.conn.JetStream()
-					if err != nil {
-						return err
-					}
-					fmt.Println("  *****************     RECONNECTED   *********************")
+			logs.LogBuild.Printf("last connect at -> %s (backoff %s)", a.lastReconnect, interval)
+			logs.LogInfo.Printf("try RECONNECTING")
+			fmt.Println("  *****************     RECONNECT   *********************")
+			a.lastReconnect = time.Now()
+			if a.jwtConf != nil {
+				if _, err := a.authenticate(); err != nil {
+					return err
 				}
-				a.evs.Publish(&ConnectionResponse{
-					Conn: a.conn,
-				})
+				conn, err := connectWithJwt(a.url, a.tokenSource)
+				if err != nil {
+					return err
+				}
+				a.conn = conn
+				fmt.Println("  *****************     RECONNECTED   *********************")
+				js, err := a.conn.JetStream()
+				if err != nil {
+					return err
+				}
+				a.js = js
+				fmt.Println("  *****************     RECONNECTED JS  *********************")
+			} else {
+				conn, err := clientWithoutAuth(a.url)
+				if err != nil {
+					return err
+				}
+				a.conn = conn
+				js, err := a.conn.JetStream()
+				if err != nil {
+					return err
+				}
+				a.js = js
+				fmt.Println("  *****************     RECONNECTED   *********************")
 			}
+			a.evs.Publish(&ConnectionResponse{
+				Conn: a.conn,
+			})
 			return nil
 		}(); err != nil {
 			logs.LogWarn.Printf("connect nats error: %s", err)
+			// backoff exponencial ante fallo (30s -> 60 -> 120 -> 240 -> 300 tope)
+			if a.reconnectInterval < reconnectBaseInterval {
+				a.reconnectInterval = reconnectBaseInterval
+			}
+			a.reconnectInterval *= 2
+			if a.reconnectInterval > reconnectMaxInterval {
+				a.reconnectInterval = reconnectMaxInterval
+			}
+			logs.LogWarn.Printf("next reconnect backoff -> %s", a.reconnectInterval)
 			a.evs.Publish(&Disconnected{Error: err})
+		} else {
+			// éxito: reinicia el backoff
+			a.reconnectInterval = reconnectBaseInterval
 		}
 	case *localevents.GetGroupName:
 		ctx.Respond(&localevents.GetGroupNameResponse{GroupName: a.getGorupName()})
